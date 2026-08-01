@@ -27,7 +27,7 @@ class GameBot:
 
     def _init_window(self) -> tuple[int, tuple]:
         """ 取得視窗句柄與座標 """
-        
+
         hwnd = win32gui.FindWindow(None, self.game_title)
         if not hwnd:
             raise RuntimeError(f"沒匹配指定的視窗: {self.game_title}")
@@ -37,10 +37,6 @@ class GameBot:
         print(f"Camera window: {window_rect}")
         return hwnd, window_rect
     
-    def start(self):
-        self.display_screen()
-
-
 
     def capture_client_rect_frame(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
