@@ -3,7 +3,7 @@ import threading
 import keyboard
 import time
 import os
-
+import win32gui
 """
 自動撿拾
 
@@ -11,9 +11,14 @@ import os
 
 class Bat:
     def __init__(self):
+        #config
+        self.game_title = "新楓之谷：經典版"
+        self.auto_pick_delay = 0.3
         #初始化
         interception.auto_capture_devices(keyboard=True, mouse=False)
         self.enable_pick = False
+        self.MapleStory_hhwnd = self.is_MapleStory_window()
+
 
 
         
@@ -26,6 +31,16 @@ class Bat:
 
         #keeping run
         keyboard.wait()
+
+    def is_MapleStory_window(self):
+        print(self.game_title)
+        try:
+            MapleStory_hhwnd = win32gui.FindWindow(None,self.game_title) 
+            print(f"找到視窗{self.game_title}，窗柄{MapleStory_hhwnd}")
+            return MapleStory_hhwnd
+        except:
+            print(f"沒找到視窗{self.game_title}")
+            return False
 
     def swithch_pick_model(self):
 
@@ -40,8 +55,9 @@ class Bat:
 
     def auto_pick_up(self):
         while self.enable_pick is True:
-            interception.press("z")
-            time.sleep(0.1)
+            if win32gui.GetForegroundWindow() == self.MapleStory_hhwnd:
+                interception.press("z")
+            time.sleep(self.auto_pick_delay)
 
     def exit_process(self):
         print("退出結束")
