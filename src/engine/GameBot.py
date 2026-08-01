@@ -9,13 +9,11 @@ from src.utils.common import get_mask
 
 class GameBot:
     def __init__(self, config_path: str = "config/global.yaml"):
-
-
-        # 1. 讀取設定檔取得視窗標題
+        #config
         with open(config_path, "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
-
+        #init
         self.game_title = self.config["game"]["title"]
         self.hwnd, self.client_rect =  self._init_window()
         self.client_rect = None
@@ -29,6 +27,7 @@ class GameBot:
 
     def _init_window(self) -> tuple[int, tuple]:
         """ 取得視窗句柄與座標 """
+        
         hwnd = win32gui.FindWindow(None, self.game_title)
         if not hwnd:
             raise RuntimeError(f"沒匹配指定的視窗: {self.game_title}")
