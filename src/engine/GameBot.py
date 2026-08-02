@@ -171,56 +171,5 @@ class GameBot:
             
 
 
-        
-        '''判斷主角座標'''
-        frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
-
-        num_splits = max(1, self.template_w//self.split_width)
-        w_splits = self.template_w // num_splits
-
-        matches = []
-
-        #切片與匹配
-        for i in range(num_splits):
-            x_s = i * w_splits
-            x_e = (i+1) * w_splits  if i < num_splits-1 else self.template_w 
-
-            split_template = self.img_char_template_gray[:, x_s:x_e]
-            split_mask = self.img_char_template_mask[:, x_s:x_e]
-
-            result = cv2.matchTemplate(
-                frame_gray,split_template,cv2.TM_SQDIFF_NORMED,mask=split_mask
-            )
-            #debug
-            # cv2.imshow("split_template", split_template)
-            # cv2.waitKey(100)
-
-            # min_loc 是這一份切片「自己」在地圖上找到的最佳匹配左上角座標
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)  
-            loc = min_loc
-            score = min_val
-
-            matches.append({
-                "tag_type": f"{i+1}/{num_splits}",
-                "loc": loc,
-                "score": score,
-                "w": split_template.shape[1],
-                "h": split_template.shape[0],
-                "offset_x": x_s,
-            })
-
-        #找最好(分數最低)的
-        best = self.select_best_image(matches)
-
-        if best:
-        # 把切片拼回來，抓左上點
-            nametag_x = best["loc"][0] - best["offset_x"]
-            nametag_y = best["loc"][1]
-
-            cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
-            (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
-        else:
-            pass
-
 if __name__ == "__main__":
     pass
