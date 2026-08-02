@@ -105,7 +105,7 @@ class GameBot:
                             top_padding=0, bottom_padding=0, left_padding=0, right_padding=0):
         '''繪製ROI區塊，參數:frame,左上角座標,右下角座標,標籤名稱,顏色,線條粗細,擴大值'''
 
-
+        #Box變動算法
         left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
         right_bottom = (right_bottom[0] + right_padding, right_bottom[1] + bottom_padding)
 
