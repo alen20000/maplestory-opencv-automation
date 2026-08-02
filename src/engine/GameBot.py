@@ -12,7 +12,7 @@ import logging
 
 # --- 這裡放常數與參數設定 ---
 MAX_THRESHOLD = 0.07
-MIN_THRESHOLD = 0.8
+MIN_THRESHOLD = 0.6
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 log_dir = os.path.join(current_dir, "logs")
@@ -39,8 +39,9 @@ class GameBot:
         #init
         self.game_title = self.config["game"]["title"]
         self.hwnd = None
-        # self.client_rect = None
+
         self.last_loc = None  # 記住上一次找到的位置
+        self.char_center_loc = None
 
         #img about
         self.my_char_template_path = 'img/nametag/new_char.png'
@@ -87,6 +88,66 @@ class GameBot:
             # print("未找到角色")
             pass
 
+    def char_behavior(self):
+        '''邏輯: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+        if self.char_center_loc is None:
+            max_loc = self._bid_char()
+            self.char_center_loc = self.cent_coord(max_loc,self.my_char_template)
+            print(f"角色中心座標: {self.char_center_loc}")
+        else:
+            new_center = self.scan_scope()
+
+
+            
+    def scan_scope(self):
+        '''範圍掃描，以角色中心座標為中心,做範圍掃描'''
+        h_frame, w_frame = self.frame_bgr.shape[:2]
+        frame_processed = self.BGR2Binary(self.frame_bgr)
+        template = self.BGR2Binary(self.my_char_template)
+        h_tmpl, w_tmpl = template.shape[:2]
+
+
+        #人物中心座標
+        x,y = self.char_center_loc
+
+        # 設定搜尋範圍的大小（可以自行調整，例如以角色為中心向外擴展 100 像素）
+        top_offset, bottom_offset, left_offset, right_offset = 200,0,50,200
+
+        # 以中心座標 (x, y) 為基準，計算出上下左右邊界
+        left = max(0, x - left_offset)
+        top = max(0, y - top_offset)
+        right = min(w_frame, x + w_tmpl + right_offset)
+        bottom = min(h_frame, y + h_tmpl + bottom_offset)
+
+        #計算範圍
+        left_top = (left, top)
+        right_bottom = (right, bottom)
+        box_width = right - left
+        box_height = bottom - top
+        print(f"目前追蹤範圍的大小: 寬 {box_width} 像素, 高 {box_height} 像素")
+        #range of box
+        self.draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="偵測範圍",
+        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
+        #切割範圍
+        search_frame = frame_processed[top:bottom, left:right]
+        result = cv2.matchTemplate(search_frame ,template,cv2.TM_CCOEFF_NORMED)
+
+        #找到角色
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+        if max_val > MIN_THRESHOLD:
+            print(f"找到角色，Location:{max_loc}")
+            global_x = max_loc[0] + left
+            global_y = max_loc[1] + top
+            #更新新座標
+            self.char_center_loc = self.cent_coord((global_x, global_y), self.my_char_template)
+            return 
+        else:
+            print("未找到角色")
+            pass
+
+
+
     def cent_coord(self,loc,template) -> tuple[int,int]: 
         '''計算location中心點'''
         t_h,t_w = template.shape[:2]
@@ -101,6 +162,9 @@ class GameBot:
         left_top = (x - t_w//2, y - t_h//2)
         right_bottom = (x + t_w//2,y + t_h//2)
         return left_top,right_bottom
+
+
+    
     def draw_dectection_box(self,frame,left_top,right_bottom,label="Target",color=(0,255,0),thickness=2,
                             top_padding=0, bottom_padding=0, left_padding=0, right_padding=0):
         '''繪製ROI區塊，參數:frame,左上角座標,右下角座標,標籤名稱,顏色,線條粗細,擴大值'''
@@ -128,8 +192,11 @@ class GameBot:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         return binary
+
+
+
     def scan_full_screen(self):
-        '''全螢幕判斷'''
+        '''全螢幕掃描'''
         try:
             screen_rect = win32gui.GetClientRect(self.hwnd)
             screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
@@ -145,6 +212,8 @@ class GameBot:
         current_frame = np.array(current_frame)
         frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
         return frame_bgr
+
+    
     def screen_loop(self):
         '''全螢幕刷新'''
         
@@ -153,16 +222,20 @@ class GameBot:
                 self.frame_bgr = self.scan_full_screen()
                 """這裡放判斷opencv查找函式"""
 
-                max_loc = self._bid_char()
-                c_w,c_h = self.cent_coord(max_loc,self.my_char_template)
-                # print(f"角色中心點:({c_w},{c_h})")
-                left_top,right_bottom = self.get_roi_box(c_w,c_h,self.my_char_template)
-                # print(f"角色ROI區塊:({left_top},{right_bottom})")
-                self.draw_dectection_box(self.frame_bgr,left_top,right_bottom,label="我的角色",
+                self.char_behavior()
+                c_w,c_h = self.char_center_loc
+
+                #char's range of box
+                char_left_top,char_right_bottom = self.get_roi_box(c_w,c_h,self.my_char_template)
+                #delect range of box
+                delect_left_top,delect_right_bottom = self.get_roi_box(c_w,c_h,self.my_char_template)
+
+                #char's box
+                self.draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
                 top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
 
                 cv2.imshow("Game Debug View", self.frame_bgr)
-                if cv2.waitKey(33) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
@@ -170,6 +243,9 @@ class GameBot:
             cv2.destroyAllWindows()
             
 
+
+
+            
 
 if __name__ == "__main__":
     pass
