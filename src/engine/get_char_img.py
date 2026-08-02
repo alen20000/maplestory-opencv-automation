@@ -4,12 +4,13 @@ import cv2
 import numpy as np
 import win32gui
 import win32con
-import mss
+
 from PIL import ImageGrab
 from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
-import os
+
 ''''
 using preset nametag to mtach new char tag and save it as new img.
+
 '''
 MAX_THRESHOLD = 0.07
 class GetCharImg():
@@ -31,6 +32,7 @@ class GetCharImg():
         #char location 
         self.char_left_top = None
         self.char_right_bottom =None
+
     def run(self):
         self.connect_window()
         self.preload_img()
@@ -82,15 +84,12 @@ class GetCharImg():
         return frame_bgr
 
     def get_player_location(self,frame_bgr):
-        '''判斷主角座標'''
+        '''判斷人物角色位置'''
         frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
 
-        # max給少於一時補1
+
         num_splits = max(1, self.template_w//self.split_width)
         w_splits = self.template_w // num_splits
-        # 這是印在迴圈外面的開場白（正常換行即可）
-        # print(f"將模板圖片分割為 {num_splits} 個區塊，每個區塊寬度為 {SPITE_WIDTH} 像素。")
-
 
         matches = []
 
@@ -108,9 +107,8 @@ class GetCharImg():
             #debug
             # cv2.imshow("split_template", split_template)
             # cv2.waitKey(100)
-
-            # min_loc 是這一份切片「自己」在地圖上找到的最佳匹配左上角座標
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)  
+            
+            min_val, _, min_loc, _ = cv2.minMaxLoc(result)  
             loc = min_loc
             score = min_val
 
@@ -124,18 +122,21 @@ class GetCharImg():
             })
 
         #找最優(分數最低)項
-        best = self.select_best_image(matches)
+        best = self._select_best_image(matches)
         if best:
         # 把切片拼回，抓左上點
             nametag_x = best["loc"][0] - best["offset_x"]
             nametag_y = best["loc"][1]
+
+            self.char_left_top = (nametag_x, nametag_y)
+            self.char_right_bottom = (nametag_x + self.template_w, nametag_y + self.template_h)
 
             cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
             (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
         else:
             pass
 
-    def select_best_image(self,matches: list) -> dict:
+    def _select_best_image(self,matches: list) -> dict:
         '''選出分數最好(最小)的那個區塊and 不合格拋棄'''
         #防呆
         if not matches:
@@ -143,7 +144,7 @@ class GetCharImg():
         # 選出分數最好(最小)的那個區塊
         best = min(matches, key=lambda m: m["score"])
 
-        #閥值產茶
+        #閥值偵測
         if best["score"] > MAX_THRESHOLD:
             return None
         
@@ -180,7 +181,11 @@ class GetCharImg():
         x2,y2 = self.char_right_bottom
         crop_img = frame_bgr[y1:y2,x1:x2]
 
-        cv2.imwrite(self.new_char_img_path,crop_img)
+        result =cv2.imwrite(self.new_char_img_path,crop_img)
+        if result:
+            print(f"\n角色標籤已儲存至:{self.new_char_img_path}")
+        else:
+            print("角色標籤儲存失敗")
 
 if __name__ == "__main__":
     run = GetCharImg()

@@ -170,23 +170,7 @@ class GameBot:
             cv2.destroyAllWindows()
             
 
-    def select_best_image(self,matches: list) -> dict:
-        '''選出分數最好(最小)的那個區塊and 不合格拋棄'''
-        #防呆
-        if not matches:
-            return None
-        # 選出分數最好(最小)的那個區塊
-        best = min(matches, key=lambda m: m["score"])
 
-        #閥值產茶
-        if best["score"] > MAX_THRESHOLD:
-            return None
-        
-        print(f"\r最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}",end="", flush=True)
-
-        return best
-    
-    def get_player_location(self,frame_bgr):
         
         '''判斷主角座標'''
         frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
