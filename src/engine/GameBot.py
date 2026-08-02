@@ -5,7 +5,7 @@ import numpy as np
 import win32gui
 import mss
 from PIL import ImageGrab
-from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
+from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest,bring_to_front_and_center_origin
 
 # --- 這裡放常數與參數設定 ---
 MAX_THRESHOLD = 0.07
@@ -36,15 +36,20 @@ class GameBot:
         self.img_char_template_gray = None
         self.img_char_template_mask = None
         self.template_h, self.template_w = None, None
-
+        self.frame_bgr = None
 
     def run(self):
-        
-        print(self.game_title)
+
+        #預處理
         self.connect_window()
-        window_infront_dest(self.hwnd)
+        bring_to_front_and_center_origin(self.hwnd)
         self.preload_img()
-        self.display_screen()
+
+        #process
+        self.frame_bgr = self.scan_full_screen()
+        cv2.imshow("Game Debug View", self.frame_bgr)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def connect_window(self):
         self.hwnd,self.client_rect =  get_window_handle_and_rect_by(self.game_title)
@@ -65,7 +70,40 @@ class GameBot:
         #get hight and width of template
         self.template_h, self.template_w = self.img_char_template_gray.shape[:2]
 
+    def bid_char(self):
+        '''角色座標判斷'''
+    def BGR2Binary(self,img):
+    def scan_full_screen(self):
+        '''全螢幕判斷'''
+        try:
+            screen_rect = win32gui.GetDesktopRect()
+            screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
+            screen_rect_point_bottom_right = win32gui.ClientToScreen(self.hwnd, (screen_rect[2], screen_rect[3]))
+            screen_rect = (screen_rect_point_top_left[0], screen_rect_point_top_left[1], screen_rect_point_bottom_right[0], screen_rect_point_bottom_right[1])  
 
+        except Exception:
+            pass
+
+        #抓圖-轉陣-轉BRG
+        current_frame = ImageGrab.grab(bbox=screen_rect)
+        current_frame = np.array(current_frame)
+        frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
+
+        '''圖片取灰階並二值化'''
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        return binary
+        return frame_bgr
+
+    def screen_loop(self):
+        '''全螢幕刷新'''
+        while True:
+            self.frame_bgr = self.scan_full_screen()
+            cv2.imshow("Game Debug View", self.frame_bgr)
+            if cv2.waitKey(33) & 0xFF == ord('q'):
+                break
+    
     def _capture_client_rect_frame(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
 
@@ -153,10 +191,6 @@ class GameBot:
             (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
         else:
             pass
-
-        
-
-
     def display_screen(self):
         '''顯示畫面'''
         while True:

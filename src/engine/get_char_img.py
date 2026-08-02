@@ -39,7 +39,7 @@ class GetCharImg():
     def bring_to_front_and_center_origin(self):
         '''整理窗口位置'''
         window_infront_dest(self.hwnd)
-        # 就像 window.move(0, 0) 一樣簡單，只移動不改變大小
+
         win32gui.SetWindowPos((self.hwnd), 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
     def connect_window(self):
         self.hwnd, self.client_rect =  get_window_handle_and_rect_by(self.game_title)

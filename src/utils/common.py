@@ -43,3 +43,8 @@ def window_infront_dest(hwnd:int)->None:
         win32gui.SetForegroundWindow(hwnd)
     except Exception as e:
         print(f"置頂視窗失敗: {e}")
+
+def bring_to_front_and_center_origin(hwnd:int):
+    '''整理窗口位置'''
+    window_infront_dest(hwnd)
+    win32gui.SetWindowPos(hwnd, 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
