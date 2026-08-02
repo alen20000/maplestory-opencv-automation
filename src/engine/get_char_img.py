@@ -19,7 +19,7 @@ class GetCharImg():
         self.game_title = self.config["game"]["title"]
         self.nametag_path = 'img/nametag/example.png'
         self.hwnd,self.client_rect =None, None
-
+        self.new_char_img_path = 'img/nametag/new_char.png'
 
         #img
         self.img_char_template_gray = None
@@ -144,7 +144,7 @@ class GetCharImg():
 
         # 選出分數最好(最小)的那個區塊
         best = min(matches, key=lambda m: m["score"])
-        print(f"\n最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}")
+        print(f"\r最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}",end="", flush=True)
         return best
     def get_new_char_img(self):
 
@@ -155,11 +155,15 @@ class GetCharImg():
                 found =self.get_player_location(frame_bgr)
                 cv2.imshow("Game Debug View", frame_bgr)
                 #找到人物，觸發抓取在跳出
-                if found:
+
+                # 監聽按鍵"z"，控制拍照
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('z'):
                     self.save_match_char_img(frame_bgr)
                     break
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                # 檢查是不是按了 'q'
+                elif key == ord('q'):
                     break
             except RuntimeError as e:
                 print(e)
@@ -173,7 +177,7 @@ class GetCharImg():
         x2,y2 = self.char_right_bottom
         crop_img = frame_bgr[y1:y2,x1:x2]
 
-        cv2.imwrite("new_char_tag.png",crop_img)
+        cv2.imwrite(self.new_char_img_path,crop_img)
 
 if __name__ == "__main__":
     run = GetCharImg()
