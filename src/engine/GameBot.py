@@ -7,6 +7,10 @@ import mss
 from PIL import ImageGrab
 from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
 
+# --- 這裡放常數與參數設定 ---
+MAX_THRESHOLD = 0.07
+
+
 class GameBot:
     def __init__(self):
         #config
@@ -83,21 +87,28 @@ class GameBot:
         return frame_bgr
 
     def select_best_image(self,matches: list) -> dict:
-
+        '''選出分數最好(最小)的那個區塊and 不合格拋棄'''
+        #防呆
+        if not matches:
+            return None
         # 選出分數最好(最小)的那個區塊
         best = min(matches, key=lambda m: m["score"])
-        print(f"\n最佳匹配區塊: {best['tag_tycpe']}, 分數={best['score']:.4f}")
+
+        #閥值產茶
+        if best["score"] > MAX_THRESHOLD:
+            return None
+        
+        print(f"\r最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}",end="", flush=True)
+
         return best
+    
     def get_player_location(self,frame_bgr):
         
         '''判斷主角座標'''
         frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
 
-
         num_splits = max(1, self.template_w//self.split_width)
         w_splits = self.template_w // num_splits
-
-
 
         matches = []
 
@@ -133,14 +144,16 @@ class GameBot:
         #找最好(分數最低)的
         best = self.select_best_image(matches)
 
-        # 把「這個區塊找到的位置」換算回「整個名牌」的位置
-        # 因為找到的是這個切片的左上角，要扣掉這個切片的 offset_x 才能回推整個名牌的左上角
-        nametag_x = best["loc"][0] - best["offset_x"]
-        nametag_y = best["loc"][1]
+        if best:
+        # 把切片拼回來，抓左上點
+            nametag_x = best["loc"][0] - best["offset_x"]
+            nametag_y = best["loc"][1]
 
+            cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
+            (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
+        else:
+            pass
 
-        cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
-        (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
         
 
 
@@ -149,9 +162,7 @@ class GameBot:
         while True:
             try:
 
-
                 frame_bgr = self._capture_client_rect_frame()
-
                 self.get_player_location(frame_bgr)
 
                 cv2.imshow("Game Debug View", frame_bgr)

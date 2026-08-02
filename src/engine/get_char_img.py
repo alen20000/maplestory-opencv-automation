@@ -3,14 +3,15 @@ import yaml
 import cv2
 import numpy as np
 import win32gui
+import win32con
 import mss
 from PIL import ImageGrab
-from src.utils.common import get_mask, get_window_handle_and_rect_by
+from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
 import os
 ''''
 using preset nametag to mtach new char tag and save it as new img.
 '''
-
+MAX_THRESHOLD = 0.07
 class GetCharImg():
     def __init__(self):
         #config
@@ -33,8 +34,13 @@ class GetCharImg():
     def run(self):
         self.connect_window()
         self.preload_img()
+        self.bring_to_front_and_center_origin()
         self.get_new_char_img()
-
+    def bring_to_front_and_center_origin(self):
+        '''整理窗口位置'''
+        window_infront_dest(self.hwnd)
+        # 就像 window.move(0, 0) 一樣簡單，只移動不改變大小
+        win32gui.SetWindowPos((self.hwnd), 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
     def connect_window(self):
         self.hwnd, self.client_rect =  get_window_handle_and_rect_by(self.game_title)
         if self.hwnd :
@@ -45,8 +51,6 @@ class GetCharImg():
         """預先載入圖片"""  
         #loard_char_template
 
-
-
         self.img_char_template_gray = cv2.imread(self.nametag_path,cv2.IMREAD_GRAYSCALE)
         self.img_char_template_mask = cv2.imread(self.nametag_path,cv2.IMREAD_COLOR)
 
@@ -56,11 +60,6 @@ class GetCharImg():
         self.img_char_template_mask = get_mask(self.img_char_template_mask,(0, 255, 0)) 
         #get hight and width of template
         self.template_h, self.template_w = self.img_char_template_gray.shape[:2]
-
-    def show_img(self,img):
-        cv2.imshow('image',img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
     def _capture_client_rect_frame(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
@@ -126,33 +125,37 @@ class GetCharImg():
 
         #找最好(分數最低)的
         best = self.select_best_image(matches)
+        if best:
+        # 把切片拼回來，抓左上點
+            nametag_x = best["loc"][0] - best["offset_x"]
+            nametag_y = best["loc"][1]
 
-        # 把「這個區塊找到的位置」換算回「整個名牌」的位置
-        # 因為找到的是這個切片的左上角，要扣掉這個切片的 offset_x 才能回推整個名牌的左上角
-        nametag_x = best["loc"][0] - best["offset_x"]
-        nametag_y = best["loc"][1]
+            cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
+            (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
+        else:
+            pass
 
-        self.char_left_top = (nametag_x, nametag_y)
-        self.char_right_bottom = (nametag_x + self.template_w, nametag_y + self.template_h)
-
-        cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
-        (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
-
-        return True
-    
     def select_best_image(self,matches: list) -> dict:
-
+        '''選出分數最好(最小)的那個區塊and 不合格拋棄'''
+        #防呆
+        if not matches:
+            return None
         # 選出分數最好(最小)的那個區塊
         best = min(matches, key=lambda m: m["score"])
+
+        #閥值產茶
+        if best["score"] > MAX_THRESHOLD:
+            return None
+        
         print(f"\r最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}",end="", flush=True)
+
         return best
     def get_new_char_img(self):
-
-
+        '''顯示畫面、手動抓圖'''
         while True:
             try:
                 frame_bgr = self._capture_client_rect_frame()
-                found =self.get_player_location(frame_bgr)
+                self.get_player_location(frame_bgr)
                 cv2.imshow("Game Debug View", frame_bgr)
                 #找到人物，觸發抓取在跳出
 
