@@ -1,0 +1,75 @@
+2026-08-02 21:43:26,601 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 122, in screen_loop
+    cv2.imshow("Game Debug View", self.frame_bgr)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+
+2026-08-02 21:43:49,815 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 123, in screen_loop
+    cv2.imshow("Game Debug View", self.frame_bgr)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+
+2026-08-02 21:44:48,055 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 123, in screen_loop
+    cv2.imshow("Game Debug View", self.frame_bgr)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+
+2026-08-02 21:46:21,759 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 123, in screen_loop
+    cv2.imshow("Game Debug View", self.frame_bgr)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:951: error: (-215:Assertion failed) size.width>0 && size.height>0 in function 'cv::imshow'
+
+2026-08-02 22:12:54,318 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 113, in screen_loop
+    self._bid_char()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 81, in _bid_char
+    if result :
+       ^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-08-02 22:14:09,660 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 113, in screen_loop
+    self._bid_char()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 81, in _bid_char
+    if result :
+       ^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-08-02 22:14:21,578 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 113, in screen_loop
+    # self._bid_char()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 81, in _bid_char
+    if result :
+       ^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-08-02 22:15:17,587 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self._bid_char()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 80, in _bid_char
+    if result :
+       ^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-08-02 23:32:22,232 [ERROR] screen_loop 發生例外錯誤: 'GameBot' object has no attribute 'draw_dectection_box'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 159, in screen_loop
+    self.draw_dectection_box(self.frame_bgr,left_top,right_bottom,label="我的角色",top_padding=50)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameBot' object has no attribute 'draw_dectection_box'. Did you mean: 'draw_detection_box'?
+2026-08-02 23:32:36,404 [ERROR] screen_loop 發生例外錯誤: 'GameBot' object has no attribute 'draw_dectection_box'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 159, in screen_loop
+    self.draw_dectection_box(self.frame_bgr,left_top,right_bottom,label="我的角色",top_padding=50)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameBot' object has no attribute 'draw_dectection_box'. Did you mean: 'draw_detection_box'?

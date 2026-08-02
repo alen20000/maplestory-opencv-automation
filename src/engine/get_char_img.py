@@ -123,10 +123,10 @@ class GetCharImg():
                 "offset_x": x_s,
             })
 
-        #找最好(分數最低)的
+        #找最優(分數最低)項
         best = self.select_best_image(matches)
         if best:
-        # 把切片拼回來，抓左上點
+        # 把切片拼回，抓左上點
             nametag_x = best["loc"][0] - best["offset_x"]
             nametag_y = best["loc"][1]
 
