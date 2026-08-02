@@ -5,7 +5,7 @@ import numpy as np
 import win32gui
 import mss
 from PIL import ImageGrab
-from src.utils.common import get_mask, get_window_handle_and_rect_by
+from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
 
 class GameBot:
     def __init__(self):
@@ -20,7 +20,7 @@ class GameBot:
         self.template = None
         self.gray_frame = None
         self.frame_bgr = None
-        self.nametag_path = 'img/nametag/example.png'
+        self.nametag_path = 'img/nametag/new_char.png'
 
 
         self.last_loc = None  # 記住上一次找到的位置
@@ -38,6 +38,7 @@ class GameBot:
         
         print(self.game_title)
         self.connect_window()
+        window_infront_dest(self.hwnd)
         self.preload_img()
         self.display_screen()
 
@@ -85,7 +86,7 @@ class GameBot:
 
         # 選出分數最好(最小)的那個區塊
         best = min(matches, key=lambda m: m["score"])
-        print(f"\n最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}")
+        print(f"\n最佳匹配區塊: {best['tag_tycpe']}, 分數={best['score']:.4f}")
         return best
     def get_player_location(self,frame_bgr):
         

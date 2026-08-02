@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import win32gui
+import win32con
 def get_mask(img, ignore_pixel_color):
     '''
     產生前景遮罩:指定顏色的像素會被忽略
@@ -28,3 +29,17 @@ def get_window_handle_and_rect_by(title_name:str)-> tuple[int, tuple[int, int, i
 def padding_rect(rect,padding_value) -> tuple[tuple[int,int,int,int],int]:
     '''擴大''' 
     pass
+
+
+def window_infront_dest(hwnd:int)->None:
+    '''將視窗帶到最前台'''
+
+    try:
+        # 如果視窗被最小化了，先將它恢復正常大小
+        if win32gui.IsIconic(hwnd):
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+
+        # 將視窗帶到最前台
+        win32gui.SetForegroundWindow(hwnd)
+    except Exception as e:
+        print(f"置頂視窗失敗: {e}")
