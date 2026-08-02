@@ -5,17 +5,17 @@ import numpy as np
 import win32gui
 import mss
 from PIL import ImageGrab
-from src.utils.common import get_mask
+from src.utils.common import get_mask, get_window_handle_and_rect_by
 
 class GameBot:
-    def __init__(self, config_path: str = "config/global.yaml"):
+    def __init__(self):
         #config
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open('config/global.yaml', "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
         #init
         self.game_title = self.config["game"]["title"]
-        self.hwnd, self.client_rect =  self._init_window()
+        self.hwnd = None
         self.client_rect = None
         self.template = None
         self.gray_frame = None
@@ -25,18 +25,17 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.frame_count = 0  # 影格計數器
 
-    def _init_window(self) -> tuple[int, tuple]:
-        """ 取得視窗句柄與座標 """
+    def run(self):
+        print(self.game_title)
+        self.connect_window()
+        self.display_screen()
 
-        hwnd = win32gui.FindWindow(None, self.game_title)
-        if not hwnd:
-            raise RuntimeError(f"沒匹配指定的視窗: {self.game_title}")
-        print(f"成功讀取遊戲標題: {self.game_title}，視窗句柄: {hwnd}")
-
-        window_rect = win32gui.GetWindowRect(hwnd)
-        print(f"Camera window: {window_rect}")
-        return hwnd, window_rect
-    
+    def connect_window(self):
+        self.hwnd,self.client_rect =  get_window_handle_and_rect_by(self.game_title)
+        if self.hwnd :
+            print(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
+        else:
+            print(f"未匹配到指定窗口{self.game_title }")
 
     def capture_client_rect_frame(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
@@ -59,12 +58,8 @@ class GameBot:
         return frame_bgr
 
 
-    def draw_detection_range(self, frame: cv2.Mat) -> None:
-        """ 在畫面上繪製偵測範圍的矩形框 """
-        cv2.rectangle(frame, (0, 0), (100, 100), (0, 255, 0), 2)
-
-
     def get_player_location(self,frame_bgr):
+
         frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
         img_char_template_gray = cv2.imread(self.nametag_path,cv2.IMREAD_GRAYSCALE)
         img_char_template_mask = cv2.imread(self.nametag_path,cv2.IMREAD_COLOR)
@@ -128,7 +123,6 @@ class GameBot:
 
     def display_screen(self):
 
-
         print("開始擷取視窗畫面，按 'q' 鍵關閉")
 
         while True:
@@ -161,7 +155,4 @@ class GameBot:
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    # 建立實例並執行畫面擷取測試
-    time.sleep(3)
-    test = GameBot()
-    test.start()
+    pass
