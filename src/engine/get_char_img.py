@@ -6,60 +6,61 @@ import win32gui
 import mss
 from PIL import ImageGrab
 from src.utils.common import get_mask, get_window_handle_and_rect_by
+import os
+''''
+using preset nametag to mtach new char tag and save it as new img.
+'''
 
-class GameBot:
+class GetCharImg():
     def __init__(self):
         #config
         with open('config/global.yaml', "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
-
-        #init
         self.game_title = self.config["game"]["title"]
-        self.hwnd = None
-        self.client_rect = None
-        self.template = None
-        self.gray_frame = None
-        self.frame_bgr = None
         self.nametag_path = 'img/nametag/example.png'
+        self.hwnd,self.client_rect =None, None
 
-
-        self.last_loc = None  # 記住上一次找到的位置
-        self.frame_count = 0  # 影格計數器
-        #parameter
-        self.split_width = 40
 
         #img
         self.img_char_template_gray = None
         self.img_char_template_mask = None
         self.template_h, self.template_w = None, None
+        self.split_width = 40
 
-
+        #char location 
+        self.char_left_top = None
+        self.char_right_bottom =None
     def run(self):
-        
-        print(self.game_title)
         self.connect_window()
         self.preload_img()
-        self.display_screen()
+        self.get_new_char_img()
 
     def connect_window(self):
-        self.hwnd,self.client_rect =  get_window_handle_and_rect_by(self.game_title)
+        self.hwnd, self.client_rect =  get_window_handle_and_rect_by(self.game_title)
         if self.hwnd :
             print(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
         else:
             print(f"未匹配到指定窗口{self.game_title }")
     def preload_img(self):
-        """預先載入圖片"""
-
+        """預先載入圖片"""  
         #loard_char_template
+
+
+
         self.img_char_template_gray = cv2.imread(self.nametag_path,cv2.IMREAD_GRAYSCALE)
         self.img_char_template_mask = cv2.imread(self.nametag_path,cv2.IMREAD_COLOR)
+
+        if self.img_char_template_gray is None:
+            raise FileNotFoundError(f"找不到模板圖片，請確認路徑是否正確: {self.nametag_path}")
         #從遮罩模板轉遮罩
         self.img_char_template_mask = get_mask(self.img_char_template_mask,(0, 255, 0)) 
-
-
         #get hight and width of template
         self.template_h, self.template_w = self.img_char_template_gray.shape[:2]
 
+    def show_img(self,img):
+        cv2.imshow('image',img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def _capture_client_rect_frame(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
@@ -81,21 +82,15 @@ class GameBot:
 
         return frame_bgr
 
-    def select_best_image(self,matches: list) -> dict:
-
-        # 選出分數最好(最小)的那個區塊
-        best = min(matches, key=lambda m: m["score"])
-        print(f"\n最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}")
-        return best
     def get_player_location(self,frame_bgr):
-        
         '''判斷主角座標'''
         frame_gray = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
 
-
+        # max給少於一時補1
         num_splits = max(1, self.template_w//self.split_width)
         w_splits = self.template_w // num_splits
-
+        # 這是印在迴圈外面的開場白（正常換行即可）
+        # print(f"將模板圖片分割為 {num_splits} 個區塊，每個區塊寬度為 {SPITE_WIDTH} 像素。")
 
 
         matches = []
@@ -137,34 +132,50 @@ class GameBot:
         nametag_x = best["loc"][0] - best["offset_x"]
         nametag_y = best["loc"][1]
 
+        self.char_left_top = (nametag_x, nametag_y)
+        self.char_right_bottom = (nametag_x + self.template_w, nametag_y + self.template_h)
 
         cv2.rectangle(frame_bgr, (nametag_x, nametag_y),
         (nametag_x + self.template_w, nametag_y + self.template_h), (0, 255, 0), 2)
-        
+
+        return True
+    
+    def select_best_image(self,matches: list) -> dict:
+
+        # 選出分數最好(最小)的那個區塊
+        best = min(matches, key=lambda m: m["score"])
+        print(f"\n最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}")
+        return best
+    def get_new_char_img(self):
 
 
-    def display_screen(self):
-        '''顯示畫面'''
         while True:
             try:
-
-
                 frame_bgr = self._capture_client_rect_frame()
-
-                self.get_player_location(frame_bgr)
-
+                found =self.get_player_location(frame_bgr)
                 cv2.imshow("Game Debug View", frame_bgr)
+                #找到人物，觸發抓取在跳出
+                if found:
+                    self.save_match_char_img(frame_bgr)
+                    break
 
-                # 3. 偵測是否按下 'q' 鍵退出
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-                    
             except RuntimeError as e:
                 print(e)
                 break
 
-        # 釋放資源
         cv2.destroyAllWindows()
+    def save_match_char_img(self,frame_bgr):
+        '''crop char name screen '''
+
+        x1,y1 = self.char_left_top
+        x2,y2 = self.char_right_bottom
+        crop_img = frame_bgr[y1:y2,x1:x2]
+
+        cv2.imwrite("new_char_tag.png",crop_img)
 
 if __name__ == "__main__":
-    pass
+    run = GetCharImg()
+    time.sleep(2)
+    run.run()
