@@ -75,3 +75,14 @@ Traceback (most recent call last):
     top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
+2026-08-03 12:58:39,782 [ERROR] screen_loop 發生例外錯誤: 'GameBot' object has no attribute 'BGR2Binary'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 82, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in character_tracking_logic
+    max_loc = self._bid_char()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 111, in _bid_char
+    frame = self.BGR2Binary(self.frame_bgr)
+            ^^^^^^^^^^^^^^^
+AttributeError: 'GameBot' object has no attribute 'BGR2Binary'

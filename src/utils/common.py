@@ -90,8 +90,8 @@ def draw_dectection_box(frame,left_top,right_bottom,label="Target",color=(0,255,
     return frame
 
 
-def BGR2Binary(img):
-    '''圖片取灰階並二值化'''
+def BGR2Binary(img: np.ndarray) -> np.ndarray:
+    '''BGR 色彩影像轉換為灰階，再以灰階做二值化'''
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)

@@ -45,11 +45,14 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.character_center_loc = None
 
-        #img about
-        self.my_char_template_path = 'img/nametag/new_char.png'
-        self.my_char_template = None
-        self.template_h, self.template_w = None, None
+        #img parameters
+        self.my_character_template_path = 'img/nametag/new_char.png'
+        self.my_character_template = None
+        self.my_character_telplate_gray = None
+        self.my_character_telplate_h, self.my_character_telplate_w = None, None
         self.frame_bgr = None
+        
+        self.frame_h, self.frame_w = None, None
 
     def _connect_window(self):
         '''
@@ -61,130 +64,16 @@ class GameBot:
         else:
             print(f"未匹配到指定窗口{self.game_title }")
 
-    def run(self):
+    def _preload_img(self):
+        """預先載入圖片、提取參數"""
 
-        #pre_process
-        self._connect_window()
-        bring_to_front_and_center_origin(self.hwnd)
-        self.preload_img()
+        #loard_character_template
 
-        #process
-        self.screen_loop()
+        self.my_character_template = cv2.imread(self.my_character_template_path)
+        self.my_character_telplate_gray = BGR2Binary(self.my_character_template)
+        self.my_character_telplate_h, self.my_character_telplate_w = self.my_character_template.shape[:2]
 
-    def screen_loop(self):
-        '''全螢幕刷新'''
-        
-        try:
-            while True:
-                self.frame_bgr = self.scan_full_screen()
-                """這裡放判斷opencv查找函式"""
-
-                self.character_tracking_logic()
-                c_w,c_h = self.character_center_loc
-
-                #Character bounding box detection
-                char_left_top,char_right_bottom = get_roi_box(c_w,c_h,self.my_char_template)
-
-                #draw character bounding box
-                draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
-                top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
-
-                cv2.imshow("Game Debug View", self.frame_bgr)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-        except Exception as e:
-            logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
-        finally:
-            cv2.destroyAllWindows()
-
-
-    def preload_img(self):
-        """預先載入圖片"""
-
-        #loard_char_template
-        self.my_char_template = cv2.imread(self.my_char_template_path)
-        #get hight and width of template
-        self.template_h, self.template_w = self.my_char_template.shape[:2]
-
-    def _bid_char(self):
-        '''角色座標判斷(全圖掃描)'''
-        frame = self.BGR2Binary(self.frame_bgr)
-        template = self.BGR2Binary(self.my_char_template)
-        result = cv2.matchTemplate(frame,template,cv2.TM_CCOEFF_NORMED)
-
-        #找到角色
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-        if max_val > MAX_THRESHOLD:
-            # print(f"找到角色，Location:{max_loc}")
-            return max_loc
-        else:
-            # print("未找到角色")
-            pass
-
-    def character_tracking_logic(self):
-        '''邏輯: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
-        if self.character_center_loc is None:
-            max_loc = self._bid_char()
-            self.character_center_loc = cent_coord(max_loc,self.my_char_template)
-            print(f"角色中心座標: {self.character_center_loc}")
-        else:
-            new_center = self.scan_scope()
-
-    def scan_scope(self):
-        '''範圍掃描:角色中心座標為錨定,做範圍掃描'''
-        h_frame, w_frame = self.frame_bgr.shape[:2]
-        frame_processed = self.BGR2Binary(self.frame_bgr)
-        template = self.BGR2Binary(self.my_char_template)
-        h_tmpl, w_tmpl = template.shape[:2]
-
-        #人物中心座標
-        x,y = self.character_center_loc
-
-        # 設定搜尋範圍的大小（可以自行調整，例如以角色為中心向外擴展 100 像素）
-        top_offset, bottom_offset, left_offset, right_offset = 200,0,50,200
-
-        # 以中心座標 (x, y) 為基準，計算出上下左右邊界
-        left = max(0, x - left_offset)
-        top = max(0, y - top_offset)
-        right = min(w_frame, x + w_tmpl + right_offset)
-        bottom = min(h_frame, y + h_tmpl + bottom_offset)
-
-        #計算範圍
-        left_top = (left, top)
-        right_bottom = (right, bottom)
-        box_width = right - left
-        box_height = bottom - top
-        print(f"目前追蹤範圍的大小: 寬 {box_width} 像素, 高 {box_height} 像素")
-        #range of box
-        draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="偵測範圍",
-        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-
-        #切割範圍
-        search_frame = frame_processed[top:bottom, left:right]
-        result = cv2.matchTemplate(search_frame ,template,cv2.TM_CCOEFF_NORMED)
-
-        #找到角色
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-        if max_val > MIN_THRESHOLD:
-            print(f"找到角色，Location:{max_loc}")
-            global_x = max_loc[0] + left
-            global_y = max_loc[1] + top
-            #更新座標
-            self.character_center_loc = cent_coord((global_x, global_y), self.my_char_template)
-            return 
-        else:
-            print("未找到角色")
-            pass
-
-
-    def BGR2Binary(self,img):
-        '''圖片取灰階並二值化'''
-
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        return binary
-
-    def scan_full_screen(self):
+    def _scan_full_screen(self):
         '''全螢幕掃描'''
         try:
             screen_rect = win32gui.GetClientRect(self.hwnd)
@@ -201,13 +90,111 @@ class GameBot:
         current_frame = np.array(current_frame)
         frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
         return frame_bgr
+    def run(self):
 
-    
-            
-    def testing(self):
-        ''''''
+        #pre_process
+        self._connect_window()
+        #adjusying display window
+        bring_to_front_and_center_origin(self.hwnd)
+        self._preload_img()
 
-            
+        #process
+        self.screen_loop()
+
+    def screen_loop(self):
+        '''全螢幕刷新'''
+        
+        try:
+            while True:
+                self.frame_bgr = self._scan_full_screen()
+                """這裡放判斷opencv查找函式"""
+
+                self.character_tracking_logic()
+                c_w,c_h = self.character_center_loc
+
+                #Character bounding box detection
+                char_left_top,char_right_bottom = get_roi_box(c_w,c_h,self.my_character_template)
+
+                #draw character bounding box
+                draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
+                top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
+
+                cv2.imshow("Game Debug View", self.frame_bgr)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+        except Exception as e:
+            logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
+        finally:
+            cv2.destroyAllWindows()
+
+    def _locate_character(self):
+        '''角色座標判斷(全圖掃描)'''
+        current_frame = BGR2Binary(self.frame_bgr)
+
+        result = cv2.matchTemplate(current_frame,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+
+        #找到角色
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+        if max_val > MAX_THRESHOLD:
+            # print(f"找到角色，Location:{max_loc}")
+            return max_loc
+        else:
+            # print("未找到角色")
+            pass
+
+    def _scan_local_area(self):
+        '''ROI角色掃描:角色中心座標為錨定,做範圍掃描'''
+        #畫面與人物樣本取高寬、二階化
+        h_frame, w_frame = self.frame_bgr.shape[:2]
+        frame_processed = BGR2Binary(self.frame_bgr)
+
+        #人物中心座標
+        x,y = self.character_center_loc
+
+        # 設定搜尋範圍的大小（可以自行調整，例如以角色為中心向外擴展 100 像素）
+        top_offset, bottom_offset, left_offset, right_offset = 200,0,50,200
+
+        # 以中心座標 (x, y) 為基準，計算出上下左右邊界
+        left = max(0, x - left_offset)
+        top = max(0, y - top_offset)
+        right = min(w_frame, x + self.my_character_telplate_w + right_offset)
+        bottom = min(h_frame, y + self.my_character_telplate_h + bottom_offset)
+
+        #計算範圍
+        left_top = (left, top)
+        right_bottom = (right, bottom)
+        box_width = right - left
+        box_height = bottom - top
+        print(f"目前追蹤範圍的大小: 寬 {box_width} 像素, 高 {box_height} 像素")
+        #range of box
+        draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="偵測範圍",
+        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
+        #切割範圍
+        search_frame = frame_processed[top:bottom, left:right]
+        result = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+
+        #找到角色
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+        if max_val > MIN_THRESHOLD:
+            print(f"找到角色，Location:{max_loc}")
+            global_x = max_loc[0] + left
+            global_y = max_loc[1] + top
+            #更新座標
+            self.character_center_loc = cent_coord((global_x, global_y), self.my_character_template)
+            return 
+        else:
+            print("未找到角色")
+            pass
+
+    def character_tracking_logic(self):
+        '''邏輯: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+        if self.character_center_loc is None:
+            max_loc = self._locate_character()
+            self.character_center_loc = cent_coord(max_loc,self.my_character_template)
+            print(f"角色中心座標: {self.character_center_loc}")
+        else:
+            new_center = self._scan_local_area()
 
 if __name__ == "__main__":
     pass
