@@ -9,9 +9,8 @@ from src.utils.common import (get_mask, get_window_handle_and_rect_by,
 window_infront_dest,bring_to_front_and_center_origin,cent_coord,get_roi_box,draw_dectection_box,BGR2Binary
 )
 import os
-
 import logging
-
+from src.engine.MobHunting import MobDetector
 
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -205,9 +204,13 @@ class GameBot:
 
         if self.character_center_loc is None:
             #全圖掃
+
             max_loc = self._locate_character()
-            self.character_center_loc = cent_coord(max_loc,self.my_character_template)
-            # print(f"角色中心座標: {self.character_center_loc}")
+
+            #防止max_loc 為None時，取中心炸掉
+            if max_loc is None:
+                self.character_center_loc = cent_coord(max_loc,self.my_character_template)
+                # print(f"角色中心座標: {self.character_center_loc}")
         
         else:
             #進入ROI掃
@@ -220,6 +223,13 @@ class GameBot:
                     self.character_center_loc = None
                     self.dectect_False_count = 0
 
+    def Mobdector(self):
+        '''
+        傳輸畫面與中心原點座標
+        '''
+        #push data
+
+        pass
 
 if __name__ == "__main__":
     pass
