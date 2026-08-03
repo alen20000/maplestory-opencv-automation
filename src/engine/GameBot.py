@@ -48,7 +48,7 @@ class GameBot:
         #img parameters
         self.my_character_template_path = 'img/nametag/new_char.png'
         self.my_character_template = None
-        self.my_character_telplate_gray = None
+        self.my_character_telplate_binary = None
         self.my_character_telplate_h, self.my_character_telplate_w = None, None
         self.frame_bgr = None
         
@@ -70,7 +70,7 @@ class GameBot:
         #loard_character_template
 
         self.my_character_template = cv2.imread(self.my_character_template_path)
-        self.my_character_telplate_gray = BGR2Binary(self.my_character_template)
+        self.my_character_telplate_binary = BGR2Binary(self.my_character_template)
         self.my_character_telplate_h, self.my_character_telplate_w = self.my_character_template.shape[:2]
 
     def _scan_full_screen(self):
@@ -135,12 +135,12 @@ class GameBot:
         '''角色座標判斷(全圖掃描)'''
         current_frame = BGR2Binary(self.frame_bgr)
 
-        result = cv2.matchTemplate(current_frame,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(current_frame,self.my_character_telplate_binary,cv2.TM_CCOEFF_NORMED)
 
         #找到角色
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
         if max_val > MAX_THRESHOLD:
-            # print(f"全圖掃描找到角色，位置:{max_loc}")
+            print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
             return max_loc
         else:
             # print("全圖掃描，未找到角色")
@@ -156,44 +156,44 @@ class GameBot:
         role_x,role_y = self.character_center_loc
 
         # 設定搜尋範圍的大小（之後要移動到Config 用 yaml外部設定）
-        top_offset, bottom_offset, left_offset, right_offset = 300,50,300,300
+        x_offset, y_offset = 300,50
 
         # 以中心座標 (x, y) 為基準，計算出上下左右邊界
-        left = max(0, role_x - left_offset)
-        top = max(0, role_y  - top_offset)
-        right = min(w_frame, role_x + self.my_character_telplate_w + right_offset)
-        bottom = min(h_frame, role_y  + self.my_character_telplate_h + bottom_offset)
-        #計算範圍
+        left = max(0, role_x - x_offset)
+        top = max(0, role_y  - y_offset)
+        right = min(w_frame, role_x + self.my_character_telplate_w + x_offset)
+        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset)
+
+        #ROI範圍
         left_top = (left, top)
         right_bottom = (right, bottom)
-        box_width = right - left
-        box_height = bottom - top
-        # print(f"目前追蹤範圍的大小: 寬 {box_width} 像素, 高 {box_height} 像素")
-
 
 
         #切割搜查範圍:先切割再二值化
-        search_frame= BGR2Binary(self.frame_bgr)
+
         search_frame = self.frame_bgr[top:bottom, left:right]
         search_frame= BGR2Binary(search_frame)
 
         #匹配掃描中
-        matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+        matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_binary,cv2.TM_CCOEFF_NORMED)
         #從匹配中選擇最優為目標
         _, max_val, _, max_loc = cv2.minMaxLoc(matches)
         #目標過濾，通過為合格
         if max_val > MIN_THRESHOLD:
-            # print(f"找到角色，Location:{max_loc}")
+
+            print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
             # 1. 把區域座標 (max_loc) 加上 ROI 的偏移量 (left, top)，轉成全螢幕絕對座標
             global_loc = (max_loc[0] + left, max_loc[1] + top)
+
             #更新座標
             self.character_center_loc = cent_coord(global_loc , self.my_character_template)
+
             #在 frame_bgr 畫出ROI範圍
             draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="怪物偵測範圍",
             top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
             return 
         else:
-            print("未找到角色")
+            # print("未找到角色")
             pass
 
 

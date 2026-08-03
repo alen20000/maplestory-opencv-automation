@@ -179,3 +179,26 @@ Traceback (most recent call last):
     matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
 cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
 
+2026-08-03 15:10:44,513 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 204, in character_tracking_logic
+    self.character_center_loc = cent_coord(max_loc,self.my_character_template)
+                                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 57, in cent_coord
+    center_w = int(loc[0]+(t_w/2))
+                   ~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-03 15:10:55,068 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'search_frame' where it is not associated with a value
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 176, in _scan_local_area
+    search_frame= BGR2Binary(search_frame)
+                             ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'search_frame' where it is not associated with a value
