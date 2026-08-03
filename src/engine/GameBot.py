@@ -49,7 +49,7 @@ class GameBot:
         self.character_center_loc = None
 
         #img parameters
-        self.my_character_template_path = 'img/nametag/new_char.png'
+        self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'
         self.my_character_template = None
         self.my_character_template_gray = None
         self.my_character_telplate_binary = None
@@ -58,6 +58,10 @@ class GameBot:
         
         self.frame_h, self.frame_w = None, None
         self.dectect_False_count = 0
+        #Role ROI Range
+        self.ROI_left_top = None, None
+        self.ROI_right_bottom = None, None
+
     def _connect_window(self):
         '''
         bid gamewindow
@@ -166,10 +170,11 @@ class GameBot:
         right = min(w_frame, role_x + self.my_character_telplate_w + x_offset)
         bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset - 250 )
         #ROI範圍
-        left_top = (left, top)
-        right_bottom = (right, bottom)
+        self.ROI_left_top = (left, top)
 
-        #切割搜查範圍:先切割再二值化
+        self.ROI_right_bottom = (right, bottom)
+
+        #限定範圍: 先切割再轉灰階
         search_frame = self.frame_bgr[top:bottom, left:right]
         search_frame  =  cv2.cvtColor(search_frame, cv2.COLOR_BGR2GRAY)
         #匹配掃描中
@@ -182,12 +187,12 @@ class GameBot:
             print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
 
             global_loc = (max_loc[0] + left, max_loc[1] + top)
-
+            
             #更新座標
             self.character_center_loc = cent_coord(global_loc , self.my_character_template)
 
             #在 frame_bgr 畫出ROI範圍
-            draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="怪物偵測範圍",
+            draw_dectection_box(self.frame_bgr,self.ROI_left_top ,self.ROI_right_bottom,label="怪物偵測範圍",
             top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
             return  True
         else:
@@ -196,21 +201,22 @@ class GameBot:
 
 
     def character_tracking_logic(self):
-        '''邏輯: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
-        #全圖掃
+        '''method: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+
         if self.character_center_loc is None:
+            #全圖掃
             max_loc = self._locate_character()
             self.character_center_loc = cent_coord(max_loc,self.my_character_template)
             # print(f"角色中心座標: {self.character_center_loc}")
-        #進入ROI掃
+        
         else:
-           
+            #進入ROI掃
             fund_result = self._scan_local_area()
 
             #用回傳的True/False，來做失敗紀錄
             if not fund_result:
-               self.dectect_False_count += 1
-               if self.dectect_False_count > 10:
+                self.dectect_False_count += 1
+                if self.dectect_False_count > 10:
                     self.character_center_loc = None
                     self.dectect_False_count = 0
 
