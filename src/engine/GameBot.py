@@ -57,10 +57,10 @@ class GameBot:
         
         self.frame_h, self.frame_w = None, None
         self.dectect_False_count = 0
-        #Role ROI Range
+        #ROI Range
         self.ROI_left_top = None, None
         self.ROI_right_bottom = None, None
-
+        self.crop_frame_gray = None
     def _connect_window(self):
         '''
         bid gamewindow
@@ -88,9 +88,9 @@ class GameBot:
             screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
             screen_rect_point_bottom_right = win32gui.ClientToScreen(self.hwnd, (screen_rect[2], screen_rect[3]))
             screen_rect = (screen_rect_point_top_left[0], screen_rect_point_top_left[1], screen_rect_point_bottom_right[0], screen_rect_point_bottom_right[1])  
-            # print(f"DEBUG -> 全螢幕範圍: {screen_rect}，左上點:{screen_rect_point_top_left}，右下點:{screen_rect_point_bottom_right}")
+
         except Exception as e:
-            print(f"Error: {e}")
+            logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
             return None
 
         #抓圖-轉陣-轉BRG
@@ -119,17 +119,7 @@ class GameBot:
 
                 self.character_tracking_logic()
 
-                if self.character_center_loc is not None:
-                    c_w,c_h = self.character_center_loc
 
-                    #Character bounding box detection
-                    char_left_top,char_right_bottom = get_roi_box(c_w,c_h,self.my_character_template)
-
-                    #draw character bounding box
-                    draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
-                    top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
-                else:
-                    pass
 
                 cv2.imshow("Game Debug View", self.frame_bgr)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -140,7 +130,7 @@ class GameBot:
             cv2.destroyAllWindows()
 
     def _locate_character(self):
-        '''角色座標判斷(全圖掃描)'''
+        '''全圖掃描，角色座標判斷、繪製bounding box'''
         if MATCH_MODEL == 1:
             current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
             result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
@@ -170,14 +160,13 @@ class GameBot:
         bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset - 250 )
         #ROI範圍
         self.ROI_left_top = (left, top)
-
         self.ROI_right_bottom = (right, bottom)
 
         #限定範圍: 先切割再轉灰階
-        search_frame = self.frame_bgr[top:bottom, left:right]
-        search_frame  =  cv2.cvtColor(search_frame, cv2.COLOR_BGR2GRAY)
+        crop_frame = self.frame_bgr[top:bottom, left:right]
+        self.crop_frame_gray  =  cv2.cvtColor(crop_frame, cv2.COLOR_BGR2GRAY)
         #匹配掃描中
-        matches = cv2.matchTemplate(search_frame ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
+        matches = cv2.matchTemplate(self.crop_frame_gray ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
         #從匹配中選擇最優為目標
         _, max_val, _, max_loc = cv2.minMaxLoc(matches)
         #目標過濾，通過為合格
@@ -187,7 +176,7 @@ class GameBot:
 
             global_loc = (max_loc[0] + left, max_loc[1] + top)
             
-            #更新座標
+            #更新人物座標
             self.character_center_loc = cent_coord(global_loc , self.my_character_template)
 
             #在 frame_bgr 畫出ROI範圍
@@ -208,7 +197,8 @@ class GameBot:
             max_loc = self._locate_character()
 
             #防止max_loc 為None時，取中心炸掉
-            if max_loc is None:
+            if max_loc is not None:
+                #if max_loc is None ,trying+ to get character_center_loc
                 self.character_center_loc = cent_coord(max_loc,self.my_character_template)
                 # print(f"角色中心座標: {self.character_center_loc}")
         
@@ -222,13 +212,25 @@ class GameBot:
                 if self.dectect_False_count > 10:
                     self.character_center_loc = None
                     self.dectect_False_count = 0
+        #得到中心座標，則繪製bounding box
+        if self.character_center_loc is not None:
+            c_w,c_h = self.character_center_loc
+
+            #Character bounding box detection
+            char_left_top,char_right_bottom = get_roi_box(c_w,c_h,self.my_character_template)
+
+            #draw character bounding box
+            draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
+            top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
+        else:
+            pass
 
     def Mobdector(self):
         '''
-        傳輸畫面與中心原點座標
+        傳輸ROI範圍畫面與範圍座標
         '''
         #push data
-
+        MobDetector.searching_mob(self.crop_frame,self.ROI_left_top ,self.ROI_right_bottom)
         pass
 
 if __name__ == "__main__":

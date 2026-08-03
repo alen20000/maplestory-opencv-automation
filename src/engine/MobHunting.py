@@ -31,10 +31,16 @@ class MobDetector:
                     self.mobs_templates[mob_name] = mob_img
     def run(self):
         self._load_mob_templates()
-    def searching_mob(self,frame_bgr):
+
+    def searching_mob(self,crop_frame,left_top: tuple[int, int],right_bottom: tuple[int, int]):
         '''
-        接收畫面與人物中心座標
+        接收ROI範圍畫面與範圍座標
         '''
+        #
+
+
+        matches = cv2.matchTemplate(frame_gray,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
+
         pass
 
 
