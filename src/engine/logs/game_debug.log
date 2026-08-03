@@ -86,3 +86,96 @@ Traceback (most recent call last):
     frame = self.BGR2Binary(self.frame_bgr)
             ^^^^^^^^^^^^^^^
 AttributeError: 'GameBot' object has no attribute 'BGR2Binary'
+2026-08-03 14:09:31,113 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 109, in screen_loop
+    self.frame_bgr = self._scan_full_screen()
+                     ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 91, in _scan_full_screen
+    frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-03 14:37:22,692 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'count' where it is not associated with a value
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 209, in character_tracking_logic
+    count += 1
+    ^^^^^
+UnboundLocalError: cannot access local variable 'count' where it is not associated with a value
+2026-08-03 14:37:32,078 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'count' where it is not associated with a value
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 209, in character_tracking_logic
+    count += 1
+    ^^^^^
+UnboundLocalError: cannot access local variable 'count' where it is not associated with a value
+2026-08-03 14:53:18,264 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'search_frame' where it is not associated with a value
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 207, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 177, in _scan_local_area
+    search_frame= BGR2Binary(search_frame)
+                             ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'search_frame' where it is not associated with a value
+2026-08-03 14:53:49,399 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
+    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+
+2026-08-03 14:54:33,190 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
+    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+
+2026-08-03 14:56:23,968 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
+    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+
+2026-08-03 14:56:33,887 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
+    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+
+2026-08-03 14:57:01,981 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
+    self.character_tracking_logic()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
+    fund_result = self._scan_local_area()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
+    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
+

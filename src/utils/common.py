@@ -51,7 +51,7 @@ def bring_to_front_and_center_origin(hwnd:int):
     win32gui.SetWindowPos(hwnd, 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
 
 
-def cent_coord(loc,template) -> tuple[int,int]: 
+def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]: 
     '''計算location中心點'''
     t_h,t_w = template.shape[:2]
     center_w = int(loc[0]+(t_w/2))
