@@ -1,9 +1,7 @@
-import time
 import yaml
 import cv2
 import numpy as np
 import win32gui
-import mss
 from PIL import ImageGrab
 from src.utils.common import (get_mask, get_window_handle_and_rect_by,
 window_infront_dest,bring_to_front_and_center_origin,cent_coord,get_roi_box,draw_dectection_box,BGR2Binary
@@ -11,6 +9,7 @@ window_infront_dest,bring_to_front_and_center_origin,cent_coord,get_roi_box,draw
 import os
 import logging
 from src.engine.MobHunting import MobDetector
+import ctypes
 
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,13 +26,14 @@ logging.basicConfig(
     encoding='utf-8'
 )
 
-
 # --- 遊戲掃描模式 ---
 # 1 為 grayscale 2 為 測試模式
 MATCH_MODEL = 1
 # --- 這裡放常數與參數設定 ---
 MAX_THRESHOLD = 0.07
 MIN_THRESHOLD = 0.6
+
+
 class GameBot:
     def __init__(self):
         #config
@@ -82,7 +82,7 @@ class GameBot:
         self.my_character_telplate_h, self.my_character_telplate_w = self.my_character_template.shape[:2]
 
     def _scan_full_screen(self):
-        '''全螢幕掃描'''
+        '''以窗柄去掃描遊戲畫面'''
         try:
             screen_rect = win32gui.GetClientRect(self.hwnd)
             screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
@@ -100,7 +100,15 @@ class GameBot:
         return frame_bgr
     def run(self):
 
-        #pre_process
+        """#pre_process"""
+        # 強制讓 Python 程式識別真實的螢幕 DPI 像素，避免抓圖範圍縮水
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except:
+                pass
         self._connect_window()
         #adjusying display window
         bring_to_front_and_center_origin(self.hwnd)
@@ -118,8 +126,6 @@ class GameBot:
                 """這裡放判斷opencv查找函式"""
 
                 self.character_tracking_logic()
-
-
 
                 cv2.imshow("Game Debug View", self.frame_bgr)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
