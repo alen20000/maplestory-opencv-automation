@@ -13,7 +13,7 @@ using preset nametag to mtach new char tag and save it as new img.
 
 '''
 MAX_THRESHOLD = 0.07
-class GetCharImg():
+class GetRoleImg():
     def __init__(self):
         #config
         with open('config/global.yaml', "r", encoding="utf-8") as f:
@@ -21,7 +21,7 @@ class GetCharImg():
         self.game_title = self.config["game"]["title"]
         self.nametag_path = 'img/nametag/example.png'
         self.hwnd,self.client_rect =None, None
-        self.new_char_img_path = 'img/nametag/new_char.png'
+        self.MyRole_img_path = 'img/nametag/MyRoleNameTag.png'
 
         #img
         self.img_char_template_gray = None
@@ -181,9 +181,9 @@ class GetCharImg():
         x2,y2 = self.char_right_bottom
         crop_img = frame_bgr[y1:y2,x1:x2]
 
-        result =cv2.imwrite(self.new_char_img_path,crop_img)
+        result =cv2.imwrite(self.MyRole_img_path,crop_img)
         if result:
-            print(f"\n角色標籤已儲存至:{self.new_char_img_path}")
+            print(f"\n角色標籤已儲存至:{self.MyRole_img_path}")
         else:
             print("角色標籤儲存失敗")
 

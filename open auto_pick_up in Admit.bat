@@ -8,5 +8,5 @@ fltmc >nul 2>&1 || (
 
 :: 切換到腳本所在目錄並執行
 cd /d "%~dp0"
-python auto_suup.py
+python auto_pick_up.py
 pause
