@@ -12,9 +12,7 @@ import os
 
 import logging
 
-# --- 這裡放常數與參數設定 ---
-MAX_THRESHOLD = 0.07
-MIN_THRESHOLD = 0.6
+
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 log_dir = os.path.join(current_dir, "logs")
@@ -31,7 +29,12 @@ logging.basicConfig(
 )
 
 
-
+# --- 遊戲掃描模式 ---
+# 1 為 grayscale 2 為 測試模式
+MATCH_MODEL = 1
+# --- 這裡放常數與參數設定 ---
+MAX_THRESHOLD = 0.07
+MIN_THRESHOLD = 0.6
 class GameBot:
     def __init__(self):
         #config
@@ -48,6 +51,7 @@ class GameBot:
         #img parameters
         self.my_character_template_path = 'img/nametag/new_char.png'
         self.my_character_template = None
+        self.my_character_template_gray = None
         self.my_character_telplate_binary = None
         self.my_character_telplate_h, self.my_character_telplate_w = None, None
         self.frame_bgr = None
@@ -70,6 +74,7 @@ class GameBot:
         #loard_character_template
 
         self.my_character_template = cv2.imread(self.my_character_template_path)
+        self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
         self.my_character_telplate_binary = BGR2Binary(self.my_character_template)
         self.my_character_telplate_h, self.my_character_telplate_w = self.my_character_template.shape[:2]
 
@@ -133,56 +138,49 @@ class GameBot:
 
     def _locate_character(self):
         '''角色座標判斷(全圖掃描)'''
-        current_frame = BGR2Binary(self.frame_bgr)
+        if MATCH_MODEL == 1:
+            current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
+            result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
 
-        result = cv2.matchTemplate(current_frame,self.my_character_telplate_binary,cv2.TM_CCOEFF_NORMED)
-
-        #找到角色
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-        if max_val > MAX_THRESHOLD:
-            print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
-            return max_loc
-        else:
-            # print("全圖掃描，未找到角色")
-            pass
+            #找到角色
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            if max_val > MAX_THRESHOLD:
+                print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
+                return max_loc
+            else:
+                # print("全圖掃描，未找到角色")
+                pass
 
     def _scan_local_area(self):
         '''ROI角色掃描:角色中心座標為錨定,做範圍掃描'''
+
         #畫面與人物樣本取高寬、二階化
         h_frame, w_frame = self.frame_bgr.shape[:2]
-        # frame_Binary = BGR2Binary(self.frame_bgr)
-
         #人物中心座標
         role_x,role_y = self.character_center_loc
-
         # 設定搜尋範圍的大小（之後要移動到Config 用 yaml外部設定）
-        x_offset, y_offset = 300,50
-
+        x_offset, y_offset = 300,250
         # 以中心座標 (x, y) 為基準，計算出上下左右邊界
         left = max(0, role_x - x_offset)
         top = max(0, role_y  - y_offset)
         right = min(w_frame, role_x + self.my_character_telplate_w + x_offset)
-        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset)
-
+        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset - 250 )
         #ROI範圍
         left_top = (left, top)
         right_bottom = (right, bottom)
 
-
         #切割搜查範圍:先切割再二值化
-
         search_frame = self.frame_bgr[top:bottom, left:right]
-        search_frame= BGR2Binary(search_frame)
-
+        search_frame  =  cv2.cvtColor(search_frame, cv2.COLOR_BGR2GRAY)
         #匹配掃描中
-        matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_binary,cv2.TM_CCOEFF_NORMED)
+        matches = cv2.matchTemplate(search_frame ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
         #從匹配中選擇最優為目標
         _, max_val, _, max_loc = cv2.minMaxLoc(matches)
         #目標過濾，通過為合格
         if max_val > MIN_THRESHOLD:
 
             print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
-            # 1. 把區域座標 (max_loc) 加上 ROI 的偏移量 (left, top)，轉成全螢幕絕對座標
+
             global_loc = (max_loc[0] + left, max_loc[1] + top)
 
             #更新座標
@@ -191,21 +189,25 @@ class GameBot:
             #在 frame_bgr 畫出ROI範圍
             draw_dectection_box(self.frame_bgr,left_top ,right_bottom,label="怪物偵測範圍",
             top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-            return 
+            return  True
         else:
-            # print("未找到角色")
-            pass
+            print("ROI掃描失敗")
+            return False
 
 
     def character_tracking_logic(self):
         '''邏輯: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+        #全圖掃
         if self.character_center_loc is None:
             max_loc = self._locate_character()
             self.character_center_loc = cent_coord(max_loc,self.my_character_template)
             # print(f"角色中心座標: {self.character_center_loc}")
+        #進入ROI掃
         else:
-           #用回傳的True/False，來做分流
+           
             fund_result = self._scan_local_area()
+
+            #用回傳的True/False，來做失敗紀錄
             if not fund_result:
                self.dectect_False_count += 1
                if self.dectect_False_count > 10:

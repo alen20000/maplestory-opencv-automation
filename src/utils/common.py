@@ -26,11 +26,6 @@ def get_window_handle_and_rect_by(title_name:str)-> tuple[int, tuple[int, int, i
     return hwnd, window_rect
 
 
-def padding_rect(rect,padding_value) -> tuple[tuple[int,int,int,int],int]:
-    '''擴大''' 
-    pass
-
-
 def window_infront_dest(hwnd:int)->None:
     '''將視窗帶到最前台'''
 
