@@ -50,3 +50,28 @@ Traceback (most recent call last):
     result = cv2.matchTemplate(search_frame ,template,cv2.TM_CCOEFF_NORMED)
 cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
 
+2026-08-03 12:09:30,305 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 222, in screen_loop
+    self.frame_bgr = self.scan_full_screen()
+                     ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 213, in scan_full_screen
+    frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-03 12:29:33,293 [ERROR] screen_loop 發生例外錯誤: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 192, in screen_loop
+    draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
+2026-08-03 12:29:47,998 [ERROR] screen_loop 發生例外錯誤: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 213, in screen_loop
+    draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
