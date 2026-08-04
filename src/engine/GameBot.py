@@ -63,7 +63,7 @@ class GameBot:
         self.crop_frame_gray = None
     def _connect_window(self):
         '''
-        bid gamewindow
+        hook the game window
         '''
         self.hwnd,self.client_rect =  get_window_handle_and_rect_by(self.game_title)
         if self.hwnd :
@@ -73,8 +73,6 @@ class GameBot:
 
     def _preload_img(self):
         """預先載入圖片、提取參數"""
-
-        #loard_character_template
 
         self.my_character_template = cv2.imread(self.my_character_template_path)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
@@ -126,7 +124,7 @@ class GameBot:
                 """這裡放判斷opencv查找函式"""
 
                 self.character_tracking_logic()
-
+                self.Mobdector()
                 cv2.imshow("Game Debug View", self.frame_bgr)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -163,7 +161,7 @@ class GameBot:
         left = max(0, role_x - x_offset)
         top = max(0, role_y  - y_offset)
         right = min(w_frame, role_x + self.my_character_telplate_w + x_offset)
-        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset - 250 )
+        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset -250 )
         #ROI範圍
         self.ROI_left_top = (left, top)
         self.ROI_right_bottom = (right, bottom)
@@ -178,7 +176,7 @@ class GameBot:
         #目標過濾，通過為合格
         if max_val > MIN_THRESHOLD:
 
-            print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
+            # print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
 
             global_loc = (max_loc[0] + left, max_loc[1] + top)
             
@@ -235,9 +233,11 @@ class GameBot:
         '''
         傳輸ROI範圍畫面與範圍座標
         '''
-        #push data
-        MobDetector.searching_mob(self.crop_frame,self.ROI_left_top ,self.ROI_right_bottom)
-        pass
+        if self.crop_frame_gray is not None:
+            #push data
+            mob_detector = MobDetector()
+            mob_detector.searching_mob(self.crop_frame_gray)
+
 
 if __name__ == "__main__":
     pass

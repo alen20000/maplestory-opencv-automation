@@ -1,227 +1,66 @@
-2026-08-03 02:57:21,215 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
+2026-08-05 07:20:12,726 [ERROR] screen_loop 發生例外錯誤: MobDetector.searching_mob() takes 2 positional arguments but 3 were given
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 229, in screen_loop
-    self.char_behavior()
-    ~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 98, in char_behavior
-    new_center = self.scan_scope()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 137, in scan_scope
-    result = cv2.matchTemplate(search_frame ,template,cv2.TM_CCOEFF_NORMED)
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
+    mob_detector.searching_mob(self,self.crop_frame_gray)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: MobDetector.searching_mob() takes 2 positional arguments but 3 were given
+2026-08-05 07:22:15,050 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.simd_helpers.hpp:92: error: (-15:Bad number of channels) in function '__cdecl cv::impl::`anonymous-namespace'::CvtHelper<struct cv::impl::`anonymous namespace'::Set<3,4,-1>,struct cv::impl::A0xa0d16e95::Set<1,-1,-1>,struct cv::impl::A0xa0d16e95::Set<0,2,5>,4>::CvtHelper(const class cv::_InputArray &,const class cv::_OutputArray &,int)'
+> Invalid number of channels in input image:
+>     'VScn::contains(scn)'
+> where
+>     'scn' is 1
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
+    mob_detector.searching_mob(self.crop_frame_gray)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 59, in searching_mob
+    self._load_mob_templates()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 47, in _load_mob_templates
+    self.mobs_templates[name] = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.simd_helpers.hpp:92: error: (-15:Bad number of channels) in function '__cdecl cv::impl::`anonymous-namespace'::CvtHelper<struct cv::impl::`anonymous namespace'::Set<3,4,-1>,struct cv::impl::A0xa0d16e95::Set<1,-1,-1>,struct cv::impl::A0xa0d16e95::Set<0,2,5>,4>::CvtHelper(const class cv::_InputArray &,const class cv::_OutputArray &,int)'
+> Invalid number of channels in input image:
+>     'VScn::contains(scn)'
+> where
+>     'scn' is 1
+
+2026-08-05 07:22:55,772 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
+    mob_detector.searching_mob(self.crop_frame_gray)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 59, in searching_mob
+    matches = cv2.matchTemplate(crop_frame_gray,img,cv2.TM_CCOEFF_NORMED)
 cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
 
-2026-08-03 02:59:36,095 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
+2026-08-05 07:26:36,537 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object has no attribute 'shape'
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 242, in screen_loop
-    c_w,c_h = self.char_center_loc
-    ^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-03 03:01:30,191 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
+    mob_detector.searching_mob(self.crop_frame_gray)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 56, in searching_mob
+    print(f"目前 ROI 畫面尺寸: {crop_frame_gray.shape}")
+                                ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'shape'
+2026-08-05 07:29:05,605 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 244, in screen_loop
-    c_w,c_h = self.char_center_loc
-    ^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-03 03:02:12,484 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 244, in screen_loop
-    c_w,c_h = self.char_center_loc
-    ^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-03 03:06:20,061 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 244, in screen_loop
-    c_w,c_h = self.char_center_loc
-    ^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-03 03:06:39,242 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 244, in screen_loop
-    c_w,c_h = self.char_center_loc
-    ^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-03 03:09:28,436 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 229, in screen_loop
-    self.char_behavior()
-    ~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 98, in char_behavior
-    new_center = self.scan_scope()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 137, in scan_scope
-    result = cv2.matchTemplate(search_frame ,template,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
-
-2026-08-03 12:09:30,305 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 222, in screen_loop
-    self.frame_bgr = self.scan_full_screen()
-                     ~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 213, in scan_full_screen
-    frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
-
-2026-08-03 12:29:33,293 [ERROR] screen_loop 發生例外錯誤: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 192, in screen_loop
-    draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
-    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
-2026-08-03 12:29:47,998 [ERROR] screen_loop 發生例外錯誤: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 213, in screen_loop
-    draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
-    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: draw_dectection_box() missing 1 required positional argument: 'right_bottom'
-2026-08-03 12:58:39,782 [ERROR] screen_loop 發生例外錯誤: 'GameBot' object has no attribute 'BGR2Binary'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 82, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in character_tracking_logic
-    max_loc = self._bid_char()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 111, in _bid_char
-    frame = self.BGR2Binary(self.frame_bgr)
-            ^^^^^^^^^^^^^^^
-AttributeError: 'GameBot' object has no attribute 'BGR2Binary'
-2026-08-03 14:09:31,113 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 109, in screen_loop
-    self.frame_bgr = self._scan_full_screen()
-                     ~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 91, in _scan_full_screen
-    frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
-
-2026-08-03 14:37:22,692 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'count' where it is not associated with a value
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 209, in character_tracking_logic
-    count += 1
-    ^^^^^
-UnboundLocalError: cannot access local variable 'count' where it is not associated with a value
-2026-08-03 14:37:32,078 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'count' where it is not associated with a value
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 209, in character_tracking_logic
-    count += 1
-    ^^^^^
-UnboundLocalError: cannot access local variable 'count' where it is not associated with a value
-2026-08-03 14:53:18,264 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'search_frame' where it is not associated with a value
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 207, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 177, in _scan_local_area
-    search_frame= BGR2Binary(search_frame)
-                             ^^^^^^^^^^^^
-UnboundLocalError: cannot access local variable 'search_frame' where it is not associated with a value
-2026-08-03 14:53:49,399 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-
-2026-08-03 14:54:33,190 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-
-2026-08-03 14:56:23,968 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-
-2026-08-03 14:56:33,887 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-
-2026-08-03 14:57:01,981 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 181, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1168: error: (-215:Assertion failed) (depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2 in function 'cv::matchTemplate'
-
-2026-08-03 15:10:44,513 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 204, in character_tracking_logic
-    self.character_center_loc = cent_coord(max_loc,self.my_character_template)
-                                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 57, in cent_coord
-    center_w = int(loc[0]+(t_w/2))
-                   ~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-03 15:10:55,068 [ERROR] screen_loop 發生例外錯誤: cannot access local variable 'search_frame' where it is not associated with a value
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 112, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 208, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 176, in _scan_local_area
-    search_frame= BGR2Binary(search_frame)
-                             ^^^^^^^^^^^^
-UnboundLocalError: cannot access local variable 'search_frame' where it is not associated with a value
-2026-08-03 15:48:33,439 [ERROR] screen_loop 發生例外錯誤: 'GameBot' object has no attribute 'my_character_telplate_gray'
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 117, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 224, in character_tracking_logic
-    fund_result = self._scan_local_area()
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 194, in _scan_local_area
-    matches = cv2.matchTemplate(search_frame ,self.my_character_telplate_gray,cv2.TM_CCOEFF_NORMED)
-                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'GameBot' object has no attribute 'my_character_telplate_gray'. Did you mean: 'my_character_template_gray'?
-2026-08-03 15:52:50,300 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 117, in screen_loop
-    self.character_tracking_logic()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 202, in character_tracking_logic
-    self.character_center_loc = cent_coord(max_loc,self.my_character_template)
-                                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 52, in cent_coord
-    center_w = int(loc[0]+(t_w/2))
-                   ~~~^^^
-TypeError: 'NoneType' object is not subscriptable
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 236, in Mobdector
+    if self.crop_frame_gray:
+       ^^^^^^^^^^^^^^^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()

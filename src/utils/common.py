@@ -47,7 +47,11 @@ def bring_to_front_and_center_origin(hwnd:int):
 
 
 def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]: 
-    '''計算location中心點'''
+    '''
+    計算location中心點
+    這裡輸入是 (x,y) ；輸出是 (x,y)
+    '''
+    # 該死，.shape[:2] 會是回傳 (y, x)
     t_h,t_w = template.shape[:2]
     center_w = int(loc[0]+(t_w/2))
     center_h = int(loc[1]+(t_h/2))
@@ -55,9 +59,12 @@ def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]:
 
 
 def get_roi_box(x,y,template) -> tuple[tuple[int,int],tuple[int,int]]:
-    '''計算ROI區塊'''
-
-    t_h, t_w = template.shape[:2]
+    '''
+    計算ROI區塊
+    這裡輸入是 (x,y) ；輸出是 (x,y)
+    '''
+    # 該死，.shape[:2] 會是回傳 (y, x)
+    t_h,t_w = template.shape[:2]
     left_top = (x - t_w//2, y - t_h//2)
     right_bottom = (x + t_w//2,y + t_h//2)
     return left_top,right_bottom
