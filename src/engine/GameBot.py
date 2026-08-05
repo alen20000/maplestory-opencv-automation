@@ -142,7 +142,7 @@ class GameBot:
                 ================
                 '''
                 self.player_tracking_logic()
-                self.Mobdector()
+                mobs_result = self.Mobdector()
 
 
 
@@ -265,17 +265,19 @@ class GameBot:
             #push data
             mob_detector = MobDetector()
             mob_result = mob_detector.searching_mob(self.roi_crop_frame_gray)
-            print(mob_result)
-            # if  mob_result is None:
-            #     pass
-            # else:
-            #     mb_left_top,mb_right_bottom = mob_result
-            #     draw_dectection_box(
-            #         self.frame_bgr,
-            #         mb_left_top,
-            #         mb_right_bottom,
-            #         label="怪物",color = (0, 0, 255),
-            #     top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
+            if mob_result:
+                for mob_name , mob_loc in mob_result:
+
+                    for pt in mob_loc:
+                        mob_x =  int (pt[0]) +self.roi_BBOX.x1
+                        mob_y =  int (pt[1]) +self.roi_BBOX.y1
+                        draw_dectection_box(
+                            self.frame_bgr,
+                            (mob_x,mob_y),
+                            (mob_x+50,mob_y+50),
+                            label=mob_name,color = (0, 0, 255),
+                            top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
 
 

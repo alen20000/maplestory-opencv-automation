@@ -66,3 +66,29 @@ Traceback (most recent call last):
     y,x = img.shape[:2]
           ^^^^^^^^^
 AttributeError: 'tuple' object has no attribute 'shape'
+2026-08-06 04:36:11,359 [ERROR] screen_loop 發生例外錯誤: type 'int' is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 145, in screen_loop
+    mobs_result = self.Mobdector()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 273, in Mobdector
+    mob_x =  int[0]
+             ~~~^^^
+TypeError: type 'int' is not subscriptable
+2026-08-06 04:37:02,039 [ERROR] screen_loop 發生例外錯誤: type 'int' is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 145, in screen_loop
+    mobs_result = self.Mobdector()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 273, in Mobdector
+    mob_x =  int[pt[0]]
+             ~~~^^^^^^^
+TypeError: type 'int' is not subscriptable
+2026-08-06 05:08:21,239 [ERROR] screen_loop 發生例外錯誤: name 'crop_frame_hsv' is not defined
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 145, in screen_loop
+    mobs_result = self.Mobdector()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 267, in Mobdector
+    mob_result = mob_detector.searching_mob(self.roi_crop_frame_gray)
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 63, in searching_mob
+    matches_normal = cv2.matchTemplate(crop_frame_hsv, img, cv2.TM_CCOEFF_NORMED)
+                                       ^^^^^^^^^^^^^^
+NameError: name 'crop_frame_hsv' is not defined. Did you mean: 'crop_frame_gray'?
