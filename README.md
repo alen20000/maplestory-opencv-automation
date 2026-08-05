@@ -20,7 +20,7 @@ For 楓之谷:經典版
    * 讀取 `img/monsters/` 底下的怪物模板，轉灰階後存進字典。
    * 在 ROI 範圍內用 `cv2.matchTemplate` 逐一比對模板，找到後回傳邊界框給 `GameBot.py` 畫框。
 
-### 目前畫面（2026/08）
+### IMG LOGGING
 
 ![進度截圖](assects/log_img.png)
 
