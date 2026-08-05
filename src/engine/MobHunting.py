@@ -2,7 +2,7 @@ import yaml
 import os
 import cv2
 import numpy as np
-from src.utils.common import cent_coord,get_roi_box,draw_dectection_box
+
 # --- 參數先放這以後記得移走 ---
 MAX_THRESHOLD = 0.07
 MIN_THRESHOLD = 0.6
@@ -44,37 +44,27 @@ class MobDetector:
     def run(self):
         self._load_mob_templates()
 
-    def searching_mob(self,crop_frame_gray,ROI_left_top: tuple[int, int]):
+    def searching_mob(self,crop_frame_gray):
         '''
         接收ROI範圍畫面與範圍座標
+        回傳怪物座標
         '''
         #
         #不想寫在初始化，也不能寫在gamebot，會循環加載，只能寫在這
         if not self.mobs_templates:
             self._load_mob_templates()
 
+        
+
         #輪尋查怪
-        for _,img in self.mobs_templates.items():
+        for mob_name,img in self.mobs_templates.items():
             matches = cv2.matchTemplate(crop_frame_gray,img,cv2.TM_CCOEFF_NORMED)
 
             #np.where的回傳是許多個tuple[y,x]，要注意必須轉回來(x,y)
             loc = np.where(matches >= MIN_THRESHOLD)
             loc = list(zip(loc[1], loc[0]))
+            return mob_name,loc
 
-            if loc:
-
-                for pt in loc:
-                    x, y = pt
-
-                    global_mob_loc = (x + ROI_left_top[0], y + ROI_left_top[1])
-
-                    center_pt = cent_coord(global_mob_loc,img)
-
-                    c_w,c_h = center_pt
-                    mb_left_top,mb_right_bottom = get_roi_box(c_w,c_h,img)
-
-                    return mb_left_top,mb_right_bottom
-        # 所有模板都不匹配，才傳這個None
         return None
 
 

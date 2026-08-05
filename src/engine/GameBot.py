@@ -4,12 +4,13 @@ import numpy as np
 import win32gui
 from PIL import ImageGrab
 from src.utils.common import (get_mask, get_window_handle_and_rect_by,
-window_infront_dest,bring_to_front_and_center_origin,cent_coord,get_roi_box,draw_dectection_box,BGR2Binary
+bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
 import os
 import logging
 from src.engine.MobHunting import MobDetector
 import ctypes
+from src.utils.boxes import BBox
 
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -40,27 +41,28 @@ class GameBot:
         with open('config/global.yaml', "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
-        #init
+        #---window config
         self.game_title = self.config["game"]["title"]
         self.hwnd = None
-
-        self.last_loc = None  # 記住上一次找到的位置
-        self.character_center_loc = None
-
-        #img parameters
+        #---player parameter 
         self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'
         self.my_character_template = None
+        self.my_character_template_size = None
         self.my_character_template_gray = None
-        self.my_character_telplate_binary = None
-        self.my_character_telplate_h, self.my_character_telplate_w = None, None
+        self.my_character_template_binary = None
+
         self.frame_bgr = None
-        
-        self.frame_h, self.frame_w = None, None
+        #---Frame data
+        self.roi_crop_frame_gray = None
+        self.frame_size:tuple[int, int] = None # (x,y)typle
         self.dectect_False_count = 0
-        #ROI Range
-        self.ROI_left_top = None, None
-        self.ROI_right_bottom = None, None
-        self.crop_frame_gray = None
+        #---計算資料
+        self.role_BBOX:BBox = None
+        self.roi_BBOX:BBox = None
+        self.last_loc = None  # 記住上一次找到的位置
+        self.player_center_loc = None
+
+
     def _connect_window(self):
         '''
         hook the game window
@@ -75,9 +77,10 @@ class GameBot:
         """預先載入圖片、提取參數"""
 
         self.my_character_template = cv2.imread(self.my_character_template_path)
+        self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
-        self.my_character_telplate_binary = BGR2Binary(self.my_character_template)
-        self.my_character_telplate_h, self.my_character_telplate_w = self.my_character_template.shape[:2]
+        self.my_character_template_binary = BGR2Binary(self.my_character_template)
+
 
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -95,7 +98,17 @@ class GameBot:
         current_frame = ImageGrab.grab(bbox=screen_rect)
         current_frame = np.array(current_frame)
         frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設都是BGR
+
+        if frame_bgr is not None:
+            self.frame_bgr = frame_bgr
+            
+            # 記錄畫面尺寸
+            if self.frame_size is None:
+                y, x = frame_bgr.shape[:2]  # (height, width)
+                self.frame_size = (x ,y)
+
         return frame_bgr
+    
     def run(self):
 
         """#pre_process"""
@@ -123,13 +136,12 @@ class GameBot:
         
         try:
             while True:
+                self.frame_bgr = self._scan_full_screen()
                 '''
-                預計所有作圖都放進這裡
+                1.資料回來 2.畫圖
                 ================
                 '''
-                self.frame_bgr = self._scan_full_screen()
-
-                self.character_tracking_logic()
+                self.player_tracking_logic()
                 self.Mobdector()
 
 
@@ -145,8 +157,50 @@ class GameBot:
         finally:
             cv2.destroyAllWindows()
 
-    def _locate_character(self):
-        '''全圖掃描，角色座標判斷、繪製bounding box'''
+
+    def player_tracking_logic(self):
+        '''method: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+        try:
+            if self.player_center_loc is None:
+                #全圖掃
+
+                player_loc = self._locate_player_globally()
+
+                #防止max_loc 為None時，取中心炸掉
+                if player_loc is not None:
+
+                    self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
+
+            
+            else:
+                #進入ROI掃
+                fund_result = self._locate_player_locally()
+
+                #用回傳的True/False，來做失敗紀錄
+                if not fund_result:
+                    self.dectect_False_count += 1
+                    if self.dectect_False_count > 10:
+                        self.player_center_loc = None
+                        self.dectect_False_count = 0
+
+            #得到中心座標，則繪製bounding box
+            if self.player_center_loc is not None:
+                #計算角色BBOX
+                self.role_BBOX = get_bbox_from_center(self.player_center_loc,self.my_character_template_size)
+
+                #繪製角色BBOX
+                draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label="我的角色",
+                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+            else:
+                pass
+
+        except Exception as e:
+            logging.error(e)
+
+    def _locate_player_globally(self):
+        '''
+        全局掃描人物
+        '''
         if MATCH_MODEL == 1:
             current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
             result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
@@ -154,113 +208,74 @@ class GameBot:
             #找到角色
             _, max_val, _, max_loc = cv2.minMaxLoc(result)
             if max_val > MAX_THRESHOLD:
-                print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
+                # print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
                 return max_loc
             else:
-                # print("全圖掃描，未找到角色")
                 pass
 
-    def _scan_local_area(self):
-        '''ROI角色掃描:角色中心座標為錨定,做範圍掃描'''
+    def _locate_player_locally(self):
+        '''
+        局部掃描:
+        '''
+        try:
+            # 設定搜尋範圍的位移量[!] 之後變數要移走
+            x_offset, y_offset = 300, 250
+            # Tuple都是[x,y]位置
+            top = max(0, self.player_center_loc[1] - y_offset)
+            left = max(0, self.player_center_loc[0] - x_offset)
+            bottom = min(self.frame_size[1], self.player_center_loc[1] + y_offset )
+            right = min(self.frame_size[0], self.player_center_loc[0]  + x_offset)
 
-        #畫面與人物樣本取高寬、二階化
-        h_frame, w_frame = self.frame_bgr.shape[:2]
-        #人物中心座標
-        role_x,role_y = self.character_center_loc
-        # 設定搜尋範圍的大小（之後要移動到Config 用 yaml外部設定）
-        x_offset, y_offset = 300,250
-        # 以中心座標 (x, y) 為基準，計算出上下左右邊界
-        left = max(0, role_x - x_offset)
-        top = max(0, role_y  - y_offset)
-        right = min(w_frame, role_x + self.my_character_telplate_w + x_offset)
-        bottom = min(h_frame, role_y  + self.my_character_telplate_h + y_offset -250 )
-        #ROI範圍
-        self.ROI_left_top = (left, top)
-        self.ROI_right_bottom = (right, bottom)
+            # 計算ROI範圍
+            self.roi_BBOX = BBox(left, top, right, bottom)
 
-        #限定範圍: 先切割再轉灰階
-        crop_frame = self.frame_bgr[top:bottom, left:right]
-        self.crop_frame_gray  =  cv2.cvtColor(crop_frame, cv2.COLOR_BGR2GRAY)
-        #匹配掃描中
-        matches = cv2.matchTemplate(self.crop_frame_gray ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
-        #從匹配中選擇最優為目標
-        _, max_val, _, max_loc = cv2.minMaxLoc(matches)
-        #目標過濾，通過為合格
-        if max_val > MIN_THRESHOLD:
+            #[!]OpenCV 陣列切片強制要求 [y軸範圍, x軸範圍]，小心切錯
+            roi_crop_frame = self.frame_bgr[top:bottom, left:right]
+            self.roi_crop_frame_gray  =  cv2.cvtColor(roi_crop_frame, cv2.COLOR_BGR2GRAY)
+            matches = cv2.matchTemplate(self.roi_crop_frame_gray ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(matches)
 
-            # print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
+            if max_val > MIN_THRESHOLD:
+
+                #相對座標轉全局座標；全局座標= 相對座標x + roi全局座標x, 相對座標y + roi全局座標y 
+                player_loc_globally = (max_loc[0] + self.roi_BBOX.x1, max_loc[1] + self.roi_BBOX.y1)
+
+                self.player_center_loc = cent_coord(player_loc_globally , self.my_character_template_size)
+                self.role_BBOX = get_bbox_from_center(self.player_center_loc , self.my_character_template_size)
+                # print(f"ROI掃描找到角色，位置:{player_loc_globally},置信度:{max_val}")
+
+                # 繪製偵查範圍
+                draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="偵測範圍",
+                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+                return  True
             
-            #目標全局座標(左上基準點) = 目標的區域左上X + ROI 左上 X, 區域左上Y +ROI 左上Y 
-            global_role_loc = (max_loc[0] + self.ROI_left_top[0], max_loc[1] + self.ROI_left_top[1])
+            else:
+                logging.info('ROI掃描，未找到角色')
+                return False    
 
-            #更新人物座標
-            self.character_center_loc = cent_coord(global_role_loc , self.my_character_template)
+        except Exception as e:
+            logging.error(e)
 
-            #在 frame_bgr 畫出ROI範圍
-            draw_dectection_box(self.frame_bgr,self.ROI_left_top ,self.ROI_right_bottom,label="怪物偵測範圍",
-            top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-            return  True
-        else:
-            print("ROI掃描失敗")
-            return False
-
-
-    def character_tracking_logic(self):
-        '''method: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
-
-        if self.character_center_loc is None:
-            #全圖掃
-
-            max_loc = self._locate_character()
-
-            #防止max_loc 為None時，取中心炸掉
-            if max_loc is not None:
-                #if max_loc is None ,trying+ to get character_center_loc
-                self.character_center_loc = cent_coord(max_loc,self.my_character_template)
-                # print(f"角色中心座標: {self.character_center_loc}")
-        
-        else:
-            #進入ROI掃
-            fund_result = self._scan_local_area()
-
-            #用回傳的True/False，來做失敗紀錄
-            if not fund_result:
-                self.dectect_False_count += 1
-                if self.dectect_False_count > 10:
-                    self.character_center_loc = None
-                    self.dectect_False_count = 0
-        #得到中心座標，則繪製bounding box
-        if self.character_center_loc is not None:
-            c_w,c_h = self.character_center_loc
-
-            #Character bounding box detection
-            char_left_top,char_right_bottom = get_roi_box(c_w,c_h,self.my_character_template)
-
-            #draw character bounding box
-            draw_dectection_box(self.frame_bgr,char_left_top,char_right_bottom,label="我的角色",
-            top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
-        else:
-            pass
 
     def Mobdector(self):
         '''
-        傳輸ROI範圍畫面與範圍座標
+        傳輸 roi灰階圖
         '''
-        if self.crop_frame_gray is not None:
+        if self.roi_crop_frame_gray is not None:
             #push data
             mob_detector = MobDetector()
-            mob_result = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
-
-            if  mob_result is None:
-                pass
-            else:
-                mb_left_top,mb_right_bottom = mob_result
-                draw_dectection_box(
-                    self.frame_bgr,
-                    mb_left_top,
-                    mb_right_bottom,
-                    label="怪物",color = (0, 0, 255),
-                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+            mob_result = mob_detector.searching_mob(self.roi_crop_frame_gray)
+            print(mob_result)
+            # if  mob_result is None:
+            #     pass
+            # else:
+            #     mb_left_top,mb_right_bottom = mob_result
+            #     draw_dectection_box(
+            #         self.frame_bgr,
+            #         mb_left_top,
+            #         mb_right_bottom,
+            #         label="怪物",color = (0, 0, 255),
+            #     top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
 
 

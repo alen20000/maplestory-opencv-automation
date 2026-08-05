@@ -1,144 +1,68 @@
-2026-08-05 09:17:25,537 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
+2026-08-06 03:38:33,125 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,216 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,305 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,399 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,491 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,580 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,674 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,767 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,860 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:33,955 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:34,051 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:1179: error: (-215:Assertion failed) _img.size().height <= _templ.size().height && _img.size().width <= _templ.size().width in function 'cv::matchTemplate'
+
+2026-08-06 03:38:40,266 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,347 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,429 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,506 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,587 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,664 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,745 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,823 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,902 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:40,988 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:41,065 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:38:41,250 [ERROR] OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cv::cvtColor'
+
+2026-08-06 03:40:14,849 [ERROR] screen_loop 發生例外錯誤: name 'x' is not defined
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 139, in screen_loop
+    self.frame_bgr = self._scan_full_screen()
+                     ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 108, in _scan_full_screen
+    self.frame_size = x ,y
+                      ^
+NameError: name 'x' is not defined
+2026-08-06 03:57:45,755 [ERROR] screen_loop 發生例外錯誤: 'tuple' object has no attribute 'shape'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 145, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
-    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-05 09:18:06,022 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
-    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-05 09:19:43,443 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
-    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: cannot unpack non-iterable NoneType object
-2026-08-05 09:20:03,601 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 253, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-        mb_left_top,
-        ^^^^^^^^^^^^
-        mb_right_bottom,label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-05 09:24:37,633 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-        mb_left_top,
-        ^^^^^^^^^^^^
-        mb_right_bottom,label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-05 09:25:41,284 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-        mb_left_top,
-        ^^^^^^^^^^^^
-        mb_right_bottom,label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-05 09:33:19,127 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-    ...<2 lines>...
-        label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-05 09:37:12,699 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-    ...<2 lines>...
-        label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
-2026-08-05 09:40:24,258 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
-Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
-    self.Mobdector()
-    ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 258, in Mobdector
-    draw_dectection_box(
-    ~~~~~~~~~~~~~~~~~~~^
-        self.frame_bgr,
-        ^^^^^^^^^^^^^^^
-    ...<2 lines>...
-        label="怪物",color = (0, 0, 255),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
-    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
-                ~~~~~~~~^^^
-TypeError: 'NoneType' object is not subscriptable
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 267, in Mobdector
+    mob_result = mob_detector.searching_mob(self.roi_crop_frame_gray)
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 63, in searching_mob
+    loc = convert_img2xy(loc)
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in convert_img2xy
+    y,x = img.shape[:2]
+          ^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'shape'

@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import win32gui
 import win32con
+from src.utils.boxes import BBox
 
 def get_mask(img, ignore_pixel_color):
     '''
@@ -26,9 +27,13 @@ def get_window_handle_and_rect_by(title_name:str)-> tuple[int, tuple[int, int, i
     return hwnd, window_rect
 
 
-def window_infront_dest(hwnd:int)->None:
-    '''將視窗帶到最前台'''
 
+
+def bring_to_front_and_center_origin(hwnd:int):
+    '''
+    整理窗口位置
+    將視窗帶到最前、初始化位置
+    '''
     try:
         # 如果視窗被最小化了，先將它恢復正常大小
         if win32gui.IsIconic(hwnd):
@@ -39,38 +44,42 @@ def window_infront_dest(hwnd:int)->None:
     except Exception as e:
         print(f"置頂視窗失敗: {e}")
 
-
-def bring_to_front_and_center_origin(hwnd:int):
-    '''整理窗口位置'''
-    window_infront_dest(hwnd)
     win32gui.SetWindowPos(hwnd, 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
 
 
-def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]: 
+def cent_coord(global_loc:tuple[int,int],template_size:tuple[int,int]) -> tuple[int,int]: 
     '''
     計算location中心點
     輸入: 目標全局座標(左上基準點)x,y , 模板圖片長寬[x,y]
     這裡輸入是 (x,y) ；輸出是 (x,y)
     '''
-    # 該死，.shape[:2] 會是回傳 (y, x)
-    t_h,t_w = template.shape[:2]
-    center_w = int(loc[0]+(t_w/2))
-    center_h = int(loc[1]+(t_h/2))
+    center_w = int(global_loc[0]+(template_size[0]//2))
+    center_h = int(global_loc[1]+(template_size[1]//2))
     return center_w,center_h
 
-#[!]這邊有問題! 要大修，先暫時用
-def get_roi_box(x,y,template) -> tuple[tuple[int,int],tuple[int,int]]:
+
+def get_bbox_from_center(cen_loc:tuple[int,int],template_size:tuple[int,int]) -> tuple[tuple[int,int],tuple[int,int]]:
     '''
-    計算ROI區塊
-    輸入:中心座標的 x,y
-    輸入格式:tuple[int,int],tuple[int,int]
-    注意元素內部為:turple[x,y]
+    計算bbox區塊
+    輸入:中心座標的 [x,y], 模板圖片長寬[x,y];    cen_loc[0] = x cen_loc[1] = y ; template_size[0] = x template_size[1] = y
+    輸出:bbox座標 turple[(x1,y1),(x2,y2)]
+
     '''
-    # 該死，.shape[:2] 會是回傳 (y, x)
-    t_h,t_w = template.shape[:2]
-    left_top = (x - t_w//2, y - t_h//2)
-    right_bottom = (x + t_w//2,y + t_h//2)
-    return left_top,right_bottom
+    #Unpack
+    cx, cy = cen_loc
+    t_w, t_h = template_size
+    #計算bbox
+    x1 = cx - t_w // 2
+    y1 = cy - t_h // 2
+    x2 = cx + t_w // 2
+    y2 = cy + t_h // 2
+
+    return BBox(x1=x1, y1=y1, x2=x2, y2=y2)
+
+def convert_img2xy(img:np.ndarray)->tuple[int,int] : 
+    #把img的array陣列 (y,x) 轉成 (x,y)
+    y,x = img.shape[:2]
+    return (x,y)
 
 
 def draw_dectection_box(frame,left_top,right_bottom,label="Target",color=(0,255,0),thickness=2,
