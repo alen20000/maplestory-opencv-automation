@@ -116,15 +116,27 @@ class GameBot:
         self.screen_loop()
 
     def screen_loop(self):
-        '''全螢幕刷新'''
+        '''
+        全螢幕刷新
+        
+        '''
         
         try:
             while True:
+                '''
+                預計所有作圖都放進這裡
+                ================
+                '''
                 self.frame_bgr = self._scan_full_screen()
-                """這裡放判斷opencv查找函式"""
 
                 self.character_tracking_logic()
                 self.Mobdector()
+
+
+
+                '''
+                ================
+                '''
                 cv2.imshow("Game Debug View", self.frame_bgr)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -177,11 +189,12 @@ class GameBot:
         if max_val > MIN_THRESHOLD:
 
             # print(f"ROI掃描找到角色，位置:{max_loc}，置信度:{max_val}")
-
-            global_loc = (max_loc[0] + left, max_loc[1] + top)
             
+            #目標全局座標(左上基準點) = 目標的區域左上X + ROI 左上 X, 區域左上Y +ROI 左上Y 
+            global_role_loc = (max_loc[0] + self.ROI_left_top[0], max_loc[1] + self.ROI_left_top[1])
+
             #更新人物座標
-            self.character_center_loc = cent_coord(global_loc , self.my_character_template)
+            self.character_center_loc = cent_coord(global_role_loc , self.my_character_template)
 
             #在 frame_bgr 畫出ROI範圍
             draw_dectection_box(self.frame_bgr,self.ROI_left_top ,self.ROI_right_bottom,label="怪物偵測範圍",
@@ -236,7 +249,19 @@ class GameBot:
         if self.crop_frame_gray is not None:
             #push data
             mob_detector = MobDetector()
-            mob_detector.searching_mob(self.crop_frame_gray)
+            mob_result = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
+
+            if  mob_result is None:
+                pass
+            else:
+                mb_left_top,mb_right_bottom = mob_result
+                draw_dectection_box(
+                    self.frame_bgr,
+                    mb_left_top,
+                    mb_right_bottom,
+                    label="怪物",color = (0, 0, 255),
+                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
 
 
 if __name__ == "__main__":

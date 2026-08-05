@@ -49,6 +49,7 @@ def bring_to_front_and_center_origin(hwnd:int):
 def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]: 
     '''
     計算location中心點
+    輸入: 目標全局座標(左上基準點)x,y , 模板圖片長寬[x,y]
     這裡輸入是 (x,y) ；輸出是 (x,y)
     '''
     # 該死，.shape[:2] 會是回傳 (y, x)
@@ -57,11 +58,13 @@ def cent_coord(loc:tuple[int,int],template) -> tuple[int,int]:
     center_h = int(loc[1]+(t_h/2))
     return center_w,center_h
 
-
+#[!]這邊有問題! 要大修，先暫時用
 def get_roi_box(x,y,template) -> tuple[tuple[int,int],tuple[int,int]]:
     '''
     計算ROI區塊
-    這裡輸入是 (x,y) ；輸出是 (x,y)
+    輸入:中心座標的 x,y
+    輸入格式:tuple[int,int],tuple[int,int]
+    注意元素內部為:turple[x,y]
     '''
     # 該死，.shape[:2] 會是回傳 (y, x)
     t_h,t_w = template.shape[:2]

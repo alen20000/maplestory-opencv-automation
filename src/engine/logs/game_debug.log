@@ -1,66 +1,144 @@
-2026-08-05 07:20:12,726 [ERROR] screen_loop 發生例外錯誤: MobDetector.searching_mob() takes 2 positional arguments but 3 were given
+2026-08-05 09:17:25,537 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
-    mob_detector.searching_mob(self,self.crop_frame_gray)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: MobDetector.searching_mob() takes 2 positional arguments but 3 were given
-2026-08-05 07:22:15,050 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.simd_helpers.hpp:92: error: (-15:Bad number of channels) in function '__cdecl cv::impl::`anonymous-namespace'::CvtHelper<struct cv::impl::`anonymous namespace'::Set<3,4,-1>,struct cv::impl::A0xa0d16e95::Set<1,-1,-1>,struct cv::impl::A0xa0d16e95::Set<0,2,5>,4>::CvtHelper(const class cv::_InputArray &,const class cv::_OutputArray &,int)'
-> Invalid number of channels in input image:
->     'VScn::contains(scn)'
-> where
->     'scn' is 1
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
+    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+2026-08-05 09:18:06,022 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
-    mob_detector.searching_mob(self.crop_frame_gray)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 59, in searching_mob
-    self._load_mob_templates()
-    ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 47, in _load_mob_templates
-    self.mobs_templates[name] = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\color.simd_helpers.hpp:92: error: (-15:Bad number of channels) in function '__cdecl cv::impl::`anonymous-namespace'::CvtHelper<struct cv::impl::`anonymous namespace'::Set<3,4,-1>,struct cv::impl::A0xa0d16e95::Set<1,-1,-1>,struct cv::impl::A0xa0d16e95::Set<0,2,5>,4>::CvtHelper(const class cv::_InputArray &,const class cv::_OutputArray &,int)'
-> Invalid number of channels in input image:
->     'VScn::contains(scn)'
-> where
->     'scn' is 1
-
-2026-08-05 07:22:55,772 [ERROR] screen_loop 發生例外錯誤: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
+    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+2026-08-05 09:19:43,443 [ERROR] screen_loop 發生例外錯誤: cannot unpack non-iterable NoneType object
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
-    mob_detector.searching_mob(self.crop_frame_gray)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 59, in searching_mob
-    matches = cv2.matchTemplate(crop_frame_gray,img,cv2.TM_CCOEFF_NORMED)
-cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\templmatch.cpp:588: error: (-215:Assertion failed) corr.rows <= img.rows + templ.rows - 1 && corr.cols <= img.cols + templ.cols - 1 in function 'cv::crossCorr'
-
-2026-08-05 07:26:36,537 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object has no attribute 'shape'
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 252, in Mobdector
+    mb_left_top,mb_right_bottom = mob_detector.searching_mob(self.crop_frame_gray,self.ROI_left_top)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+2026-08-05 09:20:03,601 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 238, in Mobdector
-    mob_detector.searching_mob(self.crop_frame_gray)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 56, in searching_mob
-    print(f"目前 ROI 畫面尺寸: {crop_frame_gray.shape}")
-                                ^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'NoneType' object has no attribute 'shape'
-2026-08-05 07:29:05,605 [ERROR] screen_loop 發生例外錯誤: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 253, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+        mb_left_top,
+        ^^^^^^^^^^^^
+        mb_right_bottom,label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-05 09:24:37,633 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
 Traceback (most recent call last):
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 127, in screen_loop
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
     self.Mobdector()
     ~~~~~~~~~~~~~~^^
-  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 236, in Mobdector
-    if self.crop_frame_gray:
-       ^^^^^^^^^^^^^^^^^^^^
-ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+        mb_left_top,
+        ^^^^^^^^^^^^
+        mb_right_bottom,label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-05 09:25:41,284 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+        mb_left_top,
+        ^^^^^^^^^^^^
+        mb_right_bottom,label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-05 09:33:19,127 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-05 09:37:12,699 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 256, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+2026-08-05 09:40:24,258 [ERROR] screen_loop 發生例外錯誤: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 133, in screen_loop
+    self.Mobdector()
+    ~~~~~~~~~~~~~~^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 258, in Mobdector
+    draw_dectection_box(
+    ~~~~~~~~~~~~~~~~~~~^
+        self.frame_bgr,
+        ^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        label="怪物",color = (0, 0, 255),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\Cat-Lab\Maple_testing\src\utils\common.py", line 81, in draw_dectection_box
+    left_top = (left_top[0] - left_padding, left_top[1] - top_padding)
+                ~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
