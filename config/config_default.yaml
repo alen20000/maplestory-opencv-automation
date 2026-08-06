@@ -5,3 +5,7 @@ game:
 image_processing:
   man_threshold : 0.07
   min_threshold : 0.6
+
+logging_setting:
+  log_path:  "./log"
+  log_file_name: "log.log"  

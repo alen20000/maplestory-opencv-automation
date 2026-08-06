@@ -5,4 +5,5 @@ from config.config_loader import config
 
 
 if __name__ == "__main__":
-    print(config.get("gaming.template_matching_mode"))
+    print(config.get("logging_setting.log_path"))
+    print(config.get("logging_setting.log_file_name"))
