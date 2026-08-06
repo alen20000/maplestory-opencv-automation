@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import win32gui
 from PIL import ImageGrab
-from src.utils.common import (get_mask, get_window_handle_and_rect_by,
+from src.utils.common import (get_window_handle_and_rect_by,
 bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
 import os
@@ -11,6 +11,7 @@ import logging
 from src.engine.MobHunting import MobDetector
 import ctypes
 from src.utils.boxes import BBox
+from config.config_loader import config
 
 # --- 日誌初始化設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,12 +38,9 @@ MIN_THRESHOLD = 0.6
 
 class GameBot:
     def __init__(self):
-        #config
-        with open('config/global.yaml', "r", encoding="utf-8") as f:
-            self.config = yaml.safe_load(f)
 
         #---window config
-        self.game_title = self.config["game"]["title"]
+        self.game_title = config.get("game.title")
         self.hwnd = None
         #---player parameter 
         self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'

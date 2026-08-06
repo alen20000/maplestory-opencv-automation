@@ -92,3 +92,13 @@ Traceback (most recent call last):
     matches_normal = cv2.matchTemplate(crop_frame_hsv, img, cv2.TM_CCOEFF_NORMED)
                                        ^^^^^^^^^^^^^^
 NameError: name 'crop_frame_hsv' is not defined. Did you mean: 'crop_frame_gray'?
+2026-08-06 20:54:54,598 [ERROR] screen_loop 發生例外錯誤: type object 'map' has no attribute 'test_map'
+Traceback (most recent call last):
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 143, in screen_loop
+    mobs_result = self.Mobdector()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\GameBot.py", line 264, in Mobdector
+    mob_detector = MobDetector()
+  File "D:\Projects\Cat-Lab\Maple_testing\src\engine\MobHunting.py", line 20, in __init__
+    self.folder_path =  config.get(map.test_map)
+                                   ^^^^^^^^^^^^
+AttributeError: type object 'map' has no attribute 'test_map'

@@ -2,7 +2,7 @@ import yaml
 import os
 import cv2
 import numpy as np
-
+from config.config_loader import config 
 # --- 參數先放這以後記得移走 ---
 MAX_THRESHOLD = 0.07
 MIN_THRESHOLD = 0.6
@@ -17,7 +17,7 @@ class MobDetector:
         with open('config/config_data.yaml', "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
-        self.folder_path = self.config["map"]["test_map"]
+        self.folder_path =  config.get("map.test_map")
         #放匹配模板字典
         self.mobs_templates: dict[str, np.ndarray] = {}
 
@@ -57,7 +57,7 @@ class MobDetector:
         
         all_mobs_locs = []
         #輪尋查怪
-# 輪尋查怪
+
         for mob_name, img in self.mobs_templates.items():
             
             # 1.原圖樣版

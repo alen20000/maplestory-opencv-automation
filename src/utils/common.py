@@ -3,7 +3,9 @@ import numpy as np
 import win32gui
 import win32con
 from src.utils.boxes import BBox
+from pathlib  import Path
 
+import yaml
 def get_mask(img, ignore_pixel_color):
     '''
     產生前景遮罩:指定顏色的像素會被忽略
