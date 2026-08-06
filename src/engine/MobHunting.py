@@ -60,21 +60,22 @@ class MobDetector:
 # 輪尋查怪
         for mob_name, img in self.mobs_templates.items():
             
-            # 1. 【正常方向】比對
+            # 1.原圖樣版
             matches = cv2.matchTemplate(crop_frame_gray, img, cv2.TM_CCOEFF_NORMED)
             loc = np.where(matches >= MIN_THRESHOLD)
+            # 這裡是做矩陣翻轉，來得到正確的x,y   
             loc_normal = list(zip(loc[1], loc[0]))
 
-            # 2. 【左右翻轉方向】比對 (1 代表水平鏡像翻轉)
+            # 樣板左右翻轉， 這原理只是做矩陣變換，不太會消耗很多運算
             flipped_img = cv2.flip(img, 1)
             matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, cv2.TM_CCOEFF_NORMED)
             loc_f = np.where(matches_flipped >= MIN_THRESHOLD)
             loc_flipped = list(zip(loc_f[1], loc_f[0]))
 
-            # 3. 把正常方向與翻轉方向找到的座標全部合併在一起
+            # 把正常方向與翻轉方向找到的座標全部合併在一起
             combined_locs = loc_normal + loc_flipped
 
-            # 4. 如果合併後有任何座標，就塞進回傳清單裡
+            # 如果合併後有任何座標，就塞進回傳清單裡
             if combined_locs:
                 all_mobs_locs.append((mob_name, combined_locs))
 
@@ -91,9 +92,6 @@ if __name__ == "__main__":
 
 
 def test_print_dict(self):
-
-
-
 
     for name,img in self.mobs_templates.items():
         # print(f"key:{name},value:{img}")
