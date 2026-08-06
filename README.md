@@ -1,13 +1,13 @@
 For 楓之谷:經典版
 ---
 ## 小工具
-1. `open auto_pick_up in Admit.bat`: 遊戲內自動撿拾工具，`F2`啟動/關係，`F3`退出`。
+1. `open auto_pick_up in Admit.bat`: 遊戲內自動撿拾工具，`F2`啟動/關係，`F3`退出。
 2. `get_nametag.py`:擷取角色名稱圖片。
 3. `CaptureScreen.py`:顯示座標系與截圖功能，方便測算像素。
 
-### IMG LOGGING
+### Image Logging
 
-![進度截圖]<img src="./assects/log_img.png" width="604">
+<img src="./assects/log_img.png" width="604">
 
 ### 可以多怪匹配了，但顏色分辨不出來，因為使用灰階圖，下次嘗試用HSV試試效果；左右img翻轉部分代碼要整理；繪圖函式解偶拉出來，不要跟資料處理或匹配處理的模塊混在一起
 
