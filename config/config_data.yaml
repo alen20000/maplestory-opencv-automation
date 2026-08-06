@@ -1,2 +1,8 @@
+gaming:
+  # 為 grayscale 2 為 測試模式
+  template_matching_mode: 1
+
 map:
   test_map: "img/monsters" 
+
+

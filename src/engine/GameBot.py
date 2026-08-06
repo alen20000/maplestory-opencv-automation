@@ -28,17 +28,12 @@ logging.basicConfig(
     encoding='utf-8'
 )
 
-# --- 遊戲掃描模式 ---
-# 1 為 grayscale 2 為 測試模式
-MATCH_MODEL = 1
-# --- 這裡放常數與參數設定 ---
-MAX_THRESHOLD = 0.07
-MIN_THRESHOLD = 0.6
-
 
 class GameBot:
     def __init__(self):
-
+        #---config setting
+        self.searching_mode = int(config.get("gaming.template_matching_mode"))
+        self.min_threshold = config.get("image_processing.min_threshold")
         #---window config
         self.game_title = config.get("game.title")
         self.hwnd = None
@@ -142,8 +137,6 @@ class GameBot:
                 self.player_tracking_logic()
                 mobs_result = self.Mobdector()
 
-
-
                 '''
                 ================
                 '''
@@ -161,10 +154,9 @@ class GameBot:
         try:
             if self.player_center_loc is None:
                 #全圖掃
-
                 player_loc = self._locate_player_globally()
 
-                #防止max_loc 為None時，取中心炸掉
+                #防止max_loc沒東西時report
                 if player_loc is not None:
 
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
@@ -174,7 +166,7 @@ class GameBot:
                 #進入ROI掃
                 fund_result = self._locate_player_locally()
 
-                #用回傳的True/False，來做失敗紀錄
+                #用回傳的True/False，來做失敗紀錄，好像沒啥用，先放著
                 if not fund_result:
                     self.dectect_False_count += 1
                     if self.dectect_False_count > 10:
@@ -199,18 +191,23 @@ class GameBot:
         '''
         全局掃描人物
         '''
-        if MATCH_MODEL == 1:
-            current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
-            result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
+        try:
+            
+            if self.searching_mode == 1:
 
-            #找到角色
-            _, max_val, _, max_loc = cv2.minMaxLoc(result)
-            if max_val > MAX_THRESHOLD:
-                # print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
-                return max_loc
-            else:
-                pass
-
+                current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
+                result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
+                
+                #找到角色
+                _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                if max_val > self.min_threshold:
+                    print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
+                    return max_loc
+                else:
+                    logging.debug(f"全圖模式:未匹配角色")
+                    pass
+        except Exception as e:
+            logging.error(e)
     def _locate_player_locally(self):
         '''
         局部掃描:
@@ -233,7 +230,7 @@ class GameBot:
             matches = cv2.matchTemplate(self.roi_crop_frame_gray ,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(matches)
 
-            if max_val > MIN_THRESHOLD:
+            if max_val > self.min_threshold:
 
                 #相對座標轉全局座標；全局座標= 相對座標x + roi全局座標x, 相對座標y + roi全局座標y 
                 player_loc_globally = (max_loc[0] + self.roi_BBOX.x1, max_loc[1] + self.roi_BBOX.y1)
@@ -280,4 +277,18 @@ class GameBot:
 
 
 if __name__ == "__main__":
+    pass
+
+
+def random_move():
+    '''
+    預設，假使沒匹配到角色，隨機移動  // 也可以做切片匹配保險 但不清楚效能負擔 不是很想弄
+    '''
+
+    pass
+
+def attack_action():
+    '''
+    預設，接收相對座標小於[攻擊範圍]， 觸發攻擊行為
+    '''
     pass

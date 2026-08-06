@@ -3,5 +3,5 @@ game:
   title: "新楓之谷：經典版"
 
 image_processing:
-  MAX_THRESHOLD : 0.07
-  MIN_THRESHOLD : 0.6
+  man_threshold : 0.07
+  min_threshold : 0.6
