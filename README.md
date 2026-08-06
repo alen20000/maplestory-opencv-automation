@@ -7,7 +7,7 @@ For 楓之谷:經典版
 
 ### IMG LOGGING
 
-![進度截圖](assects/log_img.png)
+![進度截圖]<img src="./assects/log_img.png" width="604">
 
 ### 可以多怪匹配了，但顏色分辨不出來，因為使用灰階圖，下次嘗試用HSV試試效果；左右img翻轉部分代碼要整理；繪圖函式解偶拉出來，不要跟資料處理或匹配處理的模塊混在一起
 
