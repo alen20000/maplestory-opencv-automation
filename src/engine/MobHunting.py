@@ -46,7 +46,8 @@ class MobDetector:
         接收ROI範圍畫面與範圍座標
         回傳怪物座標
         '''
-        all_mobs_locs = []
+
+        all_detected_boxes = []
         #輪尋查怪
         for mob_name, img in self.mobs_templates.items():
             h, w = img.shape[:2] # 取得模板高與寬 (注意尺寸是 h, w，但傳入要對應 x, y)
@@ -73,13 +74,40 @@ class MobDetector:
                     x1 ,y1 = int(pt[0]), int(pt[1])
 
                     center_x, center_y = cent_coord((x1, y1),(w, h))
-                    mob_detail.append({
+                    all_detected_boxes.append({
+                        "mob_name": mob_name,
                         "top_left" : (x1, y1),
                         "center" : (center_x, center_y),
                         "size" : (w, h)
                     })
-                all_mobs_locs.append((mob_name, mob_detail))
+        '''
+        NMS core
+        先簡單用硬像素距離判斷
+        '''
+        #封包用
+        all_mobs_locs =[]
+        #比對用
+        final_mobs_dict = {}
+        
+        for box in all_detected_boxes:
+            mob_name = box["mob_name"]
+            cx, cy = box["center"]
+            
+            if mob_name not in final_mobs_dict:
+                final_mobs_dict[mob_name] = []
 
+            # 檢查是否跟已經被收錄的同種類怪物距離太近
+            is_dup = False
+            for existing in final_mobs_dict[mob_name]:
+                ex_cx, ex_cy = existing["center"]
+                # 如果中心點距離小於 25 像素，視為同一隻怪物的重複殘影，直接過濾掉
+                if abs(cx - ex_cx) < 25 and abs(cy - ex_cy) < 25:
+                    is_dup = True
+                    break
+
+            if not is_dup:
+                final_mobs_dict[mob_name].append(box)
+        all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
         return all_mobs_locs
 
 if __name__ == "__main__":
