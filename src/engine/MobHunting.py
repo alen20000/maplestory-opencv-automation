@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 from config.config_loader import config 
+import logging
 
 '''
 mob template resource :https://maplestory.wiki/GMS/65/mob/100101
@@ -48,32 +49,35 @@ class MobDetector:
         if not self.mobs_templates:
             self._load_mob_templates()
 
-        
         all_mobs_locs = []
         #輪尋查怪
+        try:
+            for mob_name, img in self.mobs_templates.items():
+                
+                # 1.原圖樣版
+                matches = cv2.matchTemplate(crop_frame_gray, img, cv2.TM_CCOEFF_NORMED)
+                loc = np.where(matches >= self.min_threshold)
+                # 這裡是做矩陣翻轉，來得到正確的x,y   
+                loc_normal = list(zip(loc[1], loc[0]))
 
-        for mob_name, img in self.mobs_templates.items():
-            
-            # 1.原圖樣版
-            matches = cv2.matchTemplate(crop_frame_gray, img, cv2.TM_CCOEFF_NORMED)
-            loc = np.where(matches >= self.min_threshold)
-            # 這裡是做矩陣翻轉，來得到正確的x,y   
-            loc_normal = list(zip(loc[1], loc[0]))
+                # 樣板左右翻轉， 這原理只是做矩陣變換，不太會消耗很多運算
+                flipped_img = cv2.flip(img, 1)
+                matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, cv2.TM_CCOEFF_NORMED)
+                loc_f = np.where(matches_flipped >= self.min_threshold)
+                loc_flipped = list(zip(loc_f[1], loc_f[0]))
 
-            # 樣板左右翻轉， 這原理只是做矩陣變換，不太會消耗很多運算
-            flipped_img = cv2.flip(img, 1)
-            matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, cv2.TM_CCOEFF_NORMED)
-            loc_f = np.where(matches_flipped >= self.min_threshold)
-            loc_flipped = list(zip(loc_f[1], loc_f[0]))
+                # 把正常方向與翻轉方向找到的座標全部合併在一起
+                combined_locs = loc_normal + loc_flipped
 
-            # 把正常方向與翻轉方向找到的座標全部合併在一起
-            combined_locs = loc_normal + loc_flipped
+                # 如果合併後有任何座標，就塞進回傳清單裡
+                if combined_locs:
+                    all_mobs_locs.append((mob_name, combined_locs))
 
-            # 如果合併後有任何座標，就塞進回傳清單裡
-            if combined_locs:
-                all_mobs_locs.append((mob_name, combined_locs))
+            return all_mobs_locs
 
-        return all_mobs_locs
+        except Exception as e:
+            logging.error(f"尋怪異常:{e}")
+            return
 
 
 

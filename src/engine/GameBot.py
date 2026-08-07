@@ -12,21 +12,8 @@ from src.engine.MobHunting import MobDetector
 import ctypes
 from src.utils.boxes import BBox
 from config.config_loader import config
+import logging
 
-# --- 日誌初始化設定 ---
-current_dir = os.path.dirname(os.path.abspath(__file__))
-log_dir = os.path.join(current_dir, "logs")
-log_file = os.path.join(log_dir, "game_debug.log")
-
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
-
-logging.basicConfig(
-    filename=log_file, 
-    level=logging.ERROR,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    encoding='utf-8'
-)
 
 
 class GameBot:
