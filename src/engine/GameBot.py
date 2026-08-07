@@ -42,6 +42,7 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
         self.current_mobs_result =None
+        self.auto_control = AutoControl(game_bot_instance=self) #共享參數
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
@@ -65,7 +66,8 @@ class GameBot:
         #init module
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
-        self.auto_control = AutoControl(game_bot_instance=self) #共享參數
+        
+        
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
@@ -133,7 +135,16 @@ class GameBot:
                 self._draw_mob(mobs_result)
 
                 #自動控制
-                self.auto_control.decide_operation()
+                action_states, target_info = self.auto_control.decide_operation()
+                if action_states is not None:
+                    has_mobs = (target_info is not None)
+                    current_state = self.player_states.update_and_execute(action_states, target_info)
+
+                    # print(f"當前動作指令: {action_states}, 角色狀態: {current_state}")
+
+                
+
+
                 '''
                 ================
                 '''

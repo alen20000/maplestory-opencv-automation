@@ -20,12 +20,10 @@ game_bot:
 
 keyboard:
   #QWERTY
-  up: 119
-  down: 115
-  left: 97
-  right: 100
-  attack: 32
+  left: left
+  right: right
+  attack: ctrl
   pickup: 13
 
 auto_control:
-  attack_range: 100
+  attack_range: 20
