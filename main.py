@@ -10,7 +10,7 @@ if __name__ == "__main__":
         run = GameBot()
         run.run()
     except Exception as e:
-        logging.log.exception(f"未預期的例外錯誤: {e}")
+        logging.exception(f"未預期的例外錯誤: {e}")
     except KeyboardInterrupt:
         logging.info("'Ctrl+C'中斷程式")
     finally:

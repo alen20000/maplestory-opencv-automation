@@ -13,6 +13,11 @@ logging_setting:
   log_file_name: "log.log"  
 
 
+game_bot:
+  roi_x_offset: 300
+  roi_y_offset: 150
+
+
 keyboard:
   #QWERTY
   up: 119
@@ -21,3 +26,6 @@ keyboard:
   right: 100
   attack: 32
   pickup: 13
+
+auto_control:
+  attack_range: 100

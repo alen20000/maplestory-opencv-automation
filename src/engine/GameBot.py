@@ -41,6 +41,7 @@ class GameBot:
         self.roi_BBOX:BBox = None
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
+        self.current_mobs_result =None
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
@@ -128,7 +129,11 @@ class GameBot:
                 self.player_tracking_logic()
                 #怪物追蹤
                 mobs_result = self.Mobdector()
+                self.current_mobs_result = mobs_result
                 self._draw_mob(mobs_result)
+
+                #自動控制
+                self.auto_control.decide_operation()
                 '''
                 ================
                 '''
@@ -174,7 +179,7 @@ class GameBot:
 
                 #繪製角色BBOX
                 draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label="我的角色",
-                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+                top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
             else:
                 pass
 
@@ -208,7 +213,7 @@ class GameBot:
         '''
         try:
             # 設定搜尋範圍的位移量[!] 之後變數要移走
-            x_offset, y_offset = 300, 250
+            x_offset, y_offset = config.get("game_bot.roi_x_offset"), config.get("game_bot.roi_y_offset")
             # Tuple都是[x,y]位置
             top = max(0, self.player_center_loc[1] - y_offset)
             left = max(0, self.player_center_loc[0] - x_offset)
