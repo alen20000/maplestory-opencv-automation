@@ -1,8 +1,8 @@
 For 楓之谷:經典版
 ---
 ## 小工具
-1. `open auto_pick_up in Admit.bat`: 遊戲內自動撿拾工具，`F2`啟動/關係，`F3`退出。
-2. `get_nametag.py`:擷取角色名稱圖片。
+1. `open auto_pick_up in Admit.bat`: 遊戲內自動撿拾工具，`F2`啟動/關係，`F3`退出。(暫時壞了，之後要補，感覺可以加狀態機，讓他更聰明)
+2. `get_nametag.py`:擷取角色名稱圖片，用於抓取人物座標。
 3. `CaptureScreen.py`:顯示座標系與截圖功能，方便測算像素。
 
 ### Image Logging
