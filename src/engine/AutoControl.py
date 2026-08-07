@@ -6,8 +6,17 @@ import logging
 行為邏輯，橋接GameBot 與 發布命令給 KeyBoardController
 '''
 class AutoControl:
-    def __init__(self):
+    def __init__(self, game_bot_instance):
+
+        #parameters
+        self.bot =game_bot_instance
+        self.my_att_range:100
+
+    def decide_action(self):
+
+
         pass
+
 
 
 

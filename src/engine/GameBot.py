@@ -14,7 +14,7 @@ from src.utils.boxes import BBox
 from config.config_loader import config
 import logging
 from src.states.player_states import PlayerStates
-
+from src.engine.AutoControl import AutoControl
 
 class GameBot:
     def __init__(self):
@@ -64,6 +64,7 @@ class GameBot:
         #init module
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
+        self.auto_control = AutoControl(game_bot_instance=self) #共享參數
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
