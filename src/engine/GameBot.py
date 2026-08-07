@@ -41,7 +41,8 @@ class GameBot:
         self.roi_BBOX:BBox = None
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
-
+        ##--模組實例
+        self.mob_detector = None
 
     def _connect_window(self):
         '''
@@ -53,14 +54,15 @@ class GameBot:
         else:
             print(f"未匹配到指定窗口{self.game_title }")
 
-    def _preload_img(self):
-        """預先載入圖片、提取參數"""
-
+    def _load_game_resources(self):
+        """預先載入資源"""
+        #load img res
         self.my_character_template = cv2.imread(self.my_character_template_path)
         self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
         self.my_character_template_binary = BGR2Binary(self.my_character_template)
-
+        #init module
+        self.mob_detector = MobDetector()
 
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -103,7 +105,7 @@ class GameBot:
         self._connect_window()
         #adjusying display window
         bring_to_front_and_center_origin(self.hwnd)
-        self._preload_img()
+        self._load_game_resources()
 
         #process
         self.screen_loop()
@@ -244,8 +246,8 @@ class GameBot:
         '''
         if self.roi_crop_frame_gray is not None:
             #push data
-            mob_detector = MobDetector()
-            mob_result = mob_detector.searching_mob(self.roi_crop_frame_gray)
+
+            mob_result = self.mob_detector.searching_mob(self.roi_crop_frame_gray)
 
             if mob_result:
                 for mob_name , mob_loc in mob_result:
