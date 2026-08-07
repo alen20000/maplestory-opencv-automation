@@ -188,6 +188,6 @@ class GetRoleImg():
             print("角色標籤儲存失敗")
 
 if __name__ == "__main__":
-    run = GetCharImg()
+    run =GetRoleImg()
     time.sleep(2)
     run.run()
