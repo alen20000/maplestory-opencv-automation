@@ -106,25 +106,8 @@ class MobDetector:
                     break
 
             if not is_dup:
+
                 final_mobs_dict[mob_name].append(box)
         all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
         return all_mobs_locs
 
-if __name__ == "__main__":
-    run = MobDetector()
-    run.run()
-
-
-
-# def test_print_dict(self):
-
-#     for name,img in self.mobs_templates.items():
-#         # print(f"key:{name},value:{img}")
-
-#         if img is None:
-#             print(f"{name,} 的資料是 None空的")
-#             continue
-#         else:
-#             cv2.imshow(name, img)
-#             cv2.waitKey(0)
-#             cv2.destroyAllWindows()

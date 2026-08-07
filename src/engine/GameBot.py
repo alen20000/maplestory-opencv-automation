@@ -13,7 +13,7 @@ import ctypes
 from src.utils.boxes import BBox
 from config.config_loader import config
 import logging
-
+from src.states.player_states import PlayerStates
 
 
 class GameBot:
@@ -43,7 +43,7 @@ class GameBot:
         self.player_center_loc = None
         ##--模組實例
         self.mob_detector = None
-
+        self.player_states = None
     def _connect_window(self):
         '''
         hook the game window
@@ -63,7 +63,7 @@ class GameBot:
         self.my_character_template_binary = BGR2Binary(self.my_character_template)
         #init module
         self.mob_detector = MobDetector()
-
+        self.player_states = PlayerStates() #init player state
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
@@ -141,7 +141,10 @@ class GameBot:
 
 
     def player_tracking_logic(self):
-        '''method: 一次全圖掃描，得出中心座標，以中心做標求範圍座標'''
+        '''
+        角色位置提取:全局掃描/ROI掃描
+        人物BBOX繪製
+        '''
         try:
             if self.player_center_loc is None:
                 #全圖掃
@@ -250,7 +253,7 @@ class GameBot:
             #push data
 
             mob_results = self.mob_detector.searching_mob(self.roi_crop_frame_gray)
-            #這裡有個問題，座標會重複，自動打怪前要先解決。
+
             return mob_results
         
     def _draw_mob(self, mob_results: list):
@@ -270,23 +273,3 @@ class GameBot:
                         (x1+w, y1+h),
                         label=mob_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-
-
-
-
-if __name__ == "__main__":
-    pass
-
-
-def random_move():
-    '''
-    預設，假使沒匹配到角色，隨機移動  // 也可以做切片匹配保險 但不清楚效能負擔 不是很想弄
-    '''
-
-    pass
-
-def attack_action():
-    '''
-    預設，接收相對座標小於[攻擊範圍]， 觸發攻擊行為
-    '''
-    pass

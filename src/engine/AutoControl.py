@@ -1,29 +1,25 @@
 import time
-import interception
-'''
-attack 
-'''
-# 自動捕捉裝置
-interception.auto_capture_devices(keyboard=True, mouse=True)
+import logging
 
-print("測試中...")
-time.sleep(2)
 
-# 測試送出一次 z 鍵
-interception.press("z")
-print("已透過驅動送出 Z 鍵")
-class behavior:
+'''
+行為邏輯，橋接GameBot 與 發布命令給 KeyBoardController
+'''
+class AutoControl:
     def __init__(self):
-        interception.auto_capture_devices(keyboard=True, mouse=True)
+        pass
 
-    def press_shift(self):
-        interception.press("ctrl")
-        
-    def auto_pick_up(self):
-        while True:
-            interception.press("z")
-            time.sleep(0.1)
 
-if __name__ == "__main__":
-    behavior_instance = behavior()
-    behavior_instance.auto_pick_up()
+
+def random_move():
+    '''
+    預設，假使沒匹配到角色，隨機移動  // 也可以做切片匹配保險 但不清楚效能負擔 不是很想弄
+    '''
+
+    pass
+
+def attack_action():
+    '''
+    預設，接收相對座標小於[攻擊範圍]， 觸發攻擊行為
+    '''
+    pass
