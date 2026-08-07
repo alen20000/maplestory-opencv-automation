@@ -123,9 +123,11 @@ class GameBot:
                 1.資料回來 2.畫圖
                 ================
                 '''
+                #角色追蹤
                 self.player_tracking_logic()
+                #怪物追蹤
                 mobs_result = self.Mobdector()
-
+                self._draw_mob(mobs_result)
                 '''
                 ================
                 '''
@@ -242,25 +244,33 @@ class GameBot:
 
     def Mobdector(self):
         '''
-        傳輸 roi灰階圖
+        傳輸 roi灰階圖；接收怪物座標封包
         '''
         if self.roi_crop_frame_gray is not None:
             #push data
 
-            mob_result = self.mob_detector.searching_mob(self.roi_crop_frame_gray)
+            mob_results = self.mob_detector.searching_mob(self.roi_crop_frame_gray)
+            #這裡有個問題，座標會重複，自動打怪前要先解決。
+            return mob_results
+        
+    def _draw_mob(self, mob_results: list):
+        """
+        解析怪物封包，然後畫出BBOX
+        """
+        if mob_results and self.roi_BBOX is not None:
+            for mob_name, mob_details in mob_results:
+                
+                for detailed in mob_details:
+                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
+                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
+                    w, h = detailed["size"]
+                    draw_dectection_box(
+                        self.frame_bgr,
+                        (x1,y1),
+                        (x1+w, y1+h),
+                        label=mob_name,color = (0, 0, 255),
+                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
-            if mob_result:
-                for mob_name , mob_loc in mob_result:
-
-                    for pt in mob_loc:
-                        mob_x =  int (pt[0]) +self.roi_BBOX.x1
-                        mob_y =  int (pt[1]) +self.roi_BBOX.y1
-                        draw_dectection_box(
-                            self.frame_bgr,
-                            (mob_x,mob_y),
-                            (mob_x+50,mob_y+50),
-                            label=mob_name,color = (0, 0, 255),
-                            top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
 
 

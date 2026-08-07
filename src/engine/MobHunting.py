@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from config.config_loader import config 
 import logging
+from src.utils.common import cent_coord
 '''
 mob template resource :https://maplestory.wiki/GMS/65/mob/100101
 
@@ -18,7 +19,7 @@ class MobDetector:
         #放匹配模板字典
         self.mobs_templates: dict[str, np.ndarray] = {}
         self._load_mob_templates()
-        
+
     def _load_mob_templates(self):
         '''
         從路徑資料夾讀取匹配怪物模板後存入字典
@@ -48,7 +49,8 @@ class MobDetector:
         all_mobs_locs = []
         #輪尋查怪
         for mob_name, img in self.mobs_templates.items():
-            
+            h, w = img.shape[:2] # 取得模板高與寬 (注意尺寸是 h, w，但傳入要對應 x, y)
+
             # 1.原圖樣版
             matches = cv2.matchTemplate(crop_frame_gray, img, cv2.TM_CCOEFF_NORMED)
             loc = np.where(matches >= self.min_threshold)
@@ -66,7 +68,17 @@ class MobDetector:
 
             # 如果合併後有任何座標，就塞進回傳清單裡
             if combined_locs:
-                all_mobs_locs.append((mob_name, combined_locs))
+                mob_detail = []
+                for pt in combined_locs:
+                    x1 ,y1 = int(pt[0]), int(pt[1])
+
+                    center_x, center_y = cent_coord((x1, y1),(w, h))
+                    mob_detail.append({
+                        "top_left" : (x1, y1),
+                        "center" : (center_x, center_y),
+                        "size" : (w, h)
+                    })
+                all_mobs_locs.append((mob_name, mob_detail))
 
         return all_mobs_locs
 
