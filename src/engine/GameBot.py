@@ -148,7 +148,6 @@ class GameBot:
 
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
 
-            
             else:
                 #進入ROI掃
                 fund_result = self._locate_player_locally()

@@ -3,7 +3,9 @@ game:
   title: "新楓之谷：經典版"
 
 image_processing:
-  man_threshold : 0.07
+  #TM_SQDIFF_NORMED（平方差正規化匹配）m/4
+  max_threshold : 0.1
+  #TM_CCOEFF_NORMED
   min_threshold : 0.6
 
 logging_setting:
