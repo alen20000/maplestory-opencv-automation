@@ -1,0 +1,10 @@
+logging_setting:
+  log_path:  "./log"
+  log_file_name: "log.log" 
+  # 日誌過濾等級（可根據需求調整敏感度）
+  # 可選參數說明：
+  # - "DEBUG"    : 輸出最詳細的除錯與掃描過程（適合開發測試）
+  # - "INFO"     : 輸出一般運作與狀態訊息（推薦日常使用）
+  # - "WARNING"  : 僅輸出警告與錯誤訊息（畫面較乾淨）
+  # - "ERROR"    : 僅輸出嚴重錯誤訊息
+  log_level: "WARNING"
