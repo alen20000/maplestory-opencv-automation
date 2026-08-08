@@ -52,9 +52,9 @@ class GameBot:
         '''
         self.hwnd,self.client_rect =  get_window_handle_and_rect_by(self.game_title)
         if self.hwnd :
-            print(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
+            logging.info(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
         else:
-            print(f"未匹配到指定窗口{self.game_title }")
+            logging.info(f"未匹配到指定窗口{self.game_title }")
 
     def _load_game_resources(self):
         """預先載入資源"""
@@ -211,10 +211,10 @@ class GameBot:
                 #找到角色
                 _, max_val, _, max_loc = cv2.minMaxLoc(result)
                 if max_val > self.min_threshold:
-                    print(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
+                    logging.info(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
                     return max_loc
                 else:
-                    logging.debug(f"全圖模式:未匹配角色")
+                    logging.info(f"全圖模式:未匹配角色")
                     pass
         except Exception as e:
             logging.error(e)
@@ -225,11 +225,15 @@ class GameBot:
         try:
             # 設定搜尋範圍的位移量[!] 之後變數要移走
             x_offset, y_offset = config.get("game_bot.roi_x_offset"), config.get("game_bot.roi_y_offset")
+            x_offset_l_w = config.get("game_bot.roi_x_offset_l_width")
+            x_offset_r_w = config.get("game_bot.roi_x_offset_r_width")
+            y_offset_t_h = config.get("game_bot.roi_y_offset_t_high")
+            y_offset_b_h = config.get("game_bot.roi_y_offset_b_high")
             # Tuple都是[x,y]位置
-            top = max(0, self.player_center_loc[1] - y_offset)
-            left = max(0, self.player_center_loc[0] - x_offset)
-            bottom = min(self.frame_size[1], self.player_center_loc[1] + y_offset )
-            right = min(self.frame_size[0], self.player_center_loc[0]  + x_offset)
+            top = max(0, self.player_center_loc[1] - y_offset_t_h)
+            left = max(0, self.player_center_loc[0] - x_offset_l_w)
+            bottom = min(self.frame_size[1], self.player_center_loc[1] + y_offset_b_h )
+            right = min(self.frame_size[0], self.player_center_loc[0]  + x_offset_r_w)
 
             # 計算ROI範圍
             self.roi_BBOX = BBox(left, top, right, bottom)

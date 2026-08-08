@@ -2,20 +2,19 @@
 game:
   title: "新楓之谷：經典版"
 
+
 image_processing:
   #TM_SQDIFF_NORMED（平方差正規化匹配）m/4
   max_threshold : 0.1
   #TM_CCOEFF_NORMED
   min_threshold : 0.6
 
-
-
-
 game_bot:
-  roi_x_offset: 300
-  roi_y_offset: 150
-
-
+  #roi範圍的位移量 ，設定好能減少運算
+  roi_x_offset_l_width: 300
+  roi_x_offset_r_width: 300
+  roi_y_offset_t_high: 100
+  roi_y_offset_b_high : 50
 keyboard:
   #QWERTY
   left: left
@@ -26,3 +25,6 @@ keyboard:
 auto_control:
   attack_range: 20
 
+folder_path:
+  template_nametag_path: img/nametag/example.png
+  my_character_template_path: img/nametag/MyRoleNameTag.png

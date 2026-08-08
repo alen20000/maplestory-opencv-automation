@@ -6,23 +6,23 @@ import win32gui
 import win32con
 
 from PIL import ImageGrab
-from src.utils.common import get_mask, get_window_handle_and_rect_by,window_infront_dest
+from src.utils.common import get_mask, get_window_handle_and_rect_by, bring_to_front_and_center_origin
+from config.config_loader import config
 
 ''''
-using preset nametag to mtach new char tag and save it as new img.
+人物名牌捕捉器:
+程序會捕捉畫面，進到畫面後，找一個能夠清楚顯示明白的場景，按下拍照鍵"Z"即可製作名牌
 
 '''
-MAX_THRESHOLD = 0.07
+
 class GetRoleImg():
     def __init__(self):
         #config
-        with open('config/global.yaml', "r", encoding="utf-8") as f:
-            self.config = yaml.safe_load(f)
-        self.game_title = self.config["game"]["title"]
-        self.nametag_path = 'img/nametag/example.png'
+        self.game_title = config.get("game.title")
+        self.template_nametag_path = config.get("folder_path.template_nametag_path")
         self.hwnd,self.client_rect =None, None
-        self.MyRole_img_path = 'img/nametag/MyRoleNameTag.png'
-
+        self.MyRole_img_path = config.get("folder_path.my_character_template_path")
+        
         #img
         self.img_char_template_gray = None
         self.img_char_template_mask = None
@@ -33,31 +33,31 @@ class GetRoleImg():
         self.char_left_top = None
         self.char_right_bottom =None
 
+        #paramter
+        self.max_threshold = config.get("image_processing.max_threshold")
+
     def run(self):
         self.connect_window()
+        bring_to_front_and_center_origin(self.hwnd)
         self.preload_img()
-        self.bring_to_front_and_center_origin()
         self.get_new_char_img()
-    def bring_to_front_and_center_origin(self):
-        '''整理窗口位置'''
-        window_infront_dest(self.hwnd)
 
-        win32gui.SetWindowPos((self.hwnd), 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
     def connect_window(self):
         self.hwnd, self.client_rect =  get_window_handle_and_rect_by(self.game_title)
         if self.hwnd :
             print(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
         else:
             print(f"未匹配到指定窗口{self.game_title }")
+
     def preload_img(self):
         """預先載入圖片"""  
         #loard_char_template
 
-        self.img_char_template_gray = cv2.imread(self.nametag_path,cv2.IMREAD_GRAYSCALE)
-        self.img_char_template_mask = cv2.imread(self.nametag_path,cv2.IMREAD_COLOR)
+        self.img_char_template_gray = cv2.imread(self.template_nametag_path,cv2.IMREAD_GRAYSCALE)
+        self.img_char_template_mask = cv2.imread(self.template_nametag_path,cv2.IMREAD_COLOR)
 
         if self.img_char_template_gray is None:
-            raise FileNotFoundError(f"找不到模板圖片，請確認路徑是否正確: {self.nametag_path}")
+            raise FileNotFoundError(f"找不到模板圖片，請確認路徑是否正確: {self.template_nametag_path}")
         #從遮罩模板轉遮罩
         self.img_char_template_mask = get_mask(self.img_char_template_mask,(0, 255, 0)) 
         #get hight and width of template
@@ -104,7 +104,7 @@ class GetRoleImg():
             result = cv2.matchTemplate(
                 frame_gray,split_template,cv2.TM_SQDIFF_NORMED,mask=split_mask
             )
-            #debug
+            # debug
             # cv2.imshow("split_template", split_template)
             # cv2.waitKey(100)
             
@@ -145,12 +145,13 @@ class GetRoleImg():
         best = min(matches, key=lambda m: m["score"])
 
         #閥值偵測
-        if best["score"] > MAX_THRESHOLD:
+        if best["score"] > self.max_threshold:
             return None
         
         print(f"\r最佳匹配區塊: {best['tag_type']}, 分數={best['score']:.4f}",end="", flush=True)
 
         return best
+    
     def get_new_char_img(self):
         '''顯示畫面、手動抓圖'''
         while True:
@@ -174,8 +175,9 @@ class GetRoleImg():
                 break
 
         cv2.destroyAllWindows()
+
     def save_match_char_img(self,frame_bgr):
-        '''crop char name screen '''
+        '''儲存人物名白 '''
 
         x1,y1 = self.char_left_top
         x2,y2 = self.char_right_bottom
