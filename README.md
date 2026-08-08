@@ -12,14 +12,20 @@
 <img src="./assets/log_img.gif" width="600">
 
 <img src="./assets/log_img_2.gif" width="600">
+
 目前邊界判定有問題，到地圖邊ROI範圍畫不出來，所以會罰站；目前加上自動撿拾腳本，能實現一個基礎的自動打怪循環
+
 ---
+
 ## Dev Notes & TODO
 > [NOTE] 尋怪機制優化:研究了切片、MASK，但會加大運算量，以及NMS沒寫好的話，locs數量會非常多，若要劃出BBox更會造成運算量太大而CTD
 >[TODO]把撿拾功能寫入專案
+
 >[TODO]解決地圖邊界判定問題；用視窗擷取視窗中心回正；或是測算小地圖座標在還原，要再思考
 
 > [NOTE]尋怪邏輯:要再想想怎麼架構與行為邏輯
+
+---
 
 ## Tech Stack
 
