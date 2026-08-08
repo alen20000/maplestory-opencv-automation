@@ -16,6 +16,7 @@
 ---
 ## Dev Notes & TODO
 > [NOTE] 尋怪機制優化:研究了切片、MASK，但會加大運算量，以及NMS沒寫好的話，locs數量會非常多，若要劃出BBox更會造成運算量太大而CTD
+
 > [NOTE]尋怪邏輯:要再想想怎麼架構與行為邏輯
 --
 ## Tech Stack
