@@ -49,7 +49,7 @@ class Bat:
             return
         self.last_key_time = time.time()
         self.state_busy = True
-        print(self.last_key_time)
+
 
 
     def is_MapleStory_window(self):
