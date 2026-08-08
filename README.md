@@ -1,4 +1,4 @@
-For 楓之谷:經典版
+## For 楓之谷:經典版
 ---
 ## 小工具
 | 檔案名稱 | 核心用途 | 目前狀態 | 備註 |
@@ -7,7 +7,7 @@ For 楓之谷:經典版
 | `get_nametag.py` | 擷取名稱與座標 | ✅ 正常 | 用於定位角色 |
 | `CaptureScreen.py` | 顯示座標與截圖 | ✅ 正常 | 測算像素用 |
 
-### IMG LOG
+### Img Logging
 
 <img src="./assets/log_img.gif" width="600">
 
@@ -17,7 +17,8 @@ For 楓之谷:經典版
 ## Dev Notes & TODO
 > [NOTE] 尋怪機制優化:研究了切片、MASK，但會加大運算量，以及NMS沒寫好的話，locs數量會非常多，若要劃出BBox更會造成運算量太大而CTD
 > [NOTE]尋怪邏輯:要再想想怎麼架構與行為邏輯
-
+--
+## Tech Stack
 
 * **視窗抓取 (Win32 API + Pillow)**：
   * 使用 `win32gui` 取得遊戲視窗句柄 (`hwnd`) 與視窗邊界 (`GetClientRect` / `ClientToScreen`)。
