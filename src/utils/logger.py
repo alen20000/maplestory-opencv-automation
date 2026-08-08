@@ -6,12 +6,16 @@ from pathlib import Path
 
 def setup_logging():
     log_folder = Path(config.get("logging_setting.log_path"))
-    #mkdir 要的是路徑物件，而不是字串路徑
     log_folder.mkdir(parents=True, exist_ok=True)
+
+    #日誌路徑與檔名
     log_file_name = config.get("logging_setting.log_file_name")
     full_log_file_path = log_folder / log_file_name
+    
+    #日誌等級
+    log_level = config.get("logging_setting.log_level")
     logging.basicConfig(
-        level=logging.INFO,
+        level= log_level,
         format='%(asctime)s [%(levelname)s] %(message)s',
         handlers=[
             logging.StreamHandler(),

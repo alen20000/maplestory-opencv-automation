@@ -8,9 +8,7 @@ image_processing:
   #TM_CCOEFF_NORMED
   min_threshold : 0.6
 
-logging_setting:
-  log_path:  "./log"
-  log_file_name: "log.log"  
+
 
 
 game_bot:
@@ -27,3 +25,4 @@ keyboard:
 
 auto_control:
   attack_range: 20
+
