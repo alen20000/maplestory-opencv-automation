@@ -4,6 +4,8 @@ import keyboard
 import time
 import os
 import win32gui
+
+import time
 """
 一個簡單的自動撿拾腳本
 
@@ -12,23 +14,43 @@ AUTO_PICK_DELAY = 0.3
 GAME_TITLE = "新楓之谷：經典版"
 PICK_UP_KEY = "z"
 
+#放按鍵忽略清單
+filter_typing = ['left','right','up','down']
+
 class Bat:
     def __init__(self):
         #初始化
         interception.auto_capture_devices(keyboard=True, mouse=False)
         self.enable_pick = False
         self.MapleStory_hhwnd = self.is_MapleStory_window()
-
-    def run(self):
-        print('='* 6)
-        print("F2:開/關自動撿拾/nF3:退出程式")
-        #綁定事件
-        keyboard.add_hotkey('f2',self.able_pick_up)
-        keyboard.add_hotkey('f3',self.exit_process)
-        
-
+        self.last_key_time = 0
+        self.typing_timeout = 1  #超過多少時間沒輸入，則自動拾取。 
         #states
-        keyboard.wait()
+        self.state_busy = False
+
+
+    def _pick_up_action(self):
+
+        if  self.state_busy:
+            return
+        while self.enable_pick is True:
+            current_time = time.time()
+            if win32gui.GetForegroundWindow() == self.MapleStory_hhwnd:
+
+                if current_time - self.last_key_time > AUTO_PICK_DELAY:
+                    self.state_busy = False
+                if  self.state_busy is False:
+                    interception.press(PICK_UP_KEY)
+                    time.sleep(AUTO_PICK_DELAY)
+
+
+    def _check_tpying(self,event):
+        if event.name in filter_typing:
+            return
+        self.last_key_time = time.time()
+        self.state_busy = True
+        print(self.last_key_time)
+
 
     def is_MapleStory_window(self):
         try:
@@ -39,7 +61,7 @@ class Bat:
             print(f"沒找到視窗{GAME_TITLE}")
             return False
 
-    def able_pick_up(self):
+    def diable_pick_up(self):
         '''
         開啟撿拾模式
         '''
@@ -52,11 +74,20 @@ class Bat:
             print('退出拾取')
             self.enable_pick = False
 
-    def _pick_up_action(self):
-        while self.enable_pick is True:
-            if win32gui.GetForegroundWindow() == self.MapleStory_hhwnd:
-                interception.press(PICK_UP_KEY)
-            time.sleep(AUTO_PICK_DELAY)
+    def run(self):
+        print('='* 6)
+        print("F2:開/關自動撿拾/nF3:退出程式")
+        #綁定事件
+        keyboard.add_hotkey('f2',self.diable_pick_up)
+        keyboard.add_hotkey('f3',self.exit_process)
+        
+        #鍵盤監聽
+        keyboard.hook(self._check_tpying)
+        #等待(用途：阻斷程序結束)
+        keyboard.wait()
+
+
+
 
     def exit_process(self):
         print("退出結束")
@@ -64,7 +95,7 @@ class Bat:
         os._exit(0)
 
 if __name__ == "__main__":
-    s = Bat()
-    s.run()
+    run = Bat()
+    run.run()
 
         
