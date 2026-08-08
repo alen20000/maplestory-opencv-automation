@@ -1,5 +1,10 @@
 import src.action.KeyBoardController as kb
-
+'''
+行為模式: ATTACK 、 APPROACH 、 IDLE
+ATTACK: 攻擊命令
+APPROACH: 追蹤命令，下達左右前進命令
+IDEL: 空狀態，常駐撿拾命令
+'''
 class PlayerStates:
     def __init__(self):
         # 初始化預設狀態
@@ -15,21 +20,20 @@ class PlayerStates:
         """
         if self.current_state != new_state:
             self.current_state = new_state
-            print(f"[狀態切換] 當前狀態變更為: {self.current_state}")
-
-        # 根據不同的狀態，讓 States 直接指揮 Input 發動鍵盤指令
+            self.keyboard.release_all()
+            print(f"狀態更新為: {self.current_state}")
         if self.current_state == "ATTACK":
-            print(">>> 發送攻擊按鍵！")
-            self.keyboard.attack_act() # 實際呼叫鍵盤模組
-            
+
+            self.keyboard.enable_attack()
+            print("攻擊")
         elif self.current_state == "APPROACH" and target_info:
             direction = target_info.get("direction")
-            print(f">>> [States 觸發 Input] 往 {direction} 方向移動！")
+            print(f"前進方向: {direction}")
             if direction == "LEFT":
-                self.keyboard.move_left()
+                self.keyboard.enable_move_left()
             else:
-                self.keyboard.move_right()
+                self.keyboard.enable_move_right()
             
         elif self.current_state == "IDLE":
-            # 什麼都不用按，或是放開按鍵
+            # 空狀態不做任何動作
             pass
