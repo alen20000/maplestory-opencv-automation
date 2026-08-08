@@ -20,7 +20,6 @@ class PlayerStates:
         """
         if self.current_state != new_state:
             self.current_state = new_state
-            self.keyboard.release_all()
             print(f"狀態更新為: {self.current_state}")
         if self.current_state == "ATTACK":
 
