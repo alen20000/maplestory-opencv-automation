@@ -11,8 +11,10 @@ class KeyBoard:
         #states
         self._attack_lock = threading.Lock()
         self._move_lock = threading.Lock()
+        self._item_lock = threading.Lock()  
         self._status_attack = False
         self._status_move= False
+        self._status_item = False  
         #key value
         self.attack_key = config.get("keyboard.attack")
         self.left_key = config.get("keyboard.left")
@@ -60,7 +62,7 @@ class KeyBoard:
             if self._status_move:
                 #移動還在發生，不再傳輸移動指令
                 return
-            self.status_move = True
+            self._status_move = True
             threading.Thread(target=self._move_command, args=(key,), daemon=True).start()
 
     def enable_move_right(self):
@@ -75,3 +77,26 @@ class KeyBoard:
             self._attack_busy = False
         with self._move_lock:
             self._move_busy = False
+
+    ''' 物品使用行為（補血/補魔等） '''
+
+    def _item_command(self, key):
+        try:
+            interception.key_down(key)
+            time.sleep(0.3)
+        except Exception as e:
+            logging.error(f"使用物品發生錯誤:{e}")
+        finally:
+            interception.key_up(key)
+            with self._item_lock:
+                self._status_item = False
+
+    def enable_use_item(self, key):
+        if not key:
+            return
+        with self._item_lock:
+            if self._status_item:
+                # 上一次使用還沒結束，不重複觸發
+                return
+            self._status_item = True
+            threading.Thread(target=self._item_command, args=(key,), daemon=True).start()

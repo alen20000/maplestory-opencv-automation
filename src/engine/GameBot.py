@@ -17,6 +17,7 @@ from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
 import time
 from src.engine.HealthDetector import HealthDetector
+import numpy as np
 
 class GameBot:
     def __init__(self):
@@ -45,6 +46,11 @@ class GameBot:
         self.player_center_loc = None
         self.current_mobs_result =None
         self.auto_control = AutoControl(game_bot_instance=self) #共享參數
+
+
+        #---健康參數
+        self.health_setting = {}
+        self.player_hp = None
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
@@ -70,7 +76,28 @@ class GameBot:
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
         self.htalth_dectector = HealthDetector()
+
+    def _load_health_config(self):
+        '''
+        喝水設定載入
+        '''
+        print("載入喝水設定")
+        raw = config.get("player_setting.health_setting") or {}
+
         
+
+        for level, setting in raw.items():
+            key = setting.get("key")
+            value = setting.get("value")
+            if key == "None":
+                key = None
+
+            self.health_setting[level] = {
+                "value" : value,
+                "key" : key,
+            }
+        print(self.health_setting)
+
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
@@ -113,6 +140,7 @@ class GameBot:
         #adjusying display window
         bring_to_front_and_center_origin(self.hwnd)
         self._load_game_resources()
+        self._load_health_config()
 
         #process
         self.screen_loop()
@@ -128,28 +156,35 @@ class GameBot:
                 self.frame_bgr = self._scan_full_screen()
                 '''
                 1.資料回來 2.畫圖
+                TODO:也許這裡能封裝同一個包在傳出去，避免雜亂
                 ================
                 '''
                 #角色追蹤
                 self.player_tracking_logic()
+                #健康監測
+                self.HealthDetcor()
+
                 #怪物追蹤
                 mobs_result = self.Mobdector()
                 self.current_mobs_result = mobs_result
                 self._draw_mob(mobs_result)
 
-                #自動控制
+                '''
+                自動控制
+                decide_operation 回傳:行為、目標 [str, dict]
+                execute_behavior 狀態更新、下給input模組執行
+                '''
                 action_states, target_info = self.auto_control.decide_operation()
                 if action_states is not None:
                     has_mobs = (target_info is not None)
-                    current_state = self.player_states.update_and_execute(action_states, target_info)
+                    current_state = self.player_states.execute_behavior(action_states, target_info)
 
                     # print(f"當前動作指令: {action_states}, 角色狀態: {current_state}")
 
-                #健康監測
-                health_result = self.HealthDetcor()
 
 
-                time.sleep(0.05)
+
+
                 '''
                 ================
                 '''
@@ -286,28 +321,15 @@ class GameBot:
     def HealthDetcor(self):
         '''
         傳輸: current_frame
-        接收: health results
+        接收: health_results
         '''
         try:
-            health_results = self.htalth_dectector.run(self.frame_bgr)
-            print(type(health_results),health_results)
-
-            # #測試範圍
-            # if health_results is not None:
-            #     x1 = health_results[0]
-            #     y1 = health_results[1]
-            #     x2 = health_results[2]
-            #     y2 = health_results[3] 
-            #     draw_dectection_box(
-            #     self.frame_bgr,
-            #     (x1,y1),
-            #     (x2, y2),
-            #     label="health",color = (0, 255, 255),
-            #     top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-
+            #這裡以後若要做補MP偵測，不能這樣寫
+            health_results = self.htalth_dectector.hp_detect(self.frame_bgr)
+            self.player_hp = health_results
 
         except Exception as e:
-            print(e)
+            logging.error(e)
 
 
     def _draw_mob(self, mob_results: list):

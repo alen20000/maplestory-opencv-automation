@@ -2,6 +2,8 @@ import time
 import logging
 from config.config_loader import config
 from src.utils.boxes import BBox
+from typing import Optional
+
 '''
 行為邏輯，橋接GameBot 與 發布命令給 KeyBoardController
 '''
@@ -13,11 +15,19 @@ class AutoControl:
         self.player_attack_range = config.get("auto_control.attack_range")
 
 
-    def decide_operation(self):
+    def decide_operation(self) -> tuple[Optional[str], Optional[dict]]:
         '''
-        負責座標計算，下達對應命令
+        負責:角色邏輯判斷
+        回傳:行為、目標
         '''
 
+        '''角色健康狀態'''
+        
+        level , heal_key = self._health_status_check()
+        if level is not None:
+            return f"HEAL_{level.upper()}", {"key": heal_key}
+
+        '''角色攻擊/閒置/移動行為'''
         if self.bot.player_center_loc is None:
             return None, None
 
@@ -59,9 +69,39 @@ class AutoControl:
         
         return "APPROACH" , best_target
 
+    def _health_status_check(self): 
+
+        '''
+        血量情況判斷與行動分流
+        回傳: 血量分級、對應按鍵
+        '''
+        hp = self.bot.player_hp
+        #防呆
+        if hp is None:
+            return None, None
+
+        #按鍵預設，與GameBot同步
+        health_setting = self.bot.health_setting
+
+        if not health_setting:
+            return None, None
 
 
+        #結構: {"light":    {"key": "delete", "value": 80},..,}
+        sorted_levels = sorted(
+            health_setting.items(),
+            key=lambda item: item[1]["value"]
+        )
 
+        #主要判斷
+        for level, setting in sorted_levels:
+            if hp < setting["value"]:
+                key = setting["key"]
+                if key is None:
+                    continue   # 這個等級沒設按鍵，跳過，往下一級檢查
+                return level, key
+            
+        return None, None
 
 def random_move():
     '''

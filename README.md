@@ -7,11 +7,16 @@
 | `get_nametag.py` | 擷取名稱與座標 | V 正常 | 半自動提取角色名牌，用於角色定位 |
 | `CaptureScreen.py` | 顯示座標與截圖 | V 正常 | 測算像素用 |
 
+
+
+
 ### Img Logging
-
-<img src="./assets/log_img.gif" width="600">
-
-<img src="./assets/log_img_2.gif" width="600">
+<p align="center">
+  <img src="./assets/log_img.gif" width="600">
+</p>
+<p align="center">
+  <img src="./assets/log_img_2.gif" width="600">
+</p>
 
 目前邊界判定有問題，到地圖邊ROI範圍畫不出來，所以會罰站；目前加上自動撿拾腳本，能實現一個基礎的自動打怪循環
 
@@ -47,3 +52,29 @@
     * 選用`keyboard`，實現綁定熟鍵
 
 ##
+
+### Current Features (WIP)
+
+* 自動尋怪
+* 自動打怪
+* 自動撿東西
+  * 簡易版本、而且是外掛的腳本
+* 自動喝水
+  * 只有HP
+
+### Setting
+
+* 藥水設定
+  * 路徑`./config/config_default`
+<p align="center">
+  <img src="./assets/setting-1.png" width="300">
+</p>
+
+* 地圖設定
+  * 路徑`./config/config_default`
+  * `quickly_choice_map`的值，設下列`map`的`value`
+  * `map`下方的鍵值可以製作對應地圖的怪物配對模板
+
+<p align="center">
+  <img src="./assets/setting-2.png" width="300">
+</p>

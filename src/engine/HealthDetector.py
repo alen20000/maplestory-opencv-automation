@@ -10,7 +10,7 @@ class HealthDetector():
         #血條顏色範圍(HSV)
         self.lower_hp_color = config.get("health_detector.lower_hp_color")
         self.upper_hp_color = config.get("health_detector.upper_hp_color")
-    def run(self, frame:np.ndarray):
+    def hp_detect(self, frame:np.ndarray):
         '''
         接收:current_frame
         輸出:

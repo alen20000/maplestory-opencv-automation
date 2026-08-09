@@ -2,6 +2,19 @@
 game:
   title: "新楓之谷：經典版"
 
+player_setting:
+  #喝水設定 key:按鍵 Vale:觸發血線，低於就喝對應藥水
+  #常用按鍵 "delete"
+  health_setting:
+    light:
+      key: null
+      value: 80
+    medium:
+      key: null
+      value: 50
+    critical:
+      key: "delete"
+      value: 20
 
 image_processing:
   #TM_SQDIFF_NORMED（平方差正規化匹配）m/4
@@ -18,7 +31,7 @@ game_bot:
 
 health_detector:
   #存放血條的是窗內位置 list[x1,y1,x2,y2]
-  hp_lect: [504,755,609,760]
+  hp_lect: [504,755,608,766]
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]
   # mp_lect:

@@ -2,7 +2,10 @@ gaming:
   # 為 grayscale 2 為 測試模式
   template_matching_mode: 1
 
+# 選擇地圖
 quickly_choice_map: Pig_Beach
+
+# 設定的地圖路徑
 map:
   test_map: "img/monsters" 
   Hunting_Ground: img/map/Hunting_Ground_I
