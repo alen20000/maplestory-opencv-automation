@@ -291,19 +291,19 @@ class GameBot:
         try:
             health_results = self.htalth_dectector.run(self.frame_bgr)
             print(type(health_results),health_results)
-            
-            #測試範圍
-            if health_results is not None:
-                x1 = health_results[0]
-                y1 = health_results[1]
-                x2 = health_results[2]
-                y2 = health_results[3] 
-                draw_dectection_box(
-                self.frame_bgr,
-                (x1,y1),
-                (x2, y2),
-                label="health",color = (0, 255, 255),
-                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
+            # #測試範圍
+            # if health_results is not None:
+            #     x1 = health_results[0]
+            #     y1 = health_results[1]
+            #     x2 = health_results[2]
+            #     y2 = health_results[3] 
+            #     draw_dectection_box(
+            #     self.frame_bgr,
+            #     (x1,y1),
+            #     (x2, y2),
+            #     label="health",color = (0, 255, 255),
+            #     top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
 
         except Exception as e:

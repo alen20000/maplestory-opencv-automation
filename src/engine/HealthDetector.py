@@ -20,10 +20,16 @@ class HealthDetector():
         x1 , y1 ,x2 , y2 = self.hp_bar[0], self.hp_bar[1], self.hp_bar[2], self.hp_bar[3]
         crop_frame = frame[y1:y2, x1:x2]
         hsv_frame = cv2.cvtColor(crop_frame, cv2.COLOR_BGR2HSV)
+        max_hp = crop_frame.shape[1]
 
-        #雖然楓之谷大概沒有光汙問題，但還是做一下
-        mask = cv2.inRange(hsv_frame, self.lower_hp_color, self.upper_hp_color)
+        #雖然楓之谷大概沒有光汙問題，但還是做一下，
+        lower_bound = np.array(self.lower_hp_color, dtype=np.uint8)
+        upper_bound = np.array(self.upper_hp_color, dtype=np.uint8)
+        mask = cv2.inRange(hsv_frame,lower_bound, upper_bound)
 
-        #測試用
-        list = x1 , y1 ,x2 , y2
-        return list
+        # axis=0 把垂直方向有True則True，把多排matrix壓成一排
+        hp_remain = np.any(mask > 0, axis=0)
+        # 把True的數量算出來，得到目前血量
+        hp_remain = np.count_nonzero(hp_remain)
+
+        return round(hp_remain/max_hp*100,1)
