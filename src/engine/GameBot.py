@@ -18,6 +18,7 @@ from src.engine.AutoControl import AutoControl
 import time
 from src.engine.HealthDetector import HealthDetector
 import numpy as np
+from src.engine.game_state import GameState
 
 class GameBot:
     def __init__(self):
@@ -45,16 +46,14 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
         self.current_mobs_result =None
-        self.auto_control = AutoControl(game_bot_instance=self) #共享參數
-
 
         #---健康參數
-
         self.player_hp = None
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
         self.htalth_dectector = None
+
     def _connect_window(self):
         '''
         hook the game window
@@ -76,7 +75,7 @@ class GameBot:
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
         self.htalth_dectector = HealthDetector()
-
+        self.auto_control = AutoControl()
 
 
     def _scan_full_screen(self):
@@ -105,7 +104,42 @@ class GameBot:
                 self.frame_size = (x ,y)
 
         return frame_bgr
-    
+
+    def _draw_mob(self, mob_results: list):
+        """
+        解析怪物封包，然後畫出BBOX
+        """
+        if mob_results and self.roi_BBOX is not None:
+            for mob_name, mob_details in mob_results:
+                
+                for detailed in mob_details:
+                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
+                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
+                    w, h = detailed["size"]
+                    draw_dectection_box(
+                        self.frame_bgr,
+                        (x1,y1),
+                        (x1+w, y1+h),
+                        label=mob_name,color = (0, 0, 255),
+                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
+    def _draw_mob(self, mob_results: list):
+        """
+        解析怪物封包，然後畫出BBOX
+        """
+        if mob_results and self.roi_BBOX is not None:
+            for mob_name, mob_details in mob_results:
+                
+                for detailed in mob_details:
+                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
+                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
+                    w, h = detailed["size"]
+                    draw_dectection_box(
+                        self.frame_bgr,
+                        (x1,y1),
+                        (x1+w, y1+h),
+                        label=mob_name,color = (0, 0, 255),
+                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
     def run(self):
 
         """#pre_process"""
@@ -140,27 +174,31 @@ class GameBot:
                 TODO:也許這裡能封裝同一個包在傳出去，避免雜亂
                 ================
                 '''
-                #角色追蹤
+                # 偵測與更新數據
                 self.player_tracking_logic()
-                #健康監測
                 self.HealthDetcor()
-
-                #怪物追蹤
-                mobs_result = self.Mobdector()
-                self.current_mobs_result = mobs_result
-                self._draw_mob(mobs_result)
+                self.current_mobs_result = self.Mobdector()
+                #繪製BBOX
+                self._draw_mob(self.current_mobs_result)
+                print(self.current_mobs_result)
+                current_game_state =  GameState(
+                    player_center_loc = self.player_center_loc,
+                    player_hp = self.player_hp,
+                    roi_BBOX = self.roi_BBOX,
+                    mobs = self.current_mobs_result
+                )
 
                 '''
                 自動控制
                 decide_operation 回傳:行為、目標 [str, dict]
                 execute_behavior 狀態更新、下給input模組執行
                 '''
-                action_states, target_info = self.auto_control.decide_operation()
+                action_states, target_info = self.auto_control.decide_operation(current_game_state)
+
                 if action_states is not None:
                     has_mobs = (target_info is not None)
                     current_state = self.player_states.execute_behavior(action_states, target_info)
 
-                    # print(f"當前動作指令: {action_states}, 角色狀態: {current_state}")
 
 
 
@@ -239,6 +277,7 @@ class GameBot:
                     pass
         except Exception as e:
             logging.error(e)
+
     def _locate_player_locally(self):
         '''
         局部掃描:
@@ -301,32 +340,13 @@ class GameBot:
 
     def HealthDetcor(self):
         '''
-        傳輸: current_frame
-        接收: health_results
+        get:self.player_hp
         '''
         try:
             #這裡以後若要做補MP偵測，不能這樣寫
-            health_results = self.htalth_dectector.hp_detect(self.frame_bgr)
-            self.player_hp = health_results
-
+            self.player_hp = self.htalth_dectector.hp_detect(self.frame_bgr)
         except Exception as e:
             logging.error(e)
 
 
-    def _draw_mob(self, mob_results: list):
-        """
-        解析怪物封包，然後畫出BBOX
-        """
-        if mob_results and self.roi_BBOX is not None:
-            for mob_name, mob_details in mob_results:
-                
-                for detailed in mob_details:
-                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
-                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
-                    w, h = detailed["size"]
-                    draw_dectection_box(
-                        self.frame_bgr,
-                        (x1,y1),
-                        (x1+w, y1+h),
-                        label=mob_name,color = (0, 0, 255),
-                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+

@@ -3,11 +3,11 @@ gaming:
   template_matching_mode: 1
 
 # 選擇地圖
-quickly_choice_map: Pig_Beach
+quickly_choice_map: Hunting_Ground_I
 
 # 設定的地圖路徑
 map:
   test_map: "img/monsters" 
-  Hunting_Ground: img/map/Hunting_Ground_I
+  Hunting_Ground_I: img/map/Hunting_Ground_I
   Pig_Beach: img/map/Pig_Beach
 
