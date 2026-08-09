@@ -9,6 +9,7 @@ import win32gui
 一個簡單的自動撿拾腳本
 """
 AUTO_PICK_DELAY = 0.25
+
 GAME_TITLE = "新楓之谷：經典版"
 PICK_UP_KEY = "z"
 
@@ -22,7 +23,7 @@ class Bat:
         interception.auto_capture_devices(keyboard=True, mouse=False)
         self.MapleStory_hhwnd = self.is_MapleStory_window()
         self.last_key_time = 0
-        self.typing_timeout = 1  # 超過多少時間沒輸入，則自動拾取。
+        self.typing_timeout = 0.3  # 超過多少時間沒輸入，則自動拾取。
 
         # states
         self.state_busy = False
