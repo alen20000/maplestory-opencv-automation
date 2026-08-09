@@ -49,7 +49,7 @@ class GameBot:
 
 
         #---健康參數
-        self.health_setting = {}
+
         self.player_hp = None
         ##--模組實例
         self.mob_detector = None
@@ -77,26 +77,7 @@ class GameBot:
         self.player_states = PlayerStates() #init player state
         self.htalth_dectector = HealthDetector()
 
-    def _load_health_config(self):
-        '''
-        喝水設定載入
-        '''
-        print("載入喝水設定")
-        raw = config.get("player_setting.health_setting") or {}
 
-        
-
-        for level, setting in raw.items():
-            key = setting.get("key")
-            value = setting.get("value")
-            if key == "None":
-                key = None
-
-            self.health_setting[level] = {
-                "value" : value,
-                "key" : key,
-            }
-        print(self.health_setting)
 
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -140,7 +121,7 @@ class GameBot:
         #adjusying display window
         bring_to_front_and_center_origin(self.hwnd)
         self._load_game_resources()
-        self._load_health_config()
+
 
         #process
         self.screen_loop()

@@ -13,6 +13,29 @@ class AutoControl:
         #parameters
         self.bot =game_bot_instance
         self.player_attack_range = config.get("auto_control.attack_range")
+        self.health_setting = {}
+        #loading config
+
+        self._load_health_config()
+
+    def _load_health_config(self):
+
+        '''
+        喝水設定載入
+        '''
+
+        raw = config.get("player_setting.health_setting") or {}
+
+        for level, setting in raw.items():
+            key = setting.get("key")
+            value = setting.get("value")
+            if key == "None":
+                key = None
+
+            self.health_setting[level] = {
+                "value" : value,
+                "key" : key,
+            }
 
 
     def decide_operation(self) -> tuple[Optional[str], Optional[dict]]:
@@ -81,7 +104,7 @@ class AutoControl:
             return None, None
 
         #按鍵預設，與GameBot同步
-        health_setting = self.bot.health_setting
+        health_setting = self.health_setting
 
         if not health_setting:
             return None, None
