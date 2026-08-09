@@ -16,6 +16,8 @@ import logging
 from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
 import time
+from src.engine.HealthDetector import HealthDetector
+
 class GameBot:
     def __init__(self):
         #---config setting
@@ -46,6 +48,7 @@ class GameBot:
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
+        self.htalth_dectector = None
     def _connect_window(self):
         '''
         hook the game window
@@ -66,7 +69,7 @@ class GameBot:
         #init module
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
-        
+        self.htalth_dectector = HealthDetector()
         
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -142,7 +145,9 @@ class GameBot:
 
                     # print(f"當前動作指令: {action_states}, 角色狀態: {current_state}")
 
-                
+                #健康監測
+                health_result = self.HealthDetcor()
+
 
                 time.sleep(0.05)
                 '''
@@ -256,6 +261,7 @@ class GameBot:
                 # 繪製偵查範圍
                 draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="偵測範圍",
                 top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+
                 return  True
             
             else:
@@ -279,15 +285,30 @@ class GameBot:
 
     def HealthDetcor(self):
         '''
-        把需要偵測血量的畫面，傳給血量偵測模組
+        傳輸: current_frame
+        接收: health results
         '''
-        
-        hp_x1, hp_y1, hp_x2, hp_y2 = hp_bar[0], hp_bar[1], hp_bar[2], hp_bar[3]
-        hp_detector_range = self.frame_bgr[hp_y1:hp_y2, hp_x1:hp_x2]
+        try:
+            health_results = self.htalth_dectector.run(self.frame_bgr)
+            print(type(health_results),health_results)
+            
+            #測試範圍
+            if health_results is not None:
+                x1 = health_results[0]
+                y1 = health_results[1]
+                x2 = health_results[2]
+                y2 = health_results[3] 
+                draw_dectection_box(
+                self.frame_bgr,
+                (x1,y1),
+                (x2, y2),
+                label="health",color = (0, 255, 255),
+                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
-        health_results = self.health_detector.searching_hp(self.frame_bgr)
 
-        return health_results
+        except Exception as e:
+            print(e)
+
 
     def _draw_mob(self, mob_results: list):
         """
