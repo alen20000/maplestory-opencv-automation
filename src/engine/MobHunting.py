@@ -13,8 +13,9 @@ mob template resource :https://maplestory.wiki/GMS/65/mob/100101
 class MobDetector:
     def __init__(self):
         #Config
+        Map_Name = config.get("quickly_choice_map")
         self.min_threshold = config.get("image_processing.min_threshold")
-        self.mobs_in_map =  config.get("map.test_map")
+        self.mobs_in_map =  config.get(f"map.{Map_Name}")
 
         #放匹配模板字典
         self.mobs_templates: dict[str, np.ndarray] = {}

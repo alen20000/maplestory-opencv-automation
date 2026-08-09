@@ -3,7 +3,9 @@ import src.action.KeyBoardController as kb
 行為模式: ATTACK 、 APPROACH 、 IDLE
 ATTACK: 攻擊命令
 APPROACH: 追蹤命令，下達左右前進命令
-IDEL: 空狀態，常駐撿拾命令
+IDEL: 空狀態
+撿拾命命，先用外部腳本
+
 '''
 class PlayerStates:
     def __init__(self):
@@ -24,7 +26,8 @@ class PlayerStates:
         if self.current_state == "ATTACK":
 
             self.keyboard.enable_attack()
-            print("攻擊")
+            print("攻擊中...")
+
         elif self.current_state == "APPROACH" and target_info:
             direction = target_info.get("direction")
             print(f"前進方向: {direction}")

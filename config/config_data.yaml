@@ -2,7 +2,9 @@ gaming:
   # 為 grayscale 2 為 測試模式
   template_matching_mode: 1
 
+quickly_choice_map: Pig_Beach
 map:
   test_map: "img/monsters" 
-
+  Hunting_Ground: img/map/Hunting_Ground_I
+  Pig_Beach: img/map/Pig_Beach
 

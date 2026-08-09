@@ -6,7 +6,7 @@ from PIL import ImageGrab
 from src.utils.common import (get_window_handle_and_rect_by,
 bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
-import os
+
 import logging
 from src.engine.MobHunting import MobDetector
 import ctypes
@@ -15,7 +15,7 @@ from config.config_loader import config
 import logging
 from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
-
+import time
 class GameBot:
     def __init__(self):
         #---config setting
@@ -144,7 +144,7 @@ class GameBot:
 
                 
 
-
+                time.sleep(0.05)
                 '''
                 ================
                 '''
@@ -276,7 +276,19 @@ class GameBot:
             mob_results = self.mob_detector.searching_mob(self.roi_crop_frame_gray)
 
             return mob_results
+
+    def HealthDetcor(self):
+        '''
+        把需要偵測血量的畫面，傳給血量偵測模組
+        '''
         
+        hp_x1, hp_y1, hp_x2, hp_y2 = hp_bar[0], hp_bar[1], hp_bar[2], hp_bar[3]
+        hp_detector_range = self.frame_bgr[hp_y1:hp_y2, hp_x1:hp_x2]
+
+        health_results = self.health_detector.searching_hp(self.frame_bgr)
+
+        return health_results
+
     def _draw_mob(self, mob_results: list):
         """
         解析怪物封包，然後畫出BBOX
