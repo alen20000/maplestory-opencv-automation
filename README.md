@@ -4,7 +4,7 @@
 | 檔案名稱 | 核心用途 | 目前狀態 | 備註 |
 | :--- | :--- | :---: | :--- |
 | `auto_pick_up.bat` | 自動撿拾腳本 | V 正常 | 另外寫的自動拾取腳本 |
-| `get_nametag.py` | 擷取名稱與座標 | V 正常 | 半自動提取角色名牌，用於角色定位 |
+| `Run_GetNametag.bat` | 擷取人物名牌 | V 正常 | 要先用這個抓自己人物名牌，才可以更準的定位 |
 | `CaptureScreen.py` | 顯示座標與截圖 | V 正常 | 測算像素用 |
 
 
@@ -45,7 +45,7 @@
     * 支援使用遮罩（Mask）過濾背景干擾。
   * **歸一化相關係數 / 平方差匹配 (`cv2.matchTemplate`)**：
     * 選用 `cv2.minMaxLoc` 尋找最佳匹配點（最高相似度或最小差異值），並設定閾值（Threshold）過濾錯誤結果。
-  * ** NMS（Non-Maximum Suppression）**
+  * **NMS（Non-Maximum Suppression**
     * 利用NMS清除重複匹配，減輕`draw_dectection_box`繪圖運算量，打怪功能前的重要步驟
 * **硬體操控**
     * 選用 `interception`，硬體層下達底層指令
@@ -71,7 +71,7 @@
 </p>
 
 * 地圖設定
-  * 路徑`./config/config_default`
+  * 路徑`./config/config_data`
   * `quickly_choice_map`的值，設下列`map`的`value`
   * `map`下方的鍵值可以製作對應地圖的怪物配對模板
 

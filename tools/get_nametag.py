@@ -1,10 +1,12 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 import time
 import yaml
 import cv2
 import numpy as np
 import win32gui
 import win32con
-
 from PIL import ImageGrab
 from src.utils.common import get_mask, get_window_handle_and_rect_by, bring_to_front_and_center_origin
 from config.config_loader import config
