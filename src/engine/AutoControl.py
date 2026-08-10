@@ -22,7 +22,8 @@ class AutoControl:
         self.search_switch_time = time.time()
         self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
         self.search_switch_jitter = random.uniform(-1.5, 2.0)  # <-- 搜尋間隔誤差，模擬隨機性
-
+        #Toggle config
+        self.searching_mob = config.get("auto_control_config.searching_mob", False)
     def _load_health_config(self):
 
         '''
@@ -57,10 +58,18 @@ class AutoControl:
 
         # 檢查點
         if state.player_center_loc is None: # <-- 決策點"檢查玩家座標時"
-            return None, None
+            if self.searching_mob:
+                x, y = self._search_sweep()
+            else: 
+                x, y = None, None
+            return x, y
+        
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
-
-            return self._search_sweep()
+            if self.searching_mob:
+                x, y = self._search_sweep()
+            else: 
+                x, y = None, None
+            return x, y
 
         if not state.mobs: # <- 決策點"檢查怪物時"
 
