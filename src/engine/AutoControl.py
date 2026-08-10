@@ -56,12 +56,6 @@ class AutoControl:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
         # 檢查點
-        print(state.lost_track_count)
-        if state.lost_track_count == 15:
-            print("lost track")
-            x, y = self._search_sweep()
-            return x, y
-        
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
             if self.searching_mob :
                 x, y = self._search_sweep()
@@ -76,7 +70,8 @@ class AutoControl:
                 x, y = None, None
             return x, y
 
-        
+        if not state.player_center_loc:
+            return None, None
         px, _ = state.player_center_loc
 
         # 計算距離/方向/目標/回傳 states module 結果
@@ -99,6 +94,12 @@ class AutoControl:
         if best_target and best_target['distance'] <= self.player_attack_range:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
+
+        elif state.lost_track_count == 15:
+            # 如果角色遺失追蹤 15 次，進入隨機巡弋
+            x, y = self._search_sweep()
+            return x, y
+
 
         return "APPROACH" , best_target
 
