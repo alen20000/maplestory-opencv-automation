@@ -19,3 +19,4 @@ class GameState:
     roi_BBOX : Optional[BBox] = None
     mobs : list[MobInfo] = field(default_factory=list) 
     frame : Optional[np.ndarray] = None
+    lost_track_count : int = 0

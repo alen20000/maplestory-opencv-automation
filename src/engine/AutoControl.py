@@ -23,7 +23,7 @@ class AutoControl:
         self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
         self.search_switch_jitter = random.uniform(-1.5, 2.0)  # <-- 搜尋間隔誤差，模擬隨機性
         #Toggle config
-        self.searching_mob = config.get("auto_control_config.searching_mob", False)
+        self.searching_mob = config.get("auto_control_config.search_interval", False)
     def _load_health_config(self):
 
         '''
@@ -43,7 +43,6 @@ class AutoControl:
                 "key" : key,
             }
 
-
     def decide_operation(self,state: GameState) -> tuple[Optional[str], Optional[dict]]:
         '''
         Args:
@@ -57,11 +56,10 @@ class AutoControl:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
         # 檢查點
-        if state.player_center_loc is None: # <-- 決策點"檢查玩家座標時"
-            if self.searching_mob :
-                x, y = self._search_sweep()
-            else: 
-                x, y = None, None
+        print(state.lost_track_count)
+        if state.lost_track_count == 15:
+            print("lost track")
+            x, y = self._search_sweep()
             return x, y
         
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
@@ -78,10 +76,8 @@ class AutoControl:
                 x, y = None, None
             return x, y
 
+        
         px, _ = state.player_center_loc
-
-        if state.roi_BBOX is None:
-            return None, None
 
         # 計算距離/方向/目標/回傳 states module 結果
         best_target = None

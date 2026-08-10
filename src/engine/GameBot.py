@@ -49,7 +49,7 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
         self.current_mobs_result =None
-
+        self.lost_track_duration = 0#<-  人物失蹤計算
         #---健康參數
         self.player_hp = None
         ##--模組實例
@@ -151,6 +151,10 @@ class GameBot:
         self.bot_enabled = not self.bot_enabled
         print(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
 
+    def _lost_track_count(self):
+        self.lost_track_duration += 1
+        return True
+    
     def run(self):
 
         """#pre_process"""
@@ -209,6 +213,7 @@ class GameBot:
                     roi_BBOX = self.roi_BBOX,
                     mobs = self.current_mobs_result,
                     frame = self.frame_bgr,
+                    lost_track_count = self.lost_track_duration
                 )
 
                 '''
@@ -249,6 +254,11 @@ class GameBot:
                 if player_loc is not None:
 
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
+                else:
+                    #計算人物失聯時間
+                    self._lost_track_count()
+                    if self.lost_track_duration > 15:
+                        self.lost_track_duration = 0
 
             else:
                 #進入ROI掃

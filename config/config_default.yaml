@@ -26,14 +26,14 @@ image_processing:
 
 game_bot:
   #roi範圍的位移量 ，設定好能減少運算
-  roi_x_offset_l_width: 500
-  roi_x_offset_r_width: 500
-  roi_y_offset_t_high: 150
-  roi_y_offset_b_high : 50
+  roi_x_offset_l_width: 250
+  roi_x_offset_r_width: 250
+  roi_y_offset_t_high: 170
+  roi_y_offset_b_high : 30
 
 auto_control_config:
   #沒怪時左右尋怪 True/False
-  search_interval: False
+  search_interval: True
 health_detector:
   #存放血條的是窗內位置 list[x1,y1,x2,y2]
   hp_lect: [504,755,608,766]
