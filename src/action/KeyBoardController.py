@@ -67,7 +67,7 @@ class KeyBoard:
 
     def enable_move_right(self):
         self._enable_move(self.right_key)
- 
+
     def enable_move_left(self):
         self._enable_move(self.left_key)
 
@@ -78,6 +78,18 @@ class KeyBoard:
         with self._move_lock:
             self._move_busy = False
 
+    def stop_move(self):
+        with self._move_lock:
+            #如果正在移動，左右鍵彈起
+            if self._status_move:
+                try:
+                    interception.key_up(self.left_key)
+                    interception.key_up(self.right_key)
+                except Exception as e:
+                    logging.error(f"釋放移動發生錯誤:{e}")
+                finally:
+                    self._status_move = False
+                    
     ''' 物品使用行為（補血/補魔等） '''
 
     def _item_command(self, key):

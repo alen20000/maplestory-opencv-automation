@@ -17,8 +17,7 @@ class PlayerStates:
 
     def execute_behavior(self, new_state, target_info=None):
         """
-        1. 接收 Bot 傳來的狀態並更新
-        2. 根據狀態直接發送指令給 Input (鍵盤)
+        負責以狀態變更而進行的指令
         """
         # 更新狀態
         if self.current_state != new_state:
@@ -27,20 +26,21 @@ class PlayerStates:
 
         # 根據狀態發送指令
         if self.current_state == "ATTACK":
-
+            # 停止移動
+            self.keyboard.stop_move()
             self.keyboard.enable_attack()
-            print("攻擊中...")
+
 
         elif self.current_state == "APPROACH" and target_info:
             direction = target_info.get("direction")
-            print(f"前進方向: {direction}")
+
             if direction == "LEFT":
                 self.keyboard.enable_move_left()
             else:
                 self.keyboard.enable_move_right()
             
         elif self.current_state == "IDLE":
-            # 空狀態不做任何動作
+
             pass
 
         elif self.current_state.startswith("HEAL") and target_info:
