@@ -21,7 +21,9 @@ import numpy as np
 from src.engine.game_state import GameState
 import keyboard
 import time
+import re
 class GameBot:
+    
     def __init__(self):
         #---config setting
 
@@ -120,11 +122,16 @@ class GameBot:
                     x1 = detailed["top_left"][0] + self.roi_BBOX.x1
                     y1 = detailed["top_left"][1] + self.roi_BBOX.y1
                     w, h = detailed["size"]
+                    score = detailed["score"]
+                    clean_name = re.sub(r'\s*\(\s*\d+\s*\)', '', mob_name)
+                    score_text = f"{score:.2f}"
+                    clean_name = f"{clean_name} {score_text}"
+
                     draw_dectection_box(
                         self.frame_bgr,
                         (x1,y1),
                         (x1+w, y1+h),
-                        label=mob_name,color = (0, 0, 255),
+                        label=clean_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
 
@@ -181,7 +188,9 @@ class GameBot:
                 # 窗口偵測
                 self._is_window_valid()
                 if not self.bot_enabled:
-                    cv2.waitKey(1)
+                    # 按F9切換暫停/按Q退出
+                    if cv2.waitKey(1) == ord('q'):
+                        break
                     continue   # 暫停時,完全跳過偵測+決策+按鍵,只留畫面刷新
                 # start =time.time() 
 
@@ -217,9 +226,8 @@ class GameBot:
                 ================
                 '''
                 cv2.imshow("Game Debug View", self.frame_bgr)
-                key = cv2.waitKey(1)
-                if cv2.waitKey(1) == ord('q'):
-                    break
+                cv2.waitKey(1)
+
                 # print(f"一個while循環耗時: {time.time() - start:.3f}")
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)

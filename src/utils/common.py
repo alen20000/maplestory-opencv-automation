@@ -96,7 +96,7 @@ def draw_dectection_box(frame,left_top,right_bottom,label="Target",color=(0,255,
 
     cv2.putText(
         frame, 
-        label, 
+        str(label), 
         (left_top[0], left_top[1] - 10), # 文字位置在框框左上方稍微偏上一點
         cv2.FONT_HERSHEY_SIMPLEX, 
         0.5, 
