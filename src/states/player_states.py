@@ -1,4 +1,5 @@
 import src.action.KeyBoardController as kb
+import logging  
 '''
 行為模式: ATTACK 、 APPROACH 、 IDLE
 ATTACK: 攻擊命令
@@ -53,6 +54,6 @@ class PlayerStates:
                 self.keyboard.enable_use_item(key)
                 # print(f"補血中，按下: {key}")
             else:
-                print(f"{self.current_state} 觸發，但該等級尚未設定按鍵")
+                logging.info(f"{self.current_state} 觸發，但該該處發值還沒設定按鍵")
                 pass
 

@@ -60,7 +60,8 @@ class AutoControl:
 
         if not state.mobs: # <- 決策點"檢查怪物時"
             print("no mobs")
-            return None, None
+            
+            return self._random_move(state)
 
         px, _ = state.player_center_loc
 
@@ -130,8 +131,17 @@ class AutoControl:
         預設，假使沒匹配到角色，隨機移動  
         
         '''
-        g
+        frame = state.frame
+        px, _ = state.player_center_loc
         _, x = frame.shape[:2]
+        print(f"隨機移動到{x//2}")
 
-        pass
+        direction = "RIGHT" if px < x//2 else "LEFT"
+        random_move = {
+            "name": "RANDOM_MOVE",
+            "distance": None,
+            "direction": direction
+            }
+
+        return "APPROACH" , random_move
 
