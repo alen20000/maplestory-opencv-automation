@@ -44,19 +44,22 @@ class AutoControl:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
         '''
 
-        '''角色健康狀態'''
+        # 角色健康狀態
 
         level , heal_key = self._health_status_check(state.player_hp)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
-        '''角色攻擊/閒置/移動行為'''
-        if state.player_center_loc is None:
+        # 檢查點
+        if state.player_center_loc is None: # <-- 決策點"檢查玩家座標時"
             return None, None
 
+        if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
+            print("no roi")
+            return None, None
 
-
-        if not state.mobs:
+        if not state.mobs: # <- 決策點"檢查怪物時"
+            print("no mobs")
             return None, None
 
         px, _ = state.player_center_loc
@@ -64,6 +67,7 @@ class AutoControl:
         if state.roi_BBOX is None:
             return None, None
 
+        # 計算距離/方向/目標/回傳 states module 結果
         best_target = None
         min_distance = float('inf')
         #從無限遠開始判斷
@@ -94,13 +98,13 @@ class AutoControl:
         '''
         #防呆
         if player_hp is None:
-            return None, None
+            return None, None 
 
         #按鍵預設，與GameBot同步
         health_setting = self.health_setting
 
         if not health_setting:
-            return None, None
+            return None, None 
 
 
         #結構: {"light":    {"key": "delete", "value": 80},..,}
@@ -119,10 +123,15 @@ class AutoControl:
             
         return None, None
 
-def random_move():
-    '''
-    預設，假使沒匹配到角色，隨機移動  
-    '''
 
-    pass
+    def _random_move(self,state: GameState):
+
+        '''
+        預設，假使沒匹配到角色，隨機移動  
+        
+        '''
+        g
+        _, x = frame.shape[:2]
+
+        pass
 

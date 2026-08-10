@@ -186,7 +186,8 @@ class GameBot:
                     player_center_loc = self.player_center_loc,
                     player_hp = self.player_hp,
                     roi_BBOX = self.roi_BBOX,
-                    mobs = self.current_mobs_result
+                    mobs = self.current_mobs_result,
+                    frame = self.frame_bgr,
                 )
 
                 '''

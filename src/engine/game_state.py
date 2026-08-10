@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 from src.utils.boxes import BBox
-
+import numpy as np
 @dataclass
 class MobInfo:
     name : str
@@ -18,3 +18,4 @@ class GameState:
     player_hp : Optional[float] = None
     roi_BBOX : Optional[BBox] = None
     mobs : list[MobInfo] = field(default_factory=list) 
+    frame : Optional[np.ndarray] = None
