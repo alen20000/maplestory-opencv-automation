@@ -58,23 +58,25 @@ class AutoControl:
 
         # 檢查點
         if state.player_center_loc is None: # <-- 決策點"檢查玩家座標時"
-            if self.searching_mob:
+            if self.searching_mob :
                 x, y = self._search_sweep()
             else: 
                 x, y = None, None
             return x, y
         
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
-            if self.searching_mob:
+            if self.searching_mob :
                 x, y = self._search_sweep()
             else: 
                 x, y = None, None
             return x, y
 
         if not state.mobs: # <- 決策點"檢查怪物時"
-
-            
-            return self._search_sweep()
+            if self.searching_mob :
+                x, y = self._search_sweep()
+            else: 
+                x, y = None, None
+            return x, y
 
         px, _ = state.player_center_loc
 
