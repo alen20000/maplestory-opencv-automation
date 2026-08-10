@@ -15,7 +15,9 @@ player_setting:
     critical:
       key: "delete"
       value: 20
-
+  auto_control_config:
+    #人物的攻擊範圍(像素)
+    attack_range: 50
 image_processing:
   #TM_SQDIFF_NORMED（平方差正規化匹配）m/4
   max_threshold : 0.1
@@ -43,8 +45,7 @@ keyboard:
   attack: ctrl
   pick_up: z
 
-auto_control:
-  attack_range: 20
+
 
 folder_path:
   template_nametag_path: img/nametag/example.png

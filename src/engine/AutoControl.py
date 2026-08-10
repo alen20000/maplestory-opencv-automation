@@ -14,7 +14,7 @@ class AutoControl:
 
         #parameters
 
-        self.player_attack_range = config.get("auto_control.attack_range")
+        self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
         self.health_setting = {}
         self._load_health_config()
 
@@ -81,7 +81,7 @@ class AutoControl:
                     best_target = {"name": mob, "distance": distance, "direction": direction}
         #攻擊距離判斷在這行
         if best_target and best_target['distance'] <= self.player_attack_range:
-            # print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
         
         return "APPROACH" , best_target
@@ -126,8 +126,3 @@ def random_move():
 
     pass
 
-def attack_action():
-    '''
-    預設，接收相對座標小於[攻擊範圍]， 觸發攻擊行為
-    '''
-    pass
