@@ -48,7 +48,7 @@ class KeyBoard:
     ''' 移動行為 '''
 
 
-    def _move_command(self, key,cooldown=0.2):
+    def _move_command(self, key,cooldown=0.3):
         try:
             interception.key_down(key)
             time.sleep(cooldown)

@@ -5,6 +5,7 @@ from src.utils.boxes import BBox
 from typing import Optional
 from src.engine.game_state import GameState
 import time
+import random
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
@@ -20,6 +21,7 @@ class AutoControl:
         self.search_direction = "RIGHT"
         self.search_switch_time = time.time()
         self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
+        self.search_switch_jitter = random.uniform(-1.5, 2.0)  # <-- 搜尋間隔誤差，模擬隨機性
 
     def _load_health_config(self):
 
@@ -56,10 +58,9 @@ class AutoControl:
         # 檢查點
         if state.player_center_loc is None: # <-- 決策點"檢查玩家座標時"
             return None, None
-
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
 
-            return None, None
+            return self._search_sweep()
 
         if not state.mobs: # <- 決策點"檢查怪物時"
 
@@ -100,6 +101,11 @@ class AutoControl:
         血量情況判斷與行動分流
         回傳: 血量分級、對應按鍵
         '''
+
+        if not (0 <= player_hp <= 100):
+            logging.warning(f"血量取值異常: {player_hp} ")
+            return None, None
+
         #防呆
         if player_hp is None:
             return None, None 
@@ -174,9 +180,14 @@ class AutoControl:
         定時左右來回移動
         '''
         now = time.time()
-        if now - self.search_switch_time >= self.SEARCH_SWITCH_INTERVAL:
+        threshold = self.SEARCH_SWITCH_INTERVAL + self.search_switch_jitter
+
+        if now - self.search_switch_time >= threshold:
             self.search_direction = "LEFT" if self.search_direction == "RIGHT" else "RIGHT"
             self.search_switch_time = now
+            self.search_switch_jitter = random.uniform(-1.5, 2.0)  # 換方向時重新抽一次
+
+
         return "APPROACH", {
         "name": "SEARCH_SWEEP",
         "distance": None,

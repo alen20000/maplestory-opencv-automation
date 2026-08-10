@@ -19,11 +19,11 @@ import time
 from src.engine.HealthDetector import HealthDetector
 import numpy as np
 from src.engine.game_state import GameState
-
+import keyboard
 class GameBot:
     def __init__(self):
         #---config setting
-        self.searching_mode = int(config.get("gaming.template_matching_mode"))
+
         self.min_threshold = config.get("image_processing.min_threshold")
         #---window config
         self.game_title = config.get("game.title")
@@ -53,6 +53,9 @@ class GameBot:
         self.mob_detector = None
         self.player_states = None
         self.htalth_dectector = None
+        #---Toggle 
+        self.bot_enabled = True
+        keyboard.add_hotkey('f9', self._toggle_bot) 
 
     def _connect_window(self):
         '''
@@ -140,6 +143,29 @@ class GameBot:
                         (x1+w, y1+h),
                         label=mob_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+    def _toggle_bot(self):
+        self.bot_enabled = not self.bot_enabled
+        logging.info(f"Bot 狀態切換為: {'啟動' if self.bot_enabled else '暫停'}")
+        if not self.bot_enabled:
+            self.player_states.keyboard.stop_move() 
+
+
+    def _is_window_valid(self):
+        if not win32gui.IsWindow(self.hwnd):
+            logging.info("沒有偵測到窗口")
+            return False
+        if win32gui.IsIconic(self.hwnd):
+            logging.info("沒有偵測到窗口")
+            return False
+        rect = win32gui.GetClientRect(self.hwnd)
+        if rect[2] < 100 or rect[3] < 100:
+            return False
+        return True
+
+    def _toggle_bot(self):
+        self.bot_enabled = not self.bot_enabled
+        print(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
+
     def run(self):
 
         """#pre_process"""
@@ -170,10 +196,15 @@ class GameBot:
             while True:
                 self.frame_bgr = self._scan_full_screen()
                 '''
-                1.資料回來 2.畫圖
-                TODO:也許這裡能封裝同一個包在傳出去，避免雜亂
-                ================
+                ==============
+                | 數據收集封包|
+                ==============
                 '''
+                # 窗口偵測
+                self._is_window_valid()
+                if not self.bot_enabled:
+                    cv2.waitKey(1)
+                    continue   # 暫停時,完全跳過偵測+決策+按鍵,只留畫面刷新
                 # 偵測與更新數據
                 self.player_tracking_logic()
                 self.HealthDetcor()
@@ -198,20 +229,17 @@ class GameBot:
                 action_states, target_info = self.auto_control.decide_operation(current_game_state)
 
                 if action_states is not None:
-                    has_mobs = (target_info is not None)
+                    has_mobs = target_info is not None
                     current_state = self.player_states.execute_behavior(action_states, target_info)
-
-
-
-
-
 
                 '''
                 ================
                 '''
                 cv2.imshow("Game Debug View", self.frame_bgr)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                key = cv2.waitKey(1)
+                if cv2.waitKey(1) == ord('q'):
                     break
+
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
         finally:
@@ -263,20 +291,17 @@ class GameBot:
         全局掃描人物
         '''
         try:
+            current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
+            result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
             
-            if self.searching_mode == 1:
-
-                current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
-                result = cv2.matchTemplate(current_frame,self.my_character_template_gray,cv2.TM_CCOEFF_NORMED)
-                
-                #找到角色
-                _, max_val, _, max_loc = cv2.minMaxLoc(result)
-                if max_val > self.min_threshold:
-                    logging.info(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
-                    return max_loc
-                else:
-                    logging.info(f"全圖模式:未匹配角色")
-                    pass
+            #找到角色
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            if max_val > self.min_threshold:
+                logging.info(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
+                return max_loc
+            else:
+                logging.info(f"全圖模式:未匹配角色")
+                pass
         except Exception as e:
             logging.error(e)
 
