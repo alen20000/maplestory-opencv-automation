@@ -48,10 +48,10 @@ class KeyBoard:
     ''' 移動行為 '''
 
 
-    def _move_command(self, key):
+    def _move_command(self, key,cooldown=0.2):
         try:
             interception.key_down(key)
-            time.sleep(0.7)
+            time.sleep(cooldown)
         except Exception as e:
             logging.error(f"移動發生錯誤:{e}")
         finally:

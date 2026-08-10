@@ -4,7 +4,7 @@ from config.config_loader import config
 from src.utils.boxes import BBox
 from typing import Optional
 from src.engine.game_state import GameState
-
+import time
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
@@ -17,7 +17,10 @@ class AutoControl:
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
         self.health_setting = {}
         self._load_health_config()
-        self.last_direction = "RIGHT"
+        self.search_direction = "RIGHT"
+        self.search_switch_time = time.time()
+        self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
+
     def _load_health_config(self):
 
         '''
@@ -61,7 +64,7 @@ class AutoControl:
         if not state.mobs: # <- 決策點"檢查怪物時"
 
             
-            return self._to_alternating_side_move()
+            return self._search_sweep()
 
         px, _ = state.player_center_loc
 
@@ -88,7 +91,7 @@ class AutoControl:
         if best_target and best_target['distance'] <= self.player_attack_range:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
-        self.last_direction = best_target['direction']
+
         return "APPROACH" , best_target
 
     def _health_status_check(self,player_hp): 
@@ -151,7 +154,6 @@ class AutoControl:
         搜尋策略:與上一方向反向運動
         
         '''
-        print(self.last_direction)
 
         if self.last_direction == "RIGHT":
             direction = "LEFT"
@@ -167,4 +169,16 @@ class AutoControl:
 
         return "APPROACH" , alternating_move
 
-    
+    def _search_sweep(self):
+        '''
+        定時左右來回移動
+        '''
+        now = time.time()
+        if now - self.search_switch_time >= self.SEARCH_SWITCH_INTERVAL:
+            self.search_direction = "LEFT" if self.search_direction == "RIGHT" else "RIGHT"
+            self.search_switch_time = now
+        return "APPROACH", {
+        "name": "SEARCH_SWEEP",
+        "distance": None,
+        "direction": self.search_direction
+        }
