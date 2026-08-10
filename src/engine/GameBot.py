@@ -180,7 +180,8 @@ class GameBot:
                 self.current_mobs_result = self.Mobdector()
                 #繪製BBOX
                 self._draw_mob(self.current_mobs_result)
-                print(self.current_mobs_result)
+
+                # 數據封包
                 current_game_state =  GameState(
                     player_center_loc = self.player_center_loc,
                     player_hp = self.player_hp,

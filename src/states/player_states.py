@@ -36,14 +36,18 @@ class PlayerStates:
 
             if direction == "LEFT":
                 self.keyboard.enable_move_left()
+                self.keyboard.enable_pick_up()
             else:
                 self.keyboard.enable_move_right()
+                self.keyboard.enable_pick_up()
             
         elif self.current_state == "IDLE":
-
+            # 人物閒置狀態
+            self.keyboard.enable_pick_up()
             pass
 
         elif self.current_state.startswith("HEAL") and target_info:
+            #健康修復狀態
             key = target_info.get("key")
             if key:
                 self.keyboard.enable_use_item(key)

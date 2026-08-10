@@ -41,7 +41,7 @@ keyboard:
   left: left
   right: right
   attack: ctrl
-  pickup: z
+  pick_up: z
 
 auto_control:
   attack_range: 20

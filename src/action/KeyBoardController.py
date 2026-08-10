@@ -11,15 +11,17 @@ class KeyBoard:
         #states
         self._attack_lock = threading.Lock()
         self._move_lock = threading.Lock()
-        self._item_lock = threading.Lock()  
+        self._item_lock = threading.Lock()
+        self._pick_up_lock = threading.Lock()  
         self._status_attack = False
         self._status_move= False
         self._status_item = False  
+        self._pick_up = False
         #key value
         self.attack_key = config.get("keyboard.attack")
         self.left_key = config.get("keyboard.left")
         self.right_key = config.get("keyboard.right")
-
+        self._pick_up_key = config.get("keyboard.pick_up")
     ''' 攻擊行為 '''
 
     def _attack_command(self):
@@ -95,7 +97,7 @@ class KeyBoard:
     def _item_command(self, key):
         try:
             interception.key_down(key)
-            time.sleep(0.3)
+            time.sleep(3)
         except Exception as e:
             logging.error(f"使用物品發生錯誤:{e}")
         finally:
@@ -112,3 +114,21 @@ class KeyBoard:
                 return
             self._status_item = True
             threading.Thread(target=self._item_command, args=(key,), daemon=True).start()
+
+    ''' 撿拾行為 '''
+    def _pick_up_command(self, key):
+        try:
+            interception.key_down(key)
+            time.sleep(0.1)
+        except Exception as e:
+            logging.error(f"撿拾命令發生錯誤:{e}")
+        finally:
+            interception.key_up(key)
+            self._pick_up = False
+
+    def enable_pick_up(self):
+        with self._pick_up_lock:
+            if not self._pick_up_key:
+                return
+            self._pick_up = True
+        threading.Thread(target=self._pick_up_command, args=(self._pick_up_key,), daemon=True).start()
