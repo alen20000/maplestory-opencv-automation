@@ -20,6 +20,7 @@ from src.engine.HealthDetector import HealthDetector
 import numpy as np
 from src.engine.game_state import GameState
 import keyboard
+import time
 class GameBot:
     def __init__(self):
         #---config setting
@@ -126,29 +127,6 @@ class GameBot:
                         label=mob_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
-    def _draw_mob(self, mob_results: list):
-        """
-        解析怪物封包，然後畫出BBOX
-        """
-        if mob_results and self.roi_BBOX is not None:
-            for mob_name, mob_details in mob_results:
-                
-                for detailed in mob_details:
-                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
-                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
-                    w, h = detailed["size"]
-                    draw_dectection_box(
-                        self.frame_bgr,
-                        (x1,y1),
-                        (x1+w, y1+h),
-                        label=mob_name,color = (0, 0, 255),
-                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-    def _toggle_bot(self):
-        self.bot_enabled = not self.bot_enabled
-        logging.info(f"Bot 狀態切換為: {'啟動' if self.bot_enabled else '暫停'}")
-        if not self.bot_enabled:
-            self.player_states.keyboard.stop_move() 
-
 
     def _is_window_valid(self):
         if not win32gui.IsWindow(self.hwnd):
@@ -205,13 +183,16 @@ class GameBot:
                 if not self.bot_enabled:
                     cv2.waitKey(1)
                     continue   # 暫停時,完全跳過偵測+決策+按鍵,只留畫面刷新
+                # start =time.time() 
+
                 # 偵測與更新數據
                 self.player_tracking_logic()
                 self.HealthDetcor()
                 self.current_mobs_result = self.Mobdector()
+
                 #繪製BBOX
                 self._draw_mob(self.current_mobs_result)
-
+                # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
                 # 數據封包
                 current_game_state =  GameState(
                     player_center_loc = self.player_center_loc,
@@ -239,7 +220,7 @@ class GameBot:
                 key = cv2.waitKey(1)
                 if cv2.waitKey(1) == ord('q'):
                     break
-
+                # print(f"一個while循環耗時: {time.time() - start:.3f}")
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
         finally:
@@ -310,8 +291,8 @@ class GameBot:
         局部掃描:
         '''
         try:
-            # 設定搜尋範圍的位移量[!] 之後變數要移走
-            x_offset, y_offset = config.get("game_bot.roi_x_offset"), config.get("game_bot.roi_y_offset")
+            # # 設定搜尋範圍的位移量[!] 之後變數要移走
+            # x_offset, y_offset = config.get("game_bot.roi_x_offset"), config.get("game_bot.roi_y_offset")
             x_offset_l_w = config.get("game_bot.roi_x_offset_l_width")
             x_offset_r_w = config.get("game_bot.roi_x_offset_r_width")
             y_offset_t_h = config.get("game_bot.roi_y_offset_t_high")

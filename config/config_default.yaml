@@ -22,7 +22,7 @@ image_processing:
   #TM_SQDIFF_NORMED（平方差正規化匹配）m/4
   max_threshold : 0.1
   #TM_CCOEFF_NORMED
-  min_threshold : 0.6
+  min_threshold : 0.7
 
 game_bot:
   #roi範圍的位移量 ，設定好能減少運算
