@@ -28,8 +28,10 @@ class PlayerStates:
         # 根據狀態發送指令
         if self.current_state == "ATTACK":
             # 停止移動
+            direction = target_info.get("direction")
             self.keyboard.stop_move()
-            self.keyboard.enable_attack()
+
+            self.keyboard.enable_attack(direction)
 
 
         elif self.current_state == "APPROACH" and target_info:
@@ -44,7 +46,6 @@ class PlayerStates:
             
         elif self.current_state == "IDLE":
             # 人物閒置狀態
-            self.keyboard.enable_pick_up()
             pass
 
         elif self.current_state.startswith("HEAL") and target_info:
@@ -56,4 +57,5 @@ class PlayerStates:
             else:
                 logging.info(f"{self.current_state} 觸發，但該該處發值還沒設定按鍵")
                 pass
-
+        else:
+            self.keyboard.enable_pick_up()

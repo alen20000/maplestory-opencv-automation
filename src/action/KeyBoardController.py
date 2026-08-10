@@ -24,8 +24,11 @@ class KeyBoard:
         self._pick_up_key = config.get("keyboard.pick_up")
     ''' 攻擊行為 '''
 
-    def _attack_command(self):
+    def _attack_command(self, direction):
         try: 
+            key = self.right_key if direction == "RIGHT" else self.left_key
+            interception.key_down(key)
+            interception.key_up(key)
             interception.key_down(self.attack_key)
             time.sleep(0.3)
         except Exception as e:
@@ -37,13 +40,13 @@ class KeyBoard:
                 self._status_attack = False
 
 
-    def enable_attack(self):
+    def enable_attack(self,direction):
         with self._attack_lock:
             if self._status_attack:
                 #攻擊還在發生，不再傳輸攻擊指令
                 return
             self._status_attack = True
-            threading.Thread(target=self._attack_command, daemon=True).start() 
+            threading.Thread(target=self._attack_command,args=(direction,),daemon=True).start() 
 
     ''' 移動行為 '''
 
