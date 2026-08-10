@@ -17,7 +17,7 @@ class AutoControl:
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
         self.health_setting = {}
         self._load_health_config()
-
+        self.last_direction = "RIGHT"
     def _load_health_config(self):
 
         '''
@@ -55,13 +55,13 @@ class AutoControl:
             return None, None
 
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
-            print("no roi")
+
             return None, None
 
         if not state.mobs: # <- 決策點"檢查怪物時"
-            print("no mobs")
+
             
-            return self._random_move(state)
+            return self._to_alternating_side_move()
 
         px, _ = state.player_center_loc
 
@@ -88,7 +88,7 @@ class AutoControl:
         if best_target and best_target['distance'] <= self.player_attack_range:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
-        
+        self.last_direction = best_target['direction']
         return "APPROACH" , best_target
 
     def _health_status_check(self,player_hp): 
@@ -125,10 +125,10 @@ class AutoControl:
         return None, None
 
 
-    def _random_move(self,state: GameState):
+    def _goto_center(self,state: GameState):
 
         '''
-        預設，假使沒匹配到角色，隨機移動  
+        搜尋策略:向中心運動
         
         '''
         frame = state.frame
@@ -144,4 +144,27 @@ class AutoControl:
             }
 
         return "APPROACH" , random_move
+    
+    def _to_alternating_side_move(self):
 
+        '''
+        搜尋策略:與上一方向反向運動
+        
+        '''
+        print(self.last_direction)
+
+        if self.last_direction == "RIGHT":
+            direction = "LEFT"
+        elif self.last_direction == "LEFT":
+            direction = "RIGHT"
+        else:
+            return None, None
+        alternating_move = {
+            "name": "alternating_side",
+            "distance": None,
+            "direction": direction
+            }
+
+        return "APPROACH" , alternating_move
+
+    
