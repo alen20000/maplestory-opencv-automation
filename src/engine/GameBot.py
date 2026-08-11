@@ -252,12 +252,12 @@ class GameBot:
 
                 #防止max_loc沒東西時report
                 if player_loc is not None:
-
+                    self.lost_track_duration = 0 #<-  人物失蹤計算歸零
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
                 else:
                     #計算人物失聯時間
                     self._lost_track_count()
-                    if self.lost_track_duration > 15:
+                    if self.lost_track_duration > 30:
                         self.lost_track_duration = 0
 
             else:
