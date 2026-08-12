@@ -14,7 +14,7 @@ class KeyBoard:
         self._item_lock = threading.Lock()
         self._pick_up_lock = threading.Lock()  
         self._status_attack = False
-        self._status_move= False
+        # self._status_move= False
         self._status_item = False  
         self._pick_up = False
         #key value
@@ -22,8 +22,10 @@ class KeyBoard:
         self.left_key = config.get("keyboard.left")
         self.right_key = config.get("keyboard.right")
         self._pick_up_key = config.get("keyboard.pick_up")
-    ''' 攻擊行為 '''
+        #action logging
+        self._current_move = None # <- 紀錄目前移動指令
 
+    ''' 攻擊行為 '''
     def _attack_command(self, direction):
         try: 
             key = self.right_key if direction == "RIGHT" else self.left_key
@@ -50,31 +52,24 @@ class KeyBoard:
 
     ''' 移動行為 '''
 
-
-    def _move_command(self, key,cooldown=0.3):
-        try:
-            interception.key_down(key)
-            time.sleep(cooldown)
-        except Exception as e:
-            logging.error(f"移動發生錯誤:{e}")
-        finally:
-            interception.key_up(key)
-            with self._move_lock:
-                self._status_move = False
-
-    def _enable_move(self, key):
-        with self._move_lock :
-            if self._status_move:
-                #移動還在發生，不再傳輸移動指令
-                return
-            self._status_move = True
-            threading.Thread(target=self._move_command, args=(key,), daemon=True).start()
-
     def enable_move_right(self):
-        self._enable_move(self.right_key)
+        with self._move_lock:
+            if self._current_move == "RIGHT": #重複指令拋棄
+                return
+            if self._current_move == "LEFT":
+                interception.key_up(self.left_key)
+            interception.key_down(self.right_key)
+            self._current_move = "RIGHT"
 
     def enable_move_left(self):
-        self._enable_move(self.left_key)
+        with self._move_lock:
+            if self._current_move == "LEFT":    #重複指令拋棄
+                return
+            if self._current_move == "RIGHT":
+                interception.key_up(self.right_key)
+            interception.key_down(self.left_key)
+            print("test")
+            self._current_move = "LEFT"
 
     ''' 停止釋放'''
     def release_all(self):
@@ -86,14 +81,14 @@ class KeyBoard:
     def stop_move(self):
         with self._move_lock:
             #如果正在移動，左右鍵彈起
-            if self._status_move:
+            if self._current_move is not None:
                 try:
                     interception.key_up(self.left_key)
                     interception.key_up(self.right_key)
                 except Exception as e:
                     logging.error(f"釋放移動發生錯誤:{e}")
                 finally:
-                    self._status_move = False
+                    self._current_move = None
                     
     ''' 物品使用行為（補血/補魔等） '''
 

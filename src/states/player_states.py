@@ -39,10 +39,9 @@ class PlayerStates:
 
             if direction == "LEFT":
                 self.keyboard.enable_move_left()
-                self.keyboard.enable_pick_up()
-            else:
+            elif direction == "RIGHT":
                 self.keyboard.enable_move_right()
-                self.keyboard.enable_pick_up()
+            self.keyboard.enable_pick_up()
             
         elif self.current_state == "IDLE":
             # 人物閒置狀態
