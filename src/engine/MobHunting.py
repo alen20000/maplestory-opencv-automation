@@ -16,12 +16,14 @@ class MobDetector:
     def __init__(self):
         #Config
         Map_Name = config.get("quickly_choice_map")
-        self.min_threshold = config.get("image_processing.min_threshold")
+        self.min_threshold = config.get("image_processing.mob_min_threshold")
         self.mobs_in_map =  config.get(f"map.{Map_Name}")
 
         #放匹配模板字典
         self.mobs_templates: dict[str, np.ndarray] = {}
         self._load_mob_templates()
+
+        cv2.setNumThreads(1)
 
     def _load_mob_templates(self):
         '''
@@ -86,7 +88,7 @@ class MobDetector:
 
         # 使用執行緒池並行處理所有模板
         with ThreadPoolExecutor() as executor:
-            # executor.map 會把 self.mobs_templates.items()  توزيع到多個執行緒同時運算
+
             results = executor.map(process_template, self.mobs_templates.items())
             for res in results:
                 all_detected_boxes.extend(res)
@@ -122,3 +124,5 @@ class MobDetector:
         all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
         return all_mobs_locs
 
+    def _nms_filter(self):
+        pass
