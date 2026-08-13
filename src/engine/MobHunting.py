@@ -18,7 +18,7 @@ class MobDetector:
         Map_Name = config.get("quickly_choice_map")
         self.min_threshold = config.get("image_processing.mob_min_threshold")
         self.mobs_in_map =  config.get(f"map.{Map_Name}")
-
+        self.nms_threshold = 0.7 # <- NMS 阈值
         #放匹配模板字典
         self.mobs_templates: dict[str, np.ndarray] = {}
         self._load_mob_templates()
@@ -93,15 +93,19 @@ class MobDetector:
             for res in results:
                 all_detected_boxes.extend(res)
 
+        result = self._nms_filter(all_detected_boxes)
+        return result
+
+    def _pix_filter_method(self,all_detected_boxes:list):
+
         '''
-        NMS core
-        先簡單用硬像素距離判斷
+        過濾方法:中心距離閾值過濾法
         '''
-        #封包用
+    #封包用
         all_mobs_locs =[]
-        #比對用
+    #比對用
         final_mobs_dict = {}
-        
+    
         for box in all_detected_boxes:
             mob_name = box["mob_name"]
             cx, cy = box["center"]
@@ -125,39 +129,73 @@ class MobDetector:
         return all_mobs_locs
 
     def _nms_filter(self,all_detected_boxes:list):
-        matching_boxes = []
-        threshold = 0.5 # <-- 設定阈值
-        for i in all_detected_boxes:
-            if matching_boxes == []:
-                matching_boxes.append(i)
-            else:
-                # 計算出兩個 area
-                target = matching_boxes[-1]
-                t_x1, t_y1 = target["top_left}"]
-                t_x2, t_y2 = t_x1 + target["size"][0], t_y1 + target["size"][1]
-                area_target = (t_x2 - t_x1) * (t_y2 - t_y1)
+        '''
+        過濾方法:NMS方法
+        '''
+        if not all_detected_boxes:
+            return []
+        #先以分數大至小排序
+        sorted_boxes = sorted(all_detected_boxes, key=lambda x: x["score"], reverse=True)
+        
+        final_filtered_boxes = []
+        mobs_by_name = {}
+
+        for box in sorted_boxes:
+            name = box["mob_name"]
+            if name not in mobs_by_name:
+                mobs_by_name[name] = []
+            mobs_by_name[name].append(box)
+
+            #要先解開 怪物 與 目標資訊
+        for mob_name, boxes in mobs_by_name.items():
+            mob_sorted_boxes = sorted(boxes, key=lambda x: x["score"], reverse=True)
+            matching_boxes = []
+
+            for i in mob_sorted_boxes:
+                keep = True
+
                 i_x1,i_y1 = i["top_left"]
                 i_x2,i_y2 =i_x1 + i["size"][0], i_y1 + i["size"][1]
                 area_i = (i_x2 - i_x1) * (i_y2 - i_y1)
 
+                for target in  matching_boxes:
 
-                #交集計算
-                inter_x1 = max(t_x1, i_x1)
-                inter_y1 = max(t_y1, i_y1)
-                inter_x2 = min(t_x2, i_x2)
-                inter_y2 = min(t_y2, i_y2)
+                    t_x1, t_y1 = target["top_left"]
+                    t_x2, t_y2 = t_x1 + target["size"][0], t_y1 + target["size"][1]
+                    area_target = (t_x2 - t_x1) * (t_y2 - t_y1)
 
-                inter_w  = max(0, inter_x2 - inter_x1)
-                inter_h  = max(0, inter_y2 - inter_y1)
-                inter_area = inter_w * inter_h
+                    #交集計算
+                    inter_x1 = max(t_x1, i_x1)
+                    inter_y1 = max(t_y1, i_y1)
+                    inter_x2 = min(t_x2, i_x2)
+                    inter_y2 = min(t_y2, i_y2)
 
-                #併集計算
-                union_are = area_target + area_i - inter_area
+                    inter_w  = max(0, inter_x2 - inter_x1)
+                    inter_h  = max(0, inter_y2 - inter_y1)
+                    inter_area = inter_w * inter_h
 
-                iou = inter_area / union_are
+                    #併集計算
+                    union_are = area_target + area_i - inter_area
 
-                if iou < threshold:
+
+                    if union_are > 0:
+                        iou = inter_area / union_are
+                    else:
+                        iou = 0
+
+                    # 如果重疊度大於阈值，則過濾出去
+                    if iou >= self.nms_threshold:
+                        keep = False
+                        break
+                if keep:
                     matching_boxes.append(i)
+            final_filtered_boxes.extend(matching_boxes)
+        final_mobs_dict = {}
+        for box in final_filtered_boxes:
+            mob_name = box["mob_name"]
+            if mob_name not in final_mobs_dict:
+                final_mobs_dict[mob_name] = []
+            final_mobs_dict[mob_name].append(box)
 
-            
-        pass
+        all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
+        return all_mobs_locs
