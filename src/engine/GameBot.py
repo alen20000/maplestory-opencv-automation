@@ -200,7 +200,7 @@ class GameBot:
                     if cv2.waitKey(1) == ord('q'):
                         break
                     continue   # 暫停時,完全跳過偵測+決策+按鍵,只留畫面刷新
-                start =time.time() 
+                # start =time.time() 
 
                 # 偵測與更新數據
                 self.player_tracking_logic()
@@ -209,7 +209,7 @@ class GameBot:
 
                 #繪製BBOX
                 self._draw_mob(self.current_mobs_result)
-                print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
+                # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
                 # 數據封包
                 current_game_state =  GameState(
                     player_center_loc = self.player_center_loc,
