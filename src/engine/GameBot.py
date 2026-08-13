@@ -6,7 +6,6 @@ from PIL import ImageGrab
 from src.utils.common import (get_window_handle_and_rect_by,
 bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
-
 import logging
 from src.engine.MobHunting import MobDetector
 import ctypes
@@ -15,13 +14,15 @@ from config.config_loader import config
 import logging
 from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
-import time
 from src.engine.HealthDetector import HealthDetector
 import numpy as np
 from src.engine.game_state import GameState
 import keyboard
 import time
 import re
+import src.action.HotkeyManager as hk
+import win32con
+
 class GameBot:
     
     def __init__(self):
@@ -62,8 +63,10 @@ class GameBot:
         self.htalth_dectector = None
         #---Toggle 
         self.bot_enabled = True
-        keyboard.add_hotkey('f9', self._toggle_bot) 
-
+        # keyboard.add_hotkey('f9', self._toggle_bot) 
+        self.hotkey_manager = hk.HotkeyManager()
+        self.hotkey_manager.register(win32con.VK_F9, self._toggle_bot)
+        
     def _connect_window(self):
         '''
         hook the game window
@@ -73,6 +76,13 @@ class GameBot:
             logging.info(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
         else:
             logging.info(f"未匹配到指定窗口{self.game_title }")
+
+    def _toggle_bot(self):
+        '''
+        功能: 切換bot狀態，預設F9
+        '''
+        self.bot_enabled = not self.bot_enabled
+        logging.info(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
 
     def _load_game_resources(self):
         """預先載入資源"""
@@ -193,13 +203,17 @@ class GameBot:
                 | 數據收集封包|
                 ==============
                 '''
-                # 窗口偵測
-                self._is_window_valid()
-                if not self.bot_enabled:
-                    # 按F9切換暫停/按Q退出
+                # 監測熟鍵
+                self.hotkey_manager.poll() 
+                if not self.bot_enabled: 
+                    # 暫停狀態
                     if cv2.waitKey(1) == ord('q'):
                         break
-                    continue   # 暫停時,完全跳過偵測+決策+按鍵,只留畫面刷新
+                    continue  
+                
+                # 窗口偵測
+                self._is_window_valid()
+ 
                 # start =time.time() 
 
                 # 偵測與更新數據
