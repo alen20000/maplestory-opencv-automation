@@ -124,5 +124,40 @@ class MobDetector:
         all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
         return all_mobs_locs
 
-    def _nms_filter(self):
+    def _nms_filter(self,all_detected_boxes:list):
+        matching_boxes = []
+        threshold = 0.5 # <-- 設定阈值
+        for i in all_detected_boxes:
+            if matching_boxes == []:
+                matching_boxes.append(i)
+            else:
+                # 計算出兩個 area
+                target = matching_boxes[-1]
+                t_x1, t_y1 = target["top_left}"]
+                t_x2, t_y2 = t_x1 + target["size"][0], t_y1 + target["size"][1]
+                area_target = (t_x2 - t_x1) * (t_y2 - t_y1)
+                i_x1,i_y1 = i["top_left"]
+                i_x2,i_y2 =i_x1 + i["size"][0], i_y1 + i["size"][1]
+                area_i = (i_x2 - i_x1) * (i_y2 - i_y1)
+
+
+                #交集計算
+                inter_x1 = max(t_x1, i_x1)
+                inter_y1 = max(t_y1, i_y1)
+                inter_x2 = min(t_x2, i_x2)
+                inter_y2 = min(t_y2, i_y2)
+
+                inter_w  = max(0, inter_x2 - inter_x1)
+                inter_h  = max(0, inter_y2 - inter_y1)
+                inter_area = inter_w * inter_h
+
+                #併集計算
+                union_are = area_target + area_i - inter_area
+
+                iou = inter_area / union_are
+
+                if iou < threshold:
+                    matching_boxes.append(i)
+
+            
         pass

@@ -24,7 +24,7 @@ image_processing:
   #怪物匹配最小值
   mob_min_threshold : 0.6
   #人物匹配最小值
-  role_min_threshold : 0.5
+  role_min_threshold : 0.6
 
 game_bot:
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨

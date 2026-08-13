@@ -68,7 +68,6 @@ class KeyBoard:
             if self._current_move == "RIGHT":
                 interception.key_up(self.right_key)
             interception.key_down(self.left_key)
-            print("test")
             self._current_move = "LEFT"
 
     ''' 停止釋放'''
