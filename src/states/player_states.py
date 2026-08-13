@@ -29,7 +29,7 @@ class PlayerStates:
         if self.current_state == "ATTACK":
             # 停止移動
             direction = target_info.get("direction")
-            self.keyboard.stop_move()
+            self.keyboard._stop_move()
 
             self.keyboard.enable_attack(direction)
 
@@ -58,3 +58,9 @@ class PlayerStates:
                 pass
         else:
             self.keyboard.enable_pick_up()
+
+    def tobe_IDEL(self):
+
+        self.current_state = "IDLE"
+        self.keyboard.release_all()
+        print(f"狀態更新為: {self.current_state}")

@@ -14,7 +14,7 @@ class KeyBoard:
         self._item_lock = threading.Lock()
         self._pick_up_lock = threading.Lock()  
         self._status_attack = False
-        # self._status_move= False
+
         self._status_item = False  
         self._pick_up = False
         #key value
@@ -72,12 +72,11 @@ class KeyBoard:
 
     ''' 停止釋放'''
     def release_all(self):
-        with self._attack_lock:
-            self._attack_busy = False
-        with self._move_lock:
-            self._move_busy = False
+        
+        self._status_attack= False
+        self._stop_move()
 
-    def stop_move(self):
+    def _stop_move(self):
         with self._move_lock:
             #如果正在移動，左右鍵彈起
             if self._current_move is not None:
@@ -88,7 +87,7 @@ class KeyBoard:
                     logging.error(f"釋放移動發生錯誤:{e}")
                 finally:
                     self._current_move = None
-                    
+
     ''' 物品使用行為（補血/補魔等） '''
 
     def _item_command(self, key):

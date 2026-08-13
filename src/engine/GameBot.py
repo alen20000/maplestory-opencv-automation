@@ -1,4 +1,4 @@
-import yaml
+
 import cv2
 import numpy as np
 import win32gui
@@ -6,7 +6,6 @@ from PIL import ImageGrab
 from src.utils.common import (get_window_handle_and_rect_by,
 bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
-import logging
 from src.engine.MobHunting import MobDetector
 import ctypes
 from src.utils.boxes import BBox
@@ -15,13 +14,13 @@ import logging
 from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
 from src.engine.HealthDetector import HealthDetector
-import numpy as np
 from src.engine.game_state import GameState
-import keyboard
 import time
 import re
 import src.action.HotkeyManager as hk
 import win32con
+
+
 
 class GameBot:
     
@@ -81,12 +80,16 @@ class GameBot:
         '''
         功能: 切換bot狀態，預設F9
         '''
-        self.bot_enabled = not self.bot_enabled
-        logging.info(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
+        try:
+            self.bot_enabled = not self.bot_enabled
+            self.player_states.tobe_IDEL()
+            logging.info(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
+        except Exception as e:
+            logging.error(e)
 
+            
     def _load_game_resources(self):
-        """預先載入資源"""
-        #load img res
+        """預先載入資源"""        #load img res
         self.my_character_template = cv2.imread(self.my_character_template_path)
         self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
@@ -97,6 +100,7 @@ class GameBot:
         self.htalth_dectector = HealthDetector()
         self.auto_control = AutoControl()
 
+        logging.info(f"已載入遊戲資源")
 
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -161,10 +165,6 @@ class GameBot:
             return False
         return True
 
-    def _toggle_bot(self):
-        self.bot_enabled = not self.bot_enabled
-        print(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
-
     def _lost_track_count(self):
         self.lost_track_duration += 1
         return True
@@ -210,7 +210,7 @@ class GameBot:
                     if cv2.waitKey(1) == ord('q'):
                         break
                     continue  
-                
+
                 # 窗口偵測
                 self._is_window_valid()
  
