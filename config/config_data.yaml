@@ -13,3 +13,6 @@ map:
   Victoria_Road: img/map/Victoria_Road
   Kerning_City_Middle_Forest: img/map/Kerning_City_Middle_Forest
   Mushroom_Garden : img/map/Mushroom_Garden
+
+mini_map:
+  Mushroom_Garden  : img/mini_map/Mushroom_Garden.png

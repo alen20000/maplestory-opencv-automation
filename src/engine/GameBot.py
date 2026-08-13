@@ -15,6 +15,7 @@ from src.states.player_states import PlayerStates
 from src.engine.AutoControl import AutoControl
 from src.engine.HealthDetector import HealthDetector
 from src.engine.game_state import GameState
+from src.engine.MinimapDetector import MinimapDetector
 import time
 import re
 import src.action.HotkeyManager as hk
@@ -60,6 +61,7 @@ class GameBot:
         self.mob_detector = None
         self.player_states = None
         self.htalth_dectector = None
+        self.minimap_detector = None
         #---Toggle 
         self.bot_enabled = True
         # keyboard.add_hotkey('f9', self._toggle_bot) 
@@ -83,7 +85,8 @@ class GameBot:
         try:
             self.bot_enabled = not self.bot_enabled
             self.player_states.tobe_IDEL()
-            logging.info(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
+            #這是[Info]層，但因為會被過濾所以放warning
+            logging.warning(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
         except Exception as e:
             logging.error(e)
 
@@ -99,7 +102,7 @@ class GameBot:
         self.player_states = PlayerStates() #init player state
         self.htalth_dectector = HealthDetector()
         self.auto_control = AutoControl()
-
+        self.minimap_detector = MinimapDetector()
         logging.info(f"已載入遊戲資源")
 
     def _scan_full_screen(self):
@@ -218,8 +221,15 @@ class GameBot:
 
                 # 偵測與更新數據
                 self.player_tracking_logic()
-                self.HealthDetcor()
-                self.current_mobs_result = self.Mobdector()
+                self.HealthDetector()
+                self.current_mobs_result = self.MobDetector()
+
+
+                #測試
+                try:
+                    pass
+                except:
+                    pass
 
                 #繪製BBOX
                 self._draw_mob(self.current_mobs_result)
@@ -373,7 +383,7 @@ class GameBot:
             logging.error(e)
 
 
-    def Mobdector(self):
+    def MobDetector(self):
         '''
         傳輸 roi灰階圖；接收怪物座標封包
         '''
@@ -384,7 +394,7 @@ class GameBot:
 
             return mob_results
 
-    def HealthDetcor(self):
+    def HealthDetector(self):
         '''
         get:self.player_hp
         '''
@@ -394,5 +404,5 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
-
-
+    def MinimapDetector(self):
+        pass
