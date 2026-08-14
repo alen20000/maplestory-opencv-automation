@@ -223,7 +223,7 @@ class GameBot:
                 self.player_tracking_logic()
                 self.HealthDetector()
                 self.current_mobs_result = self.MobDetector()
-
+                self.MinimapDetector()
 
                 #測試
                 try:
@@ -385,7 +385,7 @@ class GameBot:
 
     def MobDetector(self):
         '''
-        傳輸 roi灰階圖；接收怪物座標封包
+        與怪物偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
         '''
         if self.roi_crop_frame_gray is not None:
             #push data
@@ -404,5 +404,10 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
-    def MinimapDetector(self):
+    def MinimapDetector(self)-> np.ndarray:
+        '''
+        WIP
+        與小圖偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
+        '''
+        self.minimap_detector.run(self.frame_bgr)
         pass
