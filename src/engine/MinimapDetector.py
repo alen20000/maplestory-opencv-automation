@@ -1,8 +1,9 @@
 from config.config_loader import config
 import cv2
 import logging
+import numpy as np
 '''
-人物黃點: 88FFFF 255,255,240
+人物黃點: RGB 255,255,136  HSV 是： [ 30 119 255]
 
 '''
 minimap_detect_range = (5,20,187,184)
@@ -31,14 +32,20 @@ class MinimapDetector:
 
     def run(self,frame_bgr):
         self.current_frame_bgr = frame_bgr
-        result = self._match_minimap(frame_bgr)
+
+        #沒有minimap座標在抓
+        if self.map_tl == None:
+            result = self._match_minimap(frame_bgr)
+
+        player_loc = self._detect_player_loc(frame_bgr)
+
         # self._draw_minimap()
         # self._draw_match_map(result)
         pass
 
     def _match_minimap(self, frame):
         """
-        先用原圖去補獲真實座標，再把偵測範圍縮到固定區域
+        先用原圖去補獲真實座標，再把偵測範圍縮到固定區域做下一步處理
         """
 
         # print("--- DEBUG INFO ---")
@@ -56,6 +63,37 @@ class MinimapDetector:
             #取地圖ROI範圍
             self.map_tl = (x1,y1)
             self.map_br = (x2,y2)
+
+
+
+    def _detect_player_loc(self,frame_bgr):
+        '''
+        在迷你地圖偵測範圍內找人物座標，
+        '''
+        #防呆
+        if self.map_tl is None or self.map_br is None:
+            return None
+
+        frame_hsv = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2HSV)
+
+        lower_player_color = np.array([20, 60, 180])
+        upper_player_color = np.array([40, 180, 255])
+
+        mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
+        #抓住符合顏色。 這邊還有 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓輪廓的寫法，可以嘗試(可選)
+        pts = cv2.findNonZero(mask)
+
+        if  pts is not None and len(pts) > 2:
+
+            #第一維是 點(矩陣列)，第二維是(x,y)
+            c_x = int(np.mean(pts[:,0]))
+            c_y = int(np.mean(pts[:,1]))
+
+            #這邊應該是換成遊戲內的座標，他是從roi區域座標升上來的，而不是螢幕絕對座標，嵌套兩個座標系，要還原絕對座標還要在加遊戲視窗的top_left座標
+
+            game_player_x = c_x + self.map_tl[0]
+            game_player_y = c_y + self.map_tl[1]
+            return (game_player_x,game_player_y)
 
 
     def _draw_minimap(self):

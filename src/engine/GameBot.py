@@ -102,7 +102,7 @@ class GameBot:
         self.player_states = PlayerStates() #init player state
         self.htalth_dectector = HealthDetector()
         self.auto_control = AutoControl()
-        # self.minimap_detector = MinimapDetector()
+        self.minimap_detector = MinimapDetector()
         logging.info(f"已載入遊戲資源")
 
     def _scan_full_screen(self):
@@ -223,7 +223,7 @@ class GameBot:
                 self.player_tracking_logic()
                 self.HealthDetector()
                 self.current_mobs_result = self.MobDetector()
-                # self.MinimapDetector()
+                self.MinimapDetector()
 
                 #測試
                 try:
