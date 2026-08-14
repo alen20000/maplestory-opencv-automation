@@ -22,16 +22,16 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，在這邊調整過濾程度
   
   #怪物匹配最小值
-  mob_min_threshold : 0.6
+  mob_min_threshold : 0.7
   #人物匹配最小值
   role_min_threshold : 0.6
 
 game_bot:
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
-  roi_x_offset_l_width: 450
-  roi_x_offset_r_width: 450
+  roi_x_offset_l_width: 500
+  roi_x_offset_r_width: 500
   roi_y_offset_t_high: 170
-  roi_y_offset_b_high : 30
+  roi_y_offset_b_high : 50
 
 auto_control_config:
   #沒怪時左右尋怪 True/False

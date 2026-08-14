@@ -17,6 +17,7 @@ class MinimapDetector:
         self.map_br = None
         #load config
         self._load_minimap_config()
+
     def _load_minimap_config(self):
             
         try:
@@ -35,7 +36,6 @@ class MinimapDetector:
         # self._draw_match_map(result)
         pass
 
-
     def _match_minimap(self, frame):
         """
         先用原圖去補獲真實座標，再把偵測範圍縮到固定區域
@@ -49,7 +49,7 @@ class MinimapDetector:
 
         result =  cv2.matchTemplate(frame,self.minimap_template,cv2.TM_CCOEFF_NORMED) 
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
-        print(f"置信度:{max_val}；位置:{max_loc}")
+
         if max_val > 0.8:
             x1,y1 = max_loc[0],max_loc[1]
             x2,y2 = x1+self.minimap_template.shape[1],y1+self.minimap_template.shape[0]
@@ -57,8 +57,6 @@ class MinimapDetector:
             self.map_tl = (x1,y1)
             self.map_br = (x2,y2)
 
-
-        return max_loc
 
     def _draw_minimap(self):
         '''
