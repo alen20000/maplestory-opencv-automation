@@ -52,46 +52,52 @@ class MinimapDetector:
         '''
         聚焦偵測範圍
         '''
-        self.crop_frame_bgr = self.current_frame_bgr[self.minimap_tl[0]:self.minimap_br[0],self.minimap_tl[1]:self.minimap_br[1]]
+        #FK! opencv切片 每次都搞死我
+        self.crop_frame_bgr = self.current_frame_bgr[self.minimap_tl[1]:self.minimap_br[1],self.minimap_tl[0]:self.minimap_br[0]]
 
     def run(self,frame_bgr):
+
         self.current_frame_bgr = frame_bgr
-
-        if self.template_h is None and self.template_w is None:
+        #沒有定位minimap ，運行初始化minimap定位
+        if self.minimap_br is None :
             self._get_minimap_br()
-            self._crop_minimap()
+        self._crop_minimap()
 
+        #防呆
+        if self.crop_frame_bgr is None:
+            return
+        player_loc = self._detect_player_loc(self.crop_frame_bgr )
+        print(player_loc)
         cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
 
+        
 
-
-    def _detect_player_loc(self,frame_bgr):
+    def _detect_player_loc(self,frame):
         '''
-        在迷你地圖偵測範圍內找人物座標，
+        在frame偵測範圍內找人物座標像素
         '''
-        #防呆
-        if self.minimap_br is None:
-            return None
 
-        frame_hsv = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2HSV)
-        lower_player_color = np.array([20, 100, 180])
-        upper_player_color = np.array([40, 255, 255])
+        frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        lower_player_color = np.array([25, 100, 180])
+        upper_player_color = np.array([35, 255, 255])
 
         mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
         #抓住符合顏色。 這邊還有 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓輪廓的寫法，可以嘗試(可選)
         pts = cv2.findNonZero(mask)
-
+        cv2.imshow("HSV Mask Debug", mask) 
+        cv2.waitKey(1) # 讓視窗即時更新
         if  pts is not None and len(pts) > 2:
 
             #第一維是 點(矩陣列)，第二維是(x,y)
-            c_x = int(np.mean(pts[:,0]))
-            c_y = int(np.mean(pts[:,1]))
+            player_x = int(np.mean(pts[:,0]))
+            player_y = int(np.mean(pts[:,1]))
 
-            #這邊應該是換成遊戲內的座標，他是從roi區域座標升上來的，而不是螢幕絕對座標，嵌套兩個座標系，要還原絕對座標還要在加遊戲視窗的top_left座標
-
-            game_player_x = c_x + self.map_tl[0]
-            game_player_y = c_y + self.map_tl[1]
-            return (game_player_x,game_player_y)
+            # print (c_x,c_y)
+            # #這裡的坐標系嵌了三層，一層是遊戲座標，一層是遊戲視窗，最後是minimap層
+            # #這裡抓的應該是minimap內的座標，並換成遊戲內座標，感覺可以直接用就好
+            # game_player_x = c_x + self.minimap_tl[0]
+            # game_player_y = c_y + self.minimap_tl[1]
+            return (player_x,player_y)
 
 
     def _draw_minimap(self):
