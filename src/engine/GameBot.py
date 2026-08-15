@@ -108,6 +108,7 @@ class GameBot:
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
+            #這邊還能優化 以後看到記得改
             screen_rect = win32gui.GetClientRect(self.hwnd)
             screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
             screen_rect_point_bottom_right = win32gui.ClientToScreen(self.hwnd, (screen_rect[2], screen_rect[3]))
@@ -411,3 +412,16 @@ class GameBot:
         '''
         self.minimap_detector.run(self.frame_bgr)
         pass
+
+
+    # def get_client_screen_pos(self):
+    #     '''
+    #     測試用
+    #     窗口內座標轉螢幕座標
+    #     '''
+    #     screen_x, screen_y = win32gui.ClientToScreen(self.hwnd, (0, 0))
+    #     print(f"窗口內座標轉螢幕座標: {screen_x}, {screen_y}")
+
+
+
+

@@ -3,7 +3,7 @@ gaming:
   template_matching_mode: 1
 
 # 選擇地圖
-quickly_choice_map: Mushroom_Garden
+quickly_choice_map: Hunting_Ground_I
 
 # 設定的地圖路徑
 map:
@@ -16,3 +16,4 @@ map:
 
 mini_map:
   Mushroom_Garden : img/mini_map/Mushroom_Garden/Mushroom_Garden_1.png
+  Hunting_Ground_I : img/mini_map/Hunting_Ground_I/Hunting_Ground_1.png

@@ -6,8 +6,9 @@ import numpy as np
 人物黃點: RGB 255,255,136  HSV 是： [ 30 119 255]
 人物黃點: RGB 255,255,0  HSV 是： [ 30 255 255]
 
-learning: 想法錯了 應該不用全圖匹配換 roi匹配然後取得小地圖位置 ； 應該直接鎖死小地圖的top left  好像每張小弟圖的 topl left point 都是一個位置
-
+learning: 想法錯了 應該不用全圖匹配後取roi範圍偵測 ； 應該直接鎖死小地圖的top left  好像每張小地圖的 topl left point 都是一個位置
+設 小地圖定位點 螢幕座標為 x:15 y:110 窗口座標為 15-9 , 110-38 = 6, 72
+然後 模板切 x y  範圍就是 15+x  , 110 + y
 '''
 minimap_detect_range = (0,20,187,184)
 
@@ -17,10 +18,12 @@ class MinimapDetector:
         self.minimap_name = None
         self.minimap_template = None
         self.current_frame_bgr =None
-        
-        self.map_tl = None
-        self.map_br = None
+        self.template_h,self.template_w = None,None
+
+        self.minimap_tl = (6,72)
+        self.minimap_br = None
         self.crop_frame_bgr = None
+
         #load config
         self._load_minimap_config()
 
@@ -30,62 +33,36 @@ class MinimapDetector:
             #load map img
             map_name = config.get("quickly_choice_map")
             map = config.get(f"mini_map.{map_name}")
+
             self.minimap_template = cv2.imread(map,cv2.IMREAD_COLOR)
             
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
 
+    def _get_minimap_br(self):
+        '''
+        得到小地圖範圍的右下座標
+        '''
+        self.template_h, self.template_w = self.minimap_template.shape[:2]
+        x2 = self.minimap_tl[0] + self.template_w
+        y2 = self.minimap_tl[1] + self.template_h
+        self.minimap_br = (x2,y2)
+
+    def _crop_minimap(self):
+        '''
+        聚焦偵測範圍
+        '''
+        self.crop_frame_bgr = self.current_frame_bgr[self.minimap_tl[0]:self.minimap_br[0],self.minimap_tl[1]:self.minimap_br[1]]
+
     def run(self,frame_bgr):
         self.current_frame_bgr = frame_bgr
 
-        #沒有minimap座標在抓
-        if self.map_tl == None:
-            self.crop_frame_bgr = self._match_minimap(frame_bgr)
+        if self.template_h is None and self.template_w is None:
+            self._get_minimap_br()
+            self._crop_minimap()
 
-        if self.crop_frame_bgr:
-            player_loc = self._detect_player_loc(self.crop_frame_bgr)
-            x1 , y1 = player_loc
-            x2 , y2 = x1+10,y2+10
-            cv2.rectangle(self.current_frame_bgr,(x1,y1),(x2,y2),(100,255,100),3)
+        cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
 
-
-
-
-
-    def _match_minimap(self, frame):
-        """
-        先用原圖去補獲真實座標，再把偵測範圍縮到固定區域做下一步處理
-
-        Returns:
-            裁切過後的frame | None
-        """
-
-        # print("--- DEBUG INFO ---")
-        # print("frame type:", type(frame), "shape:", getattr(frame, 'shape', None), "dtype:", getattr(frame, 'dtype', None))
-        # print("template type:", type(self.minimap_template), "shape:", getattr(self.minimap_template, 'shape', None), "dtype:", getattr(self.minimap_template, 'dtype', None))
-        # print("--------------------")
-
-        x1, y1 ,x2 , y2 = minimap_detect_range
-
-        roi_crop_frame = frame[x1:x2,y1:y2]
-
-        result =  cv2.matchTemplate(roi_crop_frame,self.minimap_template,cv2.TM_CCOEFF_NORMED) 
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-
-        if max_val > 0.5:
-            x1,y1 = max_loc[0],max_loc[1]
-            x2,y2 = x1+self.minimap_template.shape[1],y1+self.minimap_template.shape[0]
-            #取地圖ROI範圍
-            self.map_tl = (x1,y1)
-            self.map_br = (x2,y2)
-
-            crop_frame = frame[y1:y2,x1:x2]
-            return crop_frame 
-        else:
-            print(f"測試:沒找到人地圖{self.minimap_template}")
-
-
-        return None
 
 
     def _detect_player_loc(self,frame_bgr):
@@ -93,7 +70,7 @@ class MinimapDetector:
         在迷你地圖偵測範圍內找人物座標，
         '''
         #防呆
-        if self.map_tl is None or self.map_br is None:
+        if self.minimap_br is None:
             return None
 
         frame_hsv = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2HSV)
