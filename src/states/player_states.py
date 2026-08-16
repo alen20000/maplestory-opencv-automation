@@ -36,6 +36,20 @@ class PlayerStates:
 
             self.keyboard.enable_attack(direction)
 
+        elif self.current_state == "ROPE_UP" and target_info:
+
+            direction = target_info.get("direction")
+            if direction == "LEFT":
+                self.keyboard.enable_left()
+                self.keyboard.enable_jump()
+                self.keyboard.enable_up()
+            elif direction == "RIGHT":
+                self.keyboard.enable_right()
+                self.keyboard.enable_jump()
+                self.keyboard.enable_up()
+            else:
+                self.keyboard.enable_jump()
+                self.keyboard.enable_up()
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")

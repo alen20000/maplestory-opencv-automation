@@ -19,9 +19,12 @@ class KeyBoard:
         self._pick_up = False
         #key value
         self.attack_key = config.get("keyboard.attack")
+        self.up_key = config.get("keyboard.up")
+        self.down_key = config.get("keyboard.down")
         self.left_key = config.get("keyboard.left")
         self.right_key = config.get("keyboard.right")
-        self._pick_up_key = config.get("keyboard.pick_up")
+        self.pick_up_key = config.get("keyboard.pick_up")
+        self.jump_key = config.get("keyboard.jump")
         #action logging
         self._current_move = None # <- 紀錄目前移動指令
 
@@ -69,6 +72,29 @@ class KeyBoard:
                 interception.key_up(self.right_key)
             interception.key_down(self.left_key)
             self._current_move = "LEFT"
+
+    def enable_up(self):
+
+        interception.key_down(self.up_key)
+        time.sleep(0.03)
+        interception.key_up(self.up_key)
+
+    def enable_jump(self):
+
+        interception.key_down(self.jump_key)
+        time.sleep(0.03)
+        interception.key_up(self.jump_key)
+
+    def enable_right(self):
+        interception.key_down(self.right_key)
+        time.sleep(0.03)
+        interception.key_up(self.right_key)
+
+    def enable_left(self):
+        interception.key_down(self.left_key)
+        time.sleep(0.03)
+        interception.key_up(self.left_key)
+
 
     ''' 停止釋放'''
     def release_all(self):
@@ -124,7 +150,7 @@ class KeyBoard:
 
     def enable_pick_up(self):
         with self._pick_up_lock:
-            if not self._pick_up_key:
+            if not self.pick_up_key:
                 return
             self._pick_up = True
-        threading.Thread(target=self._pick_up_command, args=(self._pick_up_key,), daemon=True).start()
+        threading.Thread(target=self._pick_up_command, args=(self.pick_up_key,), daemon=True).start()

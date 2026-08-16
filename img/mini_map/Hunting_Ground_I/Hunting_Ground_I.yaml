@@ -8,8 +8,8 @@
   - 86
 - action: rope_up
   loc:
-  - 76
-  - 88
+  - 85
+  - 86
 - action: walk
   loc:
   - 113

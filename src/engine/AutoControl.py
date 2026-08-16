@@ -87,8 +87,10 @@ class AutoControl:
         if state.mini_player_loc:
 
             result = self._check_current_vertical_passage()
-            print(result)
-
+            
+            if result is not None:
+                return self._trigger_vertocal_action(result)
+        
         # 平台判斷
         if state.mini_player_loc:
             try:
@@ -154,17 +156,28 @@ class AutoControl:
         '''
         觸發垂直通道動作
         '''
+        if result is None:
+            return None,None
         action_name = result["action"]
         target_loc = result["loc"]
+        
+        t_x, t_y  = target_loc
+        c_x, c_y  =self.mini_player_loc
 
-        _, y  = target_loc
+        #方向判斷
+        if t_x > c_x:
+            direction = "RIGHT"
+        elif t_x == c_x:
+            direction = None
+        else:
+            direction = "LEFT"
 
         if action_name == "rope_down":
-            return self._pack_action("rope_down",None)
+            return self._pack_action("ROPE_DOWN", direction=direction)
         elif action_name == "rope_up":
-            return self._pack_action("rope_up",None)
+            return self._pack_action("ROPE_UP", direction=direction)
         elif action_name == "jump_down":
-            return self._pack_action("jump_down",None)
+            return self._pack_action("JUMP_DOWN", direction=direction)
 
         
 
@@ -303,7 +316,7 @@ class AutoControl:
         left_bound = current_plat["t_l"][0]   # 平台的左極限 X
         right_bound = current_plat["b_r"][0]  # 平台的右極限 X
         #Debug
-        print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
+        # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
         # print(f"開始巡邏，位置:{self.mini_player_loc}")
         # print(self.buffer)
 
