@@ -12,18 +12,25 @@ import random
 '''
 class AutoControl:
     def __init__(self):
-
-        #parameters
-
-        self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
+        #Data Containers & States
         self.health_setting = {}
-        self._load_health_config()
         self.search_direction = "RIGHT"
         self.search_switch_time = time.time()
+        
+        # Loadding Config
+        self._load_health_config()
+
+        # Parameters
+        self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
+
+        # Search Config & Constants
         self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
         self.search_switch_jitter = random.uniform(-1.5, 2.0)  # <-- 搜尋間隔誤差，模擬隨機性
-        #Toggle config
-        self.searching_mob = config.get("auto_control_config.search_interval", False)
+
+
+        #Toggle/
+        self.enable_searching_mob = config.get("auto_control_config.search_interval", False) # <-- 搜尋怪物功能
+
     def _load_health_config(self):
 
         '''
@@ -57,14 +64,14 @@ class AutoControl:
 
         # 檢查點
         if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
-            if self.searching_mob :
+            if self.enable_searching_mob :
                 x, y = self._search_sweep()
             else: 
                 x, y = None, None
             return x, y
 
         if not state.mobs: # <- 決策點"檢查怪物時"
-            if self.searching_mob :
+            if self.enable_searching_mob :
                 x, y = self._search_sweep()
             else: 
                 x, y = None, None

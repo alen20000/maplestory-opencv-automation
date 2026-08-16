@@ -28,24 +28,26 @@ class GameBot:
     def __init__(self):
         #---config setting
 
-        self.min_threshold = config.get("image_processing.role_min_threshold")
-        #---window config
+        #--視窗設定
         self.game_title = config.get("game.title")
         self.hwnd = None
-        #---player parameter 
+
+        #---角色屬性
         self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'
         self.my_character_template = None
         self.my_character_template_size = None
         self.my_character_template_gray = None
         self.my_character_template_binary = None
 
+        #---畫面資料
         self.frame_bgr = None
-        #---Frame data
         self.roi_crop_frame_gray = None
         self.frame_size:tuple[int, int] = None # (x,y)typle
         self.dectect_False_count = 0
+
         #---掃描設定
         self.method = cv2.TM_CCOEFF_NORMED
+        self.min_threshold = config.get("image_processing.role_min_threshold")
 
         #---計算資料
         self.role_BBOX:BBox = None
@@ -55,16 +57,20 @@ class GameBot:
         self.player_center_loc = None
         self.current_mobs_result =None
         self.lost_track_duration = 0#<-  人物失蹤計算
+
         #---健康參數
         self.player_hp = None
+
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
-        self.htalth_dectector = None
+        self.health_dectector = None
         self.minimap_detector = None
-        #---Toggle 
+
+        #---視窗狀態
         self.bot_enabled = True
-        # keyboard.add_hotkey('f9', self._toggle_bot) 
+
+        #---熟鍵設定
         self.hotkey_manager = hk.HotkeyManager()
         self.hotkey_manager.register(win32con.VK_F9, self._toggle_bot)
         
@@ -92,18 +98,21 @@ class GameBot:
 
             
     def _load_game_resources(self):
-        """預先載入資源"""        #load img res
+        """預先載入資源"""       
+
+        #樣板載入
         self.my_character_template = cv2.imread(self.my_character_template_path)
         self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
         self.my_character_template_binary = BGR2Binary(self.my_character_template)
-        #init module
+
+        #模組實例化
         self.mob_detector = MobDetector()
         self.player_states = PlayerStates() #init player state
-        self.htalth_dectector = HealthDetector()
+        self.health_dectector = HealthDetector()
         self.auto_control = AutoControl()
         self.minimap_detector = MinimapDetector()
-        logging.info(f"已載入遊戲資源")
+        logging.info(f"已載入屬性與實例")
 
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
@@ -155,7 +164,6 @@ class GameBot:
                         (x1+w, y1+h),
                         label=clean_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-
 
     def _is_window_valid(self):
         if not win32gui.IsWindow(self.hwnd):
@@ -224,8 +232,8 @@ class GameBot:
                 self.player_tracking_logic()
                 self.HealthDetector()
                 self.current_mobs_result = self.MobDetector()
-                self.MinimapDetector()
-
+                mini_player_loc = self.MinimapDetector()
+                print(mini_player_loc)
                 #測試
                 try:
                     pass
@@ -242,7 +250,8 @@ class GameBot:
                     roi_BBOX = self.roi_BBOX,
                     mobs = self.current_mobs_result,
                     frame = self.frame_bgr,
-                    lost_track_count = self.lost_track_duration
+                    lost_track_count = self.lost_track_duration,
+                    mini_player_loc = mini_player_loc,
                 )
 
                 '''
@@ -401,7 +410,7 @@ class GameBot:
         '''
         try:
             #這裡以後若要做補MP偵測，不能這樣寫
-            self.player_hp = self.htalth_dectector.hp_detect(self.frame_bgr)
+            self.player_hp = self.health_dectector.hp_detect(self.frame_bgr)
         except Exception as e:
             logging.error(e)
 
@@ -411,8 +420,8 @@ class GameBot:
         與小圖偵測模組進行互動：傳送當前BGR圖
         return : 人物位置(x,y)
         '''
-        self.minimap_detector.run(self.frame_bgr)
-
+        mini_player_loc = self.minimap_detector.run(self.frame_bgr)
+        return mini_player_loc
 
 
     # def get_client_screen_pos(self):

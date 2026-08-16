@@ -20,3 +20,4 @@ class GameState:
     mobs : list[MobInfo] = field(default_factory=list) 
     frame : Optional[np.ndarray] = None
     lost_track_count : int = 0
+    mini_player_loc : Optional[tuple[int,int]] = None
