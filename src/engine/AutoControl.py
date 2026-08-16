@@ -20,7 +20,8 @@ class AutoControl:
         self.search_switch_time = time.time()
         self.recored_data = []
         self.platforms = []
-        self.mini_player_loc = None
+        self.current_platform = None #<-- 當前所在平台
+        self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -81,19 +82,22 @@ class AutoControl:
         # if level is not None:
         #     return f"HEAL_{level.upper()}", {"key": heal_key}
 
+        # 平台判斷
         if state.mini_player_loc:
-            self.mini_player_loc = state.mini_player_loc
-            result = self.check_current_platform()
-            print(f"結果{result}")
-
-
+            try:
+                self.mini_player_loc = state.mini_player_loc
+                self.current_platform = self.check_current_platform()
+            except:
+                pass
+            
+        if self.current_platform:
+            result = self._fk_that_mob(state)
+            print(f"result: {result}")
+            return result
+        
         return None,None
     
-    def calc_distance(self):
-        '''
-        計算距離
-        '''
-        pass
+
 
     def _find_platform(self):
         """
@@ -138,6 +142,8 @@ class AutoControl:
             bottom, right = plat["b_r"] 
 
             if left <= px <= right and top <= py <= bottom:
+                # 加一個1，不然0的化再判斷可能為None
+                index += 1
                 return index  
 
         return None
@@ -180,4 +186,34 @@ class AutoControl:
                     continue   # 這個等級沒設按鍵，跳過，往下一級檢查
                 return level, key
             
+        return None, None
+
+    def _fk_that_mob(self,state):
+        
+        if not state.player_center_loc:
+            return None, None
+        px, _ = state.player_center_loc
+
+        # 計算距離/方向/目標/回傳 states module 結果
+        best_target = None
+        min_distance = float('inf')
+        print(state.mobs)
+        #從無限遠開始判斷
+        for mob , mob_detail in state.mobs or []:
+            for detailed in mob_detail:
+                #計算怪物的絕對座標，
+                mx = detailed["top_left"][0] + state.roi_BBOX.x1
+
+                #絕對值求與玩家間的距離
+                distance = abs(px - mx)
+                if distance < min_distance:
+                    min_distance = distance
+                    #左右判斷
+                    direction = "RIGHT" if px < mx else "LEFT"
+                    best_target = {"name": mob, "distance": distance, "direction": direction}
+        #攻擊距離判斷在這行
+        if best_target and best_target['distance'] <= self.player_attack_range:
+            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            return "ATTACK" , best_target
+
         return None, None

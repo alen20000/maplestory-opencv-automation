@@ -7,4 +7,4 @@ logging_setting:
   # - "INFO"     : 輸出一般運作與狀態訊息（推薦日常使用）
   # - "WARNING"  : 僅輸出警告與錯誤訊息（畫面較乾淨）
   # - "ERROR"    : 僅輸出嚴重錯誤訊息
-  log_level: "DEBUG"
+  log_level: "WARNING"
