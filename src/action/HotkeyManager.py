@@ -25,6 +25,8 @@ class HotkeyManager:
         '''
         for vk_code, callback in self._bindings.items():
             state = win32api.GetAsyncKeyState(vk_code)
+
+            #按鍵遮罩:過濾按著的狀態， 這裡是十六進致的1 也就是True
             if state & 0x0001:
                 try:
                     callback()

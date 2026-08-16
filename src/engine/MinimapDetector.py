@@ -2,6 +2,7 @@ from config.config_loader import config
 import cv2
 import logging
 import numpy as np
+
 '''
 人物黃點: RGB 255,255,136  HSV 是： [ 30 119 255]
 人物黃點: RGB 255,255,0  HSV 是： [ 30 255 255]

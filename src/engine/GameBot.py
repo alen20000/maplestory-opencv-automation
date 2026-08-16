@@ -217,7 +217,7 @@ class GameBot:
 
                 # 窗口偵測
                 self._is_window_valid()
- 
+
                 # start =time.time() 
 
                 # 偵測與更新數據
@@ -408,7 +408,8 @@ class GameBot:
     def MinimapDetector(self)-> tuple[int,int]:
         '''
         WIP
-        與小圖偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
+        與小圖偵測模組進行互動：傳送當前BGR圖
+        return : 人物位置(x,y)
         '''
         self.minimap_detector.run(self.frame_bgr)
 

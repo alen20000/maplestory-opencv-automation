@@ -1,4 +1,4 @@
-
+import cv2
 from config.config_loader import config
 import logging
 import src.utils.logger as logger
@@ -9,14 +9,35 @@ import numpy as np
 import ctypes
 import time
 from src.engine.MinimapDetector import MinimapDetector
+import src.action.HotkeyManager as hk
+import win32con
+from pathlib import Path
+import yaml
+
 '''
 還不確定是測試用，還是模組一部分。
 
 fuction:橋接遊戲即時畫面與 MinimapDetector.py，紀錄我的座標與操作紀錄。
 
-'''
-import cv2
+先預設 幾種模式  walk : 走路 ; rope_up : 向上爬繩子 ; rope_down : 向下爬繩子 ; jump_down : 直接跳下
 
+熟建:
+
+F5 設立走位點
+F6 設立爬繩點向上
+F7 設立爬繩點向下
+F8 設立跳下點
+F12 儲存行為座標於minimap目錄下
+'''
+
+
+
+HOTKEYS = {
+    win32con.VK_F6: "walk",
+    win32con.VK_F7: "rope_up",
+    win32con.VK_F8: "rope_down",
+    win32con.VK_F9: "jump_down",
+}
 
 class OperationLogger:
     def __init__(self):
@@ -25,8 +46,16 @@ class OperationLogger:
         self.game_title = config.get("game.title")
         self.hwnd = None
         self.frame_size = None
+        #---路徑設定
+        self.map_name = config.get("quickly_choice_map")
+        self.mini_map =  Path(config.get(f"mini_map.{self.map_name}"))
         #--- 模組實例
         self.minimap_detector = None
+        self.hk = None
+
+        #--- 資料容器
+        self.player_loc = None
+        self.recored_data = []
 
     def _connect_window(self):
         '''
@@ -69,11 +98,17 @@ class OperationLogger:
             return frame_bgr
 
         return frame_bgr
-    
+
     def _loading_config(self):
         #--載入模組
         self.minimap_detector = MinimapDetector()
-
+        self.hk = hk.HotkeyManager()
+        #--熟建載入
+        self.hk.register(win32con.VK_F5, self._walk_point)
+        self.hk.register(win32con.VK_F6, self._rope_up_point)
+        self.hk.register(win32con.VK_F7, self._rope_down_point)
+        self.hk.register(win32con.VK_F8, self._jump_down_point)
+        self.hk.register(win32con.VK_F12,self._save_actions_to_yaml)
     def run(self):
 
         #pre_process
@@ -101,10 +136,11 @@ class OperationLogger:
         try:
             while True:
                 self.frame_bgr = self._scan_full_screen()
-
-
+                #==按鍵監聽==================
+                self.hk.poll() 
                 #===========================
                 player_loc = self.MinimapDetector(self.frame_bgr)
+                self.player_loc = player_loc
                 self._show_player_loc(player_loc)
                 
                 #===========================
@@ -120,7 +156,8 @@ class OperationLogger:
     def MinimapDetector(self,frame)-> tuple[int,int]:
         '''
         WIP
-        與小圖偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
+        與小圖偵測模組進行互動：傳送當前BGR圖
+        return : 人物位置(x,y)
         '''
         result = self.minimap_detector.run(frame)
         return result
@@ -128,8 +165,53 @@ class OperationLogger:
     def _show_player_loc(self,player_loc):
         
         cv2.putText(self.frame_bgr, f"人物座標: {player_loc}", org=(10, 250),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.5, color=(0, 0, 0), thickness=2)
-        
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 0), thickness=2)
+
+    def _walk_point(self):
+        '''
+        移動點
+        '''
+        print(f"紀錄點位:{self.player_loc}，行為:walk")
+        self.recored_data.append({"loc": list(self.player_loc), "action": "walk"})
+        print(self.recored_data)
+
+
+    def _rope_up_point(self):
+        '''
+        爬繩點(向上)
+        '''
+        print(f"紀錄點位:{self.player_loc}，行為:rope_up")
+        self.recored_data.append({"loc": list(self.player_loc), "action": "rope_up"})
+
+    def _rope_down_point(self):
+        '''
+        爬繩點(向下)
+        '''
+        print(f"紀錄點位:{self.player_loc}，行為:rope_down")
+        self.recored_data.append({"loc": list(self.player_loc), "action": "rope_down"})
+
+    def _jump_down_point(self):
+        '''
+        跳下點
+        '''
+        print(f"紀錄點位:{self.player_loc}，行為:jump_down")
+        self.recored_data.append({"loc": list(self.player_loc), "action": "jump_down"})
+
+    def _save_actions_to_yaml(self):
+        '''
+        把座標與行為，儲存為ymal格式
+        '''
+        folder_path = self.mini_map.parent
+
+        yaml_path = folder_path / f"{self.map_name}.yaml"
+        print(yaml_path)
+        try:
+            with open(yaml_path, "w") as f:
+                yaml.dump(self.recored_data, f)
+        except Exception as e:
+            logging.error(f"儲存資料錯誤:{e}")
+        pass
+
 if __name__ == "__main__":
         #---日誌模組
         logger.setup_logging()
