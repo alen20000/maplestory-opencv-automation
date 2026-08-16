@@ -258,8 +258,10 @@ class GameBot:
                 except:
                     pass
 
-                #繪製BBOX
+                #繪製BBOX,Text
                 self._draw_mob(self.current_mobs_result)
+                self._show_player_loc(mini_player_loc)
+
                 # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
                 # 數據封包
                 current_game_state =  GameState(
@@ -271,8 +273,7 @@ class GameBot:
                     lost_track_count = self.lost_track_duration,
                     mini_player_loc = mini_player_loc,
                 )
-                #debug
-                # self._show_player_loc(mini_player_loc)
+                
                 '''
                 自動控制
                 decide_operation 回傳:行為、目標 [str, dict]

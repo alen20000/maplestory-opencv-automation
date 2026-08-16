@@ -7,6 +7,7 @@ import time
 import random
 from pathlib import Path
 import yaml
+import math
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
@@ -22,7 +23,8 @@ class AutoControl:
         self.search_direction = random.choice(["LEFT", "RIGHT"])
         self.search_switch_time = time.time()
         self.recored_data = []
-        self.platforms = []
+        self.platforms = [] #<-- 所有平台
+        self.vertical_passage = [] #<-- 所有垂直通道
         self.current_platform = None #<-- 當前所在平台
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         # Loadding Config
@@ -64,6 +66,7 @@ class AutoControl:
                     self.recored_data = yaml.safe_load(f)
                 # 找出平台
                 self.platforms = self._find_platform()
+                self.vertical_passage = self._find_vertical_passage()
 
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
@@ -76,10 +79,15 @@ class AutoControl:
         '''
 
         #角色健康狀態
-
         level , heal_key = self._health_status_check(state.player_hp)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
+
+        #垂直通道判斷
+        if state.mini_player_loc:
+
+            result = self._check_current_vertical_passage()
+            print(result)
 
         # 平台判斷
         if state.mini_player_loc:
@@ -111,6 +119,54 @@ class AutoControl:
         return "IDLE", None
     
 
+    def _find_vertical_passage(self):
+        '''
+        找出垂直通道(繩子、跳下點)
+        '''
+
+        target_actions = ["rope_down", "rope_up", "jump_down"]
+
+        filtered_data = [
+        item for item in self.recored_data 
+        if item.get("action") in target_actions
+        ]
+
+        return filtered_data
+    
+    def _check_current_vertical_passage(self):
+        '''
+        檢查人物是否在垂直通道
+        '''
+        if not self.mini_player_loc or not self.vertical_passage:
+            return None
+        threshold = 3
+
+        matched_point = next(
+            (
+                point for point in self.vertical_passage
+                if math.dist(self.mini_player_loc,point["loc"]) <= threshold),None
+            
+        )
+
+        return matched_point
+
+    def _trigger_vertocal_action(self,result:dict):
+        '''
+        觸發垂直通道動作
+        '''
+        action_name = result["action"]
+        target_loc = result["loc"]
+
+        _, y  = target_loc
+
+        if action_name == "rope_down":
+            return self._pack_action("rope_down",None)
+        elif action_name == "rope_up":
+            return self._pack_action("rope_up",None)
+        elif action_name == "jump_down":
+            return self._pack_action("jump_down",None)
+
+        
 
     def _find_platform(self):
         """
@@ -160,6 +216,7 @@ class AutoControl:
                 return index  
 
         return None
+
 
     def _health_status_check(self,player_hp): 
 
@@ -246,7 +303,7 @@ class AutoControl:
         left_bound = current_plat["t_l"][0]   # 平台的左極限 X
         right_bound = current_plat["b_r"][0]  # 平台的右極限 X
         #Debug
-        # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
+        print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
         # print(f"開始巡邏，位置:{self.mini_player_loc}")
         # print(self.buffer)
 
@@ -262,8 +319,10 @@ class AutoControl:
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
 
+
     def _pack_action(self, action_type, **kwargs):
         """
         將行為打包成字典
         """
         return action_type, kwargs if kwargs else None
+
