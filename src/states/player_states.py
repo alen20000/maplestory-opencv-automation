@@ -19,6 +19,9 @@ class PlayerStates:
     def execute_behavior(self, new_state, target_info=None):
         """
         負責以狀態變更而進行的指令
+        args:
+            new_state (str): 新的狀態
+            target_info (dict):  {"name": mob, "distance": distance, "direction": direction}
         """
         # 更新狀態
         if self.current_state != new_state:
@@ -34,7 +37,7 @@ class PlayerStates:
             self.keyboard.enable_attack(direction)
 
 
-        elif self.current_state == "APPROACH" and target_info:
+        elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
 
             if direction == "LEFT":
@@ -47,12 +50,12 @@ class PlayerStates:
             # 人物閒置狀態
             pass
 
+        #放後面點，閒置就不喝水
         elif self.current_state.startswith("HEAL") and target_info:
             #健康修復狀態
             key = target_info.get("key")
             if key:
                 self.keyboard.enable_use_item(key)
-                # print(f"補血中，按下: {key}")
             else:
                 logging.info(f"{self.current_state} 觸發，但該該處發值還沒設定按鍵")
                 pass
@@ -63,4 +66,3 @@ class PlayerStates:
 
         self.current_state = "IDLE"
         self.keyboard.release_all()
-        print(f"狀態更新為: {self.current_state}")

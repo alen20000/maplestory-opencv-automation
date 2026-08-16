@@ -31,11 +31,16 @@ game_bot:
   roi_x_offset_l_width: 100
   roi_x_offset_r_width: 100
   roi_y_offset_t_high: 100
-  roi_y_offset_b_high : 50
+  roi_y_offset_b_high: 50
 
 auto_control_config:
   #沒怪時左右尋怪 True/False
   search_interval: False
+  #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素
+  buffer: 15
+  
+  #這是平台判定的偏移量，有些特殊地圖，平台Y軸落差很大時再動，否則預設 "5"像素
+  platform_offset: 5
 health_detector:
   #存放血條的是窗內位置 list[x1,y1,x2,y2]
   hp_lect: [504,755,608,766]

@@ -14,6 +14,10 @@ import yaml
 '''
 class AutoControl:
     def __init__(self):
+
+        # Search Config & Constants
+        self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
+        self.platform_offset = config.get("auto_control_config.platform_offset", 5)
         # Data Containers & States
         self.health_setting = {}
         self.search_direction = "RIGHT"
@@ -27,10 +31,6 @@ class AutoControl:
         self._load_map_data()
         # Parameters
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
-
-        # Search Config & Constants
-        self.SEARCH_SWITCH_INTERVAL = 3.0 # <-- 搜尋間隔
-        self.search_switch_jitter = random.uniform(-1.5, 2.0)  # <-- 搜尋間隔誤差，模擬隨機性
 
 
         #Toggle/
@@ -76,7 +76,7 @@ class AutoControl:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
         '''
 
-        # 角色健康狀態
+        #角色健康狀態
 
         # level , heal_key = self._health_status_check(state.player_hp)
         # if level is not None:
@@ -89,13 +89,19 @@ class AutoControl:
                 self.current_platform = self.check_current_platform()
             except:
                 pass
-            
+        #人物在平台內
         if self.current_platform:
-            result = self._fk_that_mob(state)
-            print(f"result: {result}")
-            return result
-        
-        return None,None
+            #有怪則找怪
+            if state.mobs:
+                result = self._fk_that_mob(state)
+                return result
+            else:
+                #沒怪則探索
+                result = self._enable_player_patrol()
+                return result
+
+        #若都沒有則閒置
+        return "IDLE", None
     
 
 
@@ -113,14 +119,13 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                offset = 5
-                top = current["loc"][1] - offset
-                bottom = current["loc"][1] + offset
+                top = current["loc"][1] - self.platform_offset
+                bottom = current["loc"][1] + self.platform_offset
 
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0])
 
-                platforms.append({"t_l":(top,left),"b_r":(bottom,right)})
+                platforms.append({"t_l":(left,top),"b_r":(right,bottom)})
                 i += 2
             else:
                 i += 1 
@@ -138,8 +143,8 @@ class AutoControl:
         px, py = self.mini_player_loc 
 
         for index, plat in enumerate(self.platforms):
-            top, left = plat["t_l"]     
-            bottom, right = plat["b_r"] 
+            left, top = plat["t_l"]     
+            right, bottom = plat["b_r"] 
 
             if left <= px <= right and top <= py <= bottom:
                 # 加一個1，不然0的化再判斷可能為None
@@ -189,7 +194,9 @@ class AutoControl:
         return None, None
 
     def _fk_that_mob(self,state):
-        
+        '''
+        功能:在尋怪範圍內攻擊怪物
+        '''
         if not state.player_center_loc:
             return None, None
         px, _ = state.player_center_loc
@@ -197,7 +204,7 @@ class AutoControl:
         # 計算距離/方向/目標/回傳 states module 結果
         best_target = None
         min_distance = float('inf')
-        print(state.mobs)
+
         #從無限遠開始判斷
         for mob , mob_detail in state.mobs or []:
             for detailed in mob_detail:
@@ -216,4 +223,40 @@ class AutoControl:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
 
-        return None, None
+        return "IDLE", None
+
+
+    def _enable_player_patrol(self):
+        '''
+        巡邏邏輯
+        '''
+
+        px, py = self.mini_player_loc
+        
+        #要 -1 因為求平台時多加了
+        plat_index = self.current_platform - 1
+        current_plat = self.platforms[plat_index]
+        
+        left_bound = current_plat["t_l"][0]   # 平台的左極限 X
+        right_bound = current_plat["b_r"][0]  # 平台的右極限 X
+        
+
+
+
+        if px <= left_bound + self.buffer:
+            self.search_direction = "RIGHT"   # 強制向右
+            print(f"即將轉向: {self.search_direction}")
+            return self._pack_action("MOVE", direction="RIGHT")
+        # 檢查是否碰到或接近「右邊界」
+        elif px >= right_bound - self.buffer:
+            self.search_direction = "LEFT"    # 強制向左
+            print(f"即將轉向: {self.search_direction}")
+            return self._pack_action("MOVE", direction="LEFT")
+        else:
+            return self._pack_action("MOVE", direction=self.search_direction)
+
+    def _pack_action(self, action_type, **kwargs):
+        """
+        將行為打包成字典
+        """
+        return action_type, kwargs if kwargs else None
