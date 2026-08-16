@@ -405,13 +405,13 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
-    def MinimapDetector(self)-> np.ndarray:
+    def MinimapDetector(self)-> tuple[int,int]:
         '''
         WIP
         與小圖偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
         '''
         self.minimap_detector.run(self.frame_bgr)
-        pass
+
 
 
     # def get_client_screen_pos(self):

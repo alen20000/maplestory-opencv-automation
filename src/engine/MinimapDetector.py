@@ -67,10 +67,9 @@ class MinimapDetector:
         if self.crop_frame_bgr is None:
             return
         player_loc = self._detect_player_loc(self.crop_frame_bgr )
-        print(player_loc)
         cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
 
-        
+        return player_loc
 
     def _detect_player_loc(self,frame):
         '''
