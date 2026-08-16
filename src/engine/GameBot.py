@@ -233,7 +233,7 @@ class GameBot:
                 self.HealthDetector()
                 self.current_mobs_result = self.MobDetector()
                 mini_player_loc = self.MinimapDetector()
-                print(mini_player_loc)
+
                 #測試
                 try:
                     pass
@@ -259,7 +259,7 @@ class GameBot:
                 decide_operation 回傳:行為、目標 [str, dict]
                 execute_behavior 狀態更新、下給input模組執行
                 '''
-                action_states, target_info = self.auto_control.decide_operation(current_game_state)
+                action_states, target_info = self.auto_control.select_operation(current_game_state)
 
                 if action_states is not None:
                     has_mobs = target_info is not None

@@ -6,20 +6,23 @@ from typing import Optional
 from src.engine.game_state import GameState
 import time
 import random
+from pathlib import Path
+import yaml
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
 '''
 class AutoControl:
     def __init__(self):
-        #Data Containers & States
+        # Data Containers & States
         self.health_setting = {}
         self.search_direction = "RIGHT"
         self.search_switch_time = time.time()
-        
+        self.recored_data = []
+        self.platforms = []
         # Loadding Config
         self._load_health_config()
-
+        self._load_map_data()
         # Parameters
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
 
@@ -49,8 +52,22 @@ class AutoControl:
                 "value" : value,
                 "key" : key,
             }
+    def _load_map_data(self):
+        try:
+            map_name = config.get("quickly_choice_map")
+            self.mini_map = Path(config.get(f"mini_map.{map_name}"))
+            folder_path = self.mini_map.parent
+            yaml_path = folder_path / f"{map_name}.yaml"
+            if yaml_path.exists():
+                with open(yaml_path, "r") as f:
+                    self.recored_data = yaml.safe_load(f)
+                # 找出平台
+                self.platforms = self._find_platform()
+        except Exception as e:
+            logging.error(f"載入地圖失敗{e}")
 
-    def decide_operation(self,state: GameState) -> tuple[Optional[str], Optional[dict]]:
+
+    def select_operation(self,state: GameState) -> tuple[Optional[str], Optional[dict]]:
         '''
         Args:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
@@ -58,58 +75,48 @@ class AutoControl:
 
         # 角色健康狀態
 
-        level , heal_key = self._health_status_check(state.player_hp)
-        if level is not None:
-            return f"HEAL_{level.upper()}", {"key": heal_key}
+        # level , heal_key = self._health_status_check(state.player_hp)
+        # if level is not None:
+        #     return f"HEAL_{level.upper()}", {"key": heal_key}
 
-        # 檢查點
-        if state.roi_BBOX is None: # <- 決策點"檢查沒有ROI時"
-            if self.enable_searching_mob :
-                x, y = self._search_sweep()
-            else: 
-                x, y = None, None
-            return x, y
+        if state.mini_player_loc:
+            print(f"player_loc on mini_map: {state.mini_player_loc}{self.recored_data}")
+            print(self.platforms)
 
-        if not state.mobs: # <- 決策點"檢查怪物時"
-            if self.enable_searching_mob :
-                x, y = self._search_sweep()
-            else: 
-                x, y = None, None
-            return x, y
+    def calc_distance(self):
+        '''
+        計算距離
+        '''
+        pass
 
-        elif state.lost_track_count == 15:
-            # 如果角色遺失追蹤 15 次，進入隨機巡弋
-            x, y = self._search_sweep()
-            return x, y
-        
-        if not state.player_center_loc:
-            return None, None
-        px, _ = state.player_center_loc
+    def _find_platform(self):
+        """
+        找出平台
+        用滑動窗口直接從list內抓出平台，加上偏移量，製作出平台範圍
+        """
 
-        # 計算距離/方向/目標/回傳 states module 結果
-        best_target = None
-        min_distance = float('inf')
-        #從無限遠開始判斷
-        for mob , mob_detail in state.mobs:
-            for detailed in mob_detail:
-                #計算怪物的絕對座標，
-                mx = detailed["top_left"][0] + state.roi_BBOX.x1
+        platforms = []
+        i= 0
+        while i < len(self.recored_data)-1:
+            current = self.recored_data[i]
+            next_item = self.recored_data[i + 1]
 
-                #絕對值求與玩家間的距離
-                distance = abs(px - mx)
-                if distance < min_distance:
-                    min_distance = distance
-                    #左右判斷
-                    direction = "RIGHT" if px < mx else "LEFT"
-                    best_target = {"name": mob, "distance": distance, "direction": direction}
-        #攻擊距離判斷在這行
-        if best_target and best_target['distance'] <= self.player_attack_range:
-            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
-            return "ATTACK" , best_target
+            if current["action"] =='walk' and next_item["action"] == 'walk':
 
+                offset = 5
+                top = current["loc"][1] - offset
+                bottom = current["loc"][1] + offset
 
+                left = min(current["loc"][0], next_item["loc"][0])
+                right = max(current["loc"][0], next_item["loc"][0])
 
-        return "APPROACH" , best_target
+                platforms.append({"t_l":(top,left),"b_r":(bottom,right)})
+                i += 2
+            else:
+                i += 1 
+
+        return platforms
+
 
     def _health_status_check(self,player_hp): 
 
@@ -148,64 +155,3 @@ class AutoControl:
                 return level, key
             
         return None, None
-
-
-    def _goto_center(self,state: GameState):
-
-        '''
-        搜尋策略:向中心運動
-        
-        '''
-        frame = state.frame
-        px, _ = state.player_center_loc
-        _, x = frame.shape[:2]
-        print(f"隨機移動到{x//2}")
-
-        direction = "RIGHT" if px < x//2 else "LEFT"
-        random_move = {
-            "name": "RANDOM_MOVE",
-            "distance": None,
-            "direction": direction
-            }
-
-        return "APPROACH" , random_move
-    
-    def _to_alternating_side_move(self):
-
-        '''
-        搜尋策略:與上一方向反向運動
-        
-        '''
-
-        if self.last_direction == "RIGHT":
-            direction = "LEFT"
-        elif self.last_direction == "LEFT":
-            direction = "RIGHT"
-        else:
-            return None, None
-        alternating_move = {
-            "name": "alternating_side",
-            "distance": None,
-            "direction": direction
-            }
-
-        return "APPROACH" , alternating_move
-
-    def _search_sweep(self):
-        '''
-        定時左右來回移動
-        '''
-        now = time.time()
-        threshold = self.SEARCH_SWITCH_INTERVAL + self.search_switch_jitter
-
-        if now - self.search_switch_time >= threshold:
-            self.search_direction = "LEFT" if self.search_direction == "RIGHT" else "RIGHT"
-            self.search_switch_time = now
-            self.search_switch_jitter = random.uniform(-1.5, 2.0)  # 換方向時重新抽一次
-
-
-        return "APPROACH", {
-        "name": "SEARCH_SWEEP",
-        "distance": None,
-        "direction": self.search_direction
-        }
