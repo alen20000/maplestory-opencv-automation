@@ -20,6 +20,7 @@ class AutoControl:
         self.search_switch_time = time.time()
         self.recored_data = []
         self.platforms = []
+        self.mini_player_loc = None
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -63,6 +64,7 @@ class AutoControl:
                     self.recored_data = yaml.safe_load(f)
                 # 找出平台
                 self.platforms = self._find_platform()
+
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
 
@@ -80,9 +82,13 @@ class AutoControl:
         #     return f"HEAL_{level.upper()}", {"key": heal_key}
 
         if state.mini_player_loc:
-            print(f"player_loc on mini_map: {state.mini_player_loc}{self.recored_data}")
-            print(self.platforms)
+            self.mini_player_loc = state.mini_player_loc
+            result = self.check_current_platform()
+            print(f"結果{result}")
 
+
+        return None,None
+    
     def calc_distance(self):
         '''
         計算距離
@@ -116,6 +122,26 @@ class AutoControl:
                 i += 1 
 
         return platforms
+
+    def check_current_platform(self):
+        """
+        根據玩家目前的座標，判斷人在哪一個平台內
+
+        """
+        if not self.mini_player_loc or not self.platforms:
+            return None
+
+        px, py = self.mini_player_loc 
+
+        for index, plat in enumerate(self.platforms):
+            top, left = plat["t_l"]     
+            bottom, right = plat["b_r"] 
+
+            if left <= px <= right and top <= py <= bottom:
+                return index  
+
+        return None
+
 
 
     def _health_status_check(self,player_hp): 

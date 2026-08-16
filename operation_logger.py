@@ -21,6 +21,9 @@ fuction:橋接遊戲即時畫面與 MinimapDetector.py，紀錄我的座標與�
 
 先預設 幾種模式  walk : 走路 ; rope_up : 向上爬繩子 ; rope_down : 向下爬繩子 ; jump_down : 直接跳下
 
+[注意!] 兩個連續走路點會形成一個平台，中間的斷點是其他動作
+[Example] rope_up -> walk -> walk -> rope_down   這樣兩個walk會判定為平台，平台才會觸發戰鬥模式
+
 熟建:
 
 F5 設立走位點

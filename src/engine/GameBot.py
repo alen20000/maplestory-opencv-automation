@@ -334,7 +334,7 @@ class GameBot:
             
             #找到角色
             _, max_val, _, max_loc = cv2.minMaxLoc(result)
-            
+
             if max_val > self.min_threshold:
                 logging.info(f"全圖掃描找到角色，位置:{max_loc},置信度:{max_val}")
                 self.role_score = max_val
