@@ -39,7 +39,7 @@ auto_control_config:
   #尋怪功能開關 True/False
   search_interval: True
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 15
+  buffer: 8
   
   #這是平台判定的偏移量，有些特殊地圖，平台Y軸落差很大時再動，否則預設 "5"像素
   platform_offset: 5

@@ -24,7 +24,7 @@
   - 71
 - action: walk
   loc:
-  - 41
+  - 54
   - 62
 - action: walk
   loc:
@@ -32,7 +32,7 @@
   - 62
 - action: rope_up
   loc:
-  - 56
+  - 86
   - 62
 - action: walk
   loc:
