@@ -1,7 +1,6 @@
 import time
 import logging
 from config.config_loader import config
-from src.utils.boxes import BBox
 from typing import Optional
 from src.engine.game_state import GameState
 import time
@@ -20,7 +19,7 @@ class AutoControl:
         self.platform_offset = config.get("auto_control_config.platform_offset", 5)
         # Data Containers & States
         self.health_setting = {}
-        self.search_direction = "RIGHT"
+        self.search_direction = random.choice(["LEFT", "RIGHT"])
         self.search_switch_time = time.time()
         self.recored_data = []
         self.platforms = []
@@ -78,9 +77,9 @@ class AutoControl:
 
         #角色健康狀態
 
-        # level , heal_key = self._health_status_check(state.player_hp)
-        # if level is not None:
-        #     return f"HEAL_{level.upper()}", {"key": heal_key}
+        level , heal_key = self._health_status_check(state.player_hp)
+        if level is not None:
+            return f"HEAL_{level.upper()}", {"key": heal_key}
 
         # 平台判斷
         if state.mini_player_loc:
@@ -89,16 +88,24 @@ class AutoControl:
                 self.current_platform = self.check_current_platform()
             except:
                 pass
+
+        #Debug
+        # if self.current_platform is None:
+        #     print("人物游離中")
+        # else:
+        #     print(f"目前在第{self.current_platform}個平台")
+
+
         #人物在平台內
         if self.current_platform:
             #有怪則找怪
             if state.mobs:
                 result = self._fk_that_mob(state)
                 return result
-            else:
-                #沒怪則探索
-                result = self._enable_player_patrol()
-                return result
+        if self.current_platform and self.enable_searching_mob :
+            #巡弋動作
+            result = self._enable_player_patrol()
+            return result
 
         #若都沒有則閒置
         return "IDLE", None
@@ -147,13 +154,12 @@ class AutoControl:
             right, bottom = plat["b_r"] 
 
             if left <= px <= right and top <= py <= bottom:
-                # 加一個1，不然0的化再判斷可能為None
+                # 加一個1，不然0的話再判斷可能為None
                 index += 1
+
                 return index  
 
         return None
-
-
 
     def _health_status_check(self,player_hp): 
 
@@ -232,25 +238,26 @@ class AutoControl:
         '''
 
         px, py = self.mini_player_loc
-        
+
         #要 -1 因為求平台時多加了
         plat_index = self.current_platform - 1
         current_plat = self.platforms[plat_index]
         
         left_bound = current_plat["t_l"][0]   # 平台的左極限 X
         right_bound = current_plat["b_r"][0]  # 平台的右極限 X
-        
-
-
+        #Debug
+        # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
+        # print(f"開始巡邏，位置:{self.mini_player_loc}")
+        # print(self.buffer)
 
         if px <= left_bound + self.buffer:
             self.search_direction = "RIGHT"   # 強制向右
-            print(f"即將轉向: {self.search_direction}")
+            # print(f"即將轉向: {self.search_direction}")
             return self._pack_action("MOVE", direction="RIGHT")
-        # 檢查是否碰到或接近「右邊界」
+
         elif px >= right_bound - self.buffer:
             self.search_direction = "LEFT"    # 強制向左
-            print(f"即將轉向: {self.search_direction}")
+            # print(f"即將轉向: {self.search_direction}")
             return self._pack_action("MOVE", direction="LEFT")
         else:
             return self._pack_action("MOVE", direction=self.search_direction)

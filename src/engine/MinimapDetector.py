@@ -68,7 +68,9 @@ class MinimapDetector:
         if self.crop_frame_bgr is None:
             return
         player_loc = self._detect_player_loc(self.crop_frame_bgr )
-        cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
+
+        #Debug
+        # cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
 
         return player_loc
 
@@ -84,19 +86,13 @@ class MinimapDetector:
         mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
         #抓住符合顏色。 這邊還有 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓輪廓的寫法，可以嘗試(可選)
         pts = cv2.findNonZero(mask)
-        cv2.imshow("HSV Mask Debug", mask) 
-        cv2.waitKey(1) # 讓視窗即時更新
+
         if  pts is not None and len(pts) > 2:
 
             #第一維是 點(矩陣列)，第二維是(x,y)
             player_x = int(np.mean(pts[:,0]))
             player_y = int(np.mean(pts[:,1]))
 
-            # print (c_x,c_y)
-            # #這裡的坐標系嵌了三層，一層是遊戲座標，一層是遊戲視窗，最後是minimap層
-            # #這裡抓的應該是minimap內的座標，並換成遊戲內座標，感覺可以直接用就好
-            # game_player_x = c_x + self.minimap_tl[0]
-            # game_player_y = c_y + self.minimap_tl[1]
             return (player_x,player_y)
 
 

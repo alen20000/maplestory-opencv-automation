@@ -21,7 +21,11 @@ import re
 import src.action.HotkeyManager as hk
 import win32con
 
-
+'''
+快捷鍵:
+F9:暫停/繼續
+F12:退出離開
+'''
 
 class GameBot:
     
@@ -73,6 +77,7 @@ class GameBot:
         #---熟鍵設定
         self.hotkey_manager = hk.HotkeyManager()
         self.hotkey_manager.register(win32con.VK_F9, self._toggle_bot)
+        self.hotkey_manager.register(win32con.VK_F12, self._exit_app)
         
     def _connect_window(self):
         '''
@@ -96,7 +101,20 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
-            
+    def _exit_app(self):
+        '''
+        功能:關掉程式
+        '''
+        logging.info("正在關閉應用程式...")
+        self.bot_enabled = False
+        
+        # 銷毀所有 OpenCV 視窗
+        cv2.destroyAllWindows()
+        
+        # 結束整個程式 (可以透過回傳或直接 sys.exit)
+        import sys
+        sys.exit(0)
+
     def _load_game_resources(self):
         """預先載入資源"""       
 
@@ -253,7 +271,8 @@ class GameBot:
                     lost_track_count = self.lost_track_duration,
                     mini_player_loc = mini_player_loc,
                 )
-
+                #debug
+                # self._show_player_loc(mini_player_loc)
                 '''
                 自動控制
                 decide_operation 回傳:行為、目標 [str, dict]
@@ -423,7 +442,12 @@ class GameBot:
         mini_player_loc = self.minimap_detector.run(self.frame_bgr)
         return mini_player_loc
 
+    def _show_player_loc(self,player_loc):
+        
+        cv2.putText(self.frame_bgr, f"人物座標: {player_loc}", org=(10, 250),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 0), thickness=2)
 
+        
     # def get_client_screen_pos(self):
     #     '''
     #     測試用
