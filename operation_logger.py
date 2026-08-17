@@ -19,10 +19,11 @@ import yaml
 
 fuction:橋接遊戲即時畫面與 MinimapDetector.py，紀錄我的座標與操作紀錄。
 
-先預設 幾種模式  walk : 走路 ; rope_up : 向上爬繩子 ; rope_down : 向下爬繩子 ; jump_down : 直接跳下
+先預設 幾種模式  walk : 走路 ; rope : 繩子點 ; ; jump_down : 直接跳下
 
-[注意!] 兩個連續走路點會形成一個平台，中間的斷點是其他動作
-[Example] rope_up -> walk -> walk -> rope_down   這樣兩個walk會判定為平台，平台才會觸發戰鬥模式
+[注意!] 連續兩個 walk 會判定為平台; 連續兩個rope會判定為垂直通道。確保walk "高度" 差不多，而rope x軸要一樣
+ 
+[Example] ... -> walk -> walk -> rope -> rope 這樣兩個walk會判定為平台，平台才會觸發戰鬥模式；兩個rope點會判定為垂直通道
 
 熟建:
 
@@ -108,8 +109,7 @@ class OperationLogger:
         self.hk = hk.HotkeyManager()
         #--熟建載入
         self.hk.register(win32con.VK_F5, self._walk_point)
-        self.hk.register(win32con.VK_F6, self._rope_up_point)
-        self.hk.register(win32con.VK_F7, self._rope_down_point)
+        self.hk.register(win32con.VK_F6, self._rope_point)
         self.hk.register(win32con.VK_F8, self._jump_down_point)
         self.hk.register(win32con.VK_F12,self._save_actions_to_yaml)
     def run(self):
@@ -179,19 +179,12 @@ class OperationLogger:
         print(self.recored_data)
 
 
-    def _rope_up_point(self):
+    def _rope_point(self):
         '''
         爬繩點(向上)
         '''
-        print(f"紀錄點位:{self.player_loc}，行為:rope_up")
-        self.recored_data.append({"loc": list(self.player_loc), "action": "rope_up"})
-
-    def _rope_down_point(self):
-        '''
-        爬繩點(向下)
-        '''
-        print(f"紀錄點位:{self.player_loc}，行為:rope_down")
-        self.recored_data.append({"loc": list(self.player_loc), "action": "rope_down"})
+        print(f"紀錄點位:{self.player_loc}，行為:rope")
+        self.recored_data.append({"loc": list(self.player_loc), "action": "rope"})
 
     def _jump_down_point(self):
         '''

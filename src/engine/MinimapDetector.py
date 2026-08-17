@@ -86,7 +86,8 @@ class MinimapDetector:
         if self.minimap_br is None :
             self._get_minimap_tl()
 
-        self._crop_minimap()
+        if self.minimap_tl != None :
+            self._crop_minimap()
 
         #防呆
         if self.crop_frame_bgr is None:
