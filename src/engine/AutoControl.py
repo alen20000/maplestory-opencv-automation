@@ -30,6 +30,7 @@ class AutoControl:
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         self.pervious_time = None #時間計算用
+        self.is_climbing = False #是否在爬樓梯
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -104,30 +105,34 @@ class AutoControl:
             try:
                 # 垂直通道判斷
                 self.current_vertical_passage = self._check_vertical_passage()
-
-
                 # 觸發:在垂直通道內
                 if self.current_vertical_passage is not None:
+
                     time_interval = current_time - self.pervious_time
 
                     # 至少經過XX秒，才能再次使用樓梯
                     if time_interval > 15:
                         # 垂直通道移動
+                        self.is_climbing = True
                         self.pervious_time = current_time
-                        if result:= self._verti_movement():
+                        result = self._verti_movement()
+                        if result is not None:
                             return result
-
                 else:
                     self.current_verti_target = None   # 重置屬性
+                    self.is_climbing = False
 
             except Exception as e:
                 logging.error(f"垂直通道判斷失敗{e}")
 
+        # 觸發:在爬樓梯；感覺還能做出甚麼，先放著
+        if self.is_climbing:
+            return "CLIMB", None
 
         if platform:= self._handle_platform_logic(state):
             return platform
 
-        #Debug
+        # Debug
         # if self.current_platform is None:
         #     print("人物游離中")
         # else:
@@ -157,6 +162,7 @@ class AutoControl:
             
         #觸發:在平台內 且 開啟打怪功能 時
         if self.current_platform and self.enable_searching_mob :
+
             #巡弋動作
             result = self._enable_player_patrol()
             return result
@@ -175,7 +181,7 @@ class AutoControl:
             next_item = self.recored_data[i + 1]
 
             #垂直通道的offset，先寫死在這，有需要再抽離
-            offset = 5
+            offset = 2
             if current["action"] == "rope" and next_item["action"] == "rope":
 
                 top = min(current["loc"][1],next_item["loc"][1])
@@ -233,7 +239,8 @@ class AutoControl:
         # 必須鎖住目標方向
         if self.current_verti_target is None:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
-            print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
+            #debug
+            # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
         #判斷是否到達通道，到達的話，離開鎖定目標
         if self.current_verti_target == "UP":
@@ -272,7 +279,7 @@ class AutoControl:
                 return self._pack_action("ROPE", direction="LEFT_DOWN")
             
         
-        return None, None
+        return None
         
 
     #=================
@@ -398,7 +405,8 @@ class AutoControl:
                     best_target = {"name": mob, "distance": distance, "direction": direction}
         #攻擊距離判斷在這行
         if best_target and best_target['distance'] <= self.player_attack_range:
-            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            #debug
+            # print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
 
         return "IDLE", None
@@ -420,16 +428,17 @@ class AutoControl:
         #Debug
         # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
         # print(f"開始巡邏，位置:{self.mini_player_loc}")
-        # print(self.buffer)
+        # print(current_plat)
+        # print(px,left_bound + self.buffer)
 
         if px <= left_bound + self.buffer:
             self.search_direction = "RIGHT"   # 強制向右
-            # print(f"即將轉向: {self.search_direction}")
+            print(f"即將轉向: {self.search_direction}")
             return self._pack_action("MOVE", direction="RIGHT")
 
         elif px >= right_bound - self.buffer:
             self.search_direction = "LEFT"    # 強制向左
-            # print(f"即將轉向: {self.search_direction}")
+            print(f"即將轉向: {self.search_direction}")
             return self._pack_action("MOVE", direction="LEFT")
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
