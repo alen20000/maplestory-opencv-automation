@@ -36,22 +36,13 @@ class PlayerStates:
 
             self.keyboard.enable_attack(direction)
 
-        elif self.current_state == "ROPE_UP" and target_info:
+        elif self.current_state == "ROPE" and target_info:
 
             direction = target_info.get("direction")
-            if direction == "LEFT":
-                self.keyboard.enable_left()
-                self.keyboard.enable_jump()
-                self.keyboard.enable_up()
-            elif direction == "RIGHT":
-                self.keyboard.enable_right()
-                self.keyboard.enable_jump()
-                self.keyboard.enable_up()
-            else:
-                self.keyboard.enable_jump()
-                self.keyboard.enable_up()
-                
-            self.current_state = "IDLE"
+            if direction == "LEFT_UP":
+                self.keyboard.grab_rope_to_left()
+            elif direction == "RIGHT_UP":
+                self.keyboard.grab_rope_to_right()
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
@@ -63,6 +54,7 @@ class PlayerStates:
             self.keyboard.enable_pick_up()
             
         elif self.current_state == "IDLE":
+            self.keyboard.release_all()
             # 人物閒置狀態
             pass
 

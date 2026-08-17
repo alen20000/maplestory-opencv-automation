@@ -80,6 +80,9 @@ class AutoControl:
         Args:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
         '''
+        #角色座標更新
+        if state.mini_player_loc:
+            self.mini_player_loc = state.mini_player_loc
 
         #角色健康狀態
         level , heal_key = self._health_status_check(state.player_hp)
@@ -87,20 +90,25 @@ class AutoControl:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
         #觸發:有人物座標時
-        if state.mini_player_loc:
+        if self.mini_player_loc:
             try:
                 # 垂直通道判斷
-                result = self._check_vertical_passage()
-                print(f"測試:{result}")
+                self.current_vertical_passage = self._check_vertical_passage()
+                # 觸發:在垂直通道內
+                if self.current_vertical_passage is not None:
+                    result = self._verti_movement()
+                    if result is not None and result[0] is not None:
+                        return result
             except:
                 pass
 
         #觸發:有人物座標時
-        if state.mini_player_loc:
+        if self.mini_player_loc:
             try:
                 # 平台判斷
-                self.mini_player_loc = state.mini_player_loc
+                
                 self.current_platform = self._check_current_platform()
+
             except:
                 pass
 
@@ -111,7 +119,7 @@ class AutoControl:
                 result = self._fk_that_mob(state)
                 return result
             
-        #觸發:在平台內且有怪物時
+        #觸發:在平台內且有怪物 且 開啟打怪功能 時
         if self.current_platform and self.enable_searching_mob :
             #巡弋動作
             result = self._enable_player_patrol()
@@ -167,7 +175,7 @@ class AutoControl:
         for index, vert in enumerate(self.vertical_passage):
             left, top = vert["t_l"]     
             right, bottom = vert["b_r"] 
-            print(f"垂直通道:{index}垂直通道。左邊界: {left}, 右邊界: {right}")
+
             if left <= px <= right and top <= py <= bottom:
                 # 加一個1，不然0的話再判斷可能為None
                 index += 1
@@ -329,9 +337,35 @@ class AutoControl:
             return self._pack_action("MOVE", direction=self.search_direction)
 
 
+    def _verti_movement(self):
+        """
+        垂直移動判斷
+        """
+        #通道有+1，要撿回來才是正確index
+        verti_index = self.current_vertical_passage -1
+        current_verti_passage = self.vertical_passage[verti_index]
+
+        px, py = self.mini_player_loc
+
+        #因為要靠近繩子，所以要求中軸
+        central_axis = current_verti_passage["t_l"][0] + (current_verti_passage["b_r"][0] - current_verti_passage["t_l"][0]) // 2
+        print(f"中軸",central_axis)
+
+        if px < central_axis:
+            print("右邊移動")
+            return self._pack_action("MOVE", direction="RIGHT_UP")
+        elif px > central_axis:
+            print("左邊移動")
+            return self._pack_action("ROPE", direction="LEFT_UP")
+        
+        return None, None
+        
+
     def _pack_action(self, action_type, **kwargs):
         """
         將行為打包成字典
         """
         return action_type, kwargs if kwargs else None
+
+
 

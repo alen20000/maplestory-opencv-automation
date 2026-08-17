@@ -280,7 +280,7 @@ class GameBot:
                 execute_behavior 狀態更新、下給input模組執行
                 '''
                 action_states, target_info = self.auto_control.select_operation(current_game_state)
-                # print(f"行為:{action_states} 目標:{target_info}")
+                print(f"行為:{action_states} 目標:{target_info}")
                 if action_states is not None:
                     has_mobs = target_info is not None
                     current_state = self.player_states.execute_behavior(action_states, target_info)

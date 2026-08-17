@@ -1,44 +1,56 @@
 - action: walk
   loc:
-  - 34
+  - 12
   - 88
 - action: walk
   loc:
-  - 130
+  - 116
   - 88
-- action: rope_up
+- action: rope
+  loc:
+  - 77
+  - 88
+- action: rope
   loc:
   - 76
-  - 88
-- action: walk
-  loc:
-  - 113
-  - 73
-- action: walk
-  loc:
-  - 51
-  - 73
-- action: rope_up
-  loc:
-  - 56
-  - 71
-- action: walk
-  loc:
-  - 54
-  - 62
+  - 72
 - action: walk
   loc:
   - 110
-  - 62
-- action: rope_up
+  - 71
+- action: walk
   loc:
-  - 86
-  - 62
+  - 34
+  - 71
+- action: rope
+  loc:
+  - 57
+  - 71
+- action: rope
+  loc:
+  - 57
+  - 57
+- action: walk
+  loc:
+  - 38
+  - 57
 - action: walk
   loc:
   - 106
-  - 51
+  - 57
+- action: rope
+  loc:
+  - 78
+  - 57
+- action: rope
+  loc:
+  - 78
+  - 43
 - action: walk
   loc:
-  - 59
-  - 51
+  - 102
+  - 43
+- action: walk
+  loc:
+  - 45
+  - 43

@@ -63,6 +63,7 @@ class KeyBoard:
                 return
             if self._current_move == "LEFT":
                 interception.key_up(self.left_key)
+
             interception.key_down(self.right_key)
             self._current_move = "RIGHT"
 
@@ -72,6 +73,7 @@ class KeyBoard:
                 return
             if self._current_move == "RIGHT":
                 interception.key_up(self.right_key)
+
             interception.key_down(self.left_key)
             self._current_move = "LEFT"
 
@@ -92,7 +94,6 @@ class KeyBoard:
 
 
     def enable_up(self):
-
         interception.key_down(self.up_key)
         time.sleep(0.1)
         interception.key_up(self.up_key)
@@ -104,9 +105,25 @@ class KeyBoard:
 
     def enable_left(self):
         interception.key_down(self.left_key)
-
         interception.key_up(self.left_key)
 
+    '''垂直移動'''
+
+    def grab_rope_to_left(self):
+        '''向左跳抓繩子'''
+        interception.key_down(self.left_key)
+        interception.key_up(self.left_key)
+        interception.key_down(self.jump_key)
+        interception.key_up(self.jump_key)
+        interception.key_down(self.up_key)
+
+    def grab_rope_to_right(self):
+        '''向右跳抓繩子'''
+        interception.key_down(self.right_key)
+        interception.key_up(self.right_key)
+        interception.key_down(self.jump_key)
+        interception.key_up(self.jump_key)
+        interception.key_down(self.up_key)
 
     ''' 停止釋放'''
     def release_all(self):
