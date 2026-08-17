@@ -153,8 +153,8 @@ class AutoControl:
             current = self.recored_data[i]
             next_item = self.recored_data[i + 1]
 
-            #垂直通道的offset ，應該寫死在這就好，就不抽出去了
-            offset = 3
+            #垂直通道的offset，先寫死在這，有需要再抽離
+            offset = 5
             if current["action"] == "rope" and next_item["action"] == "rope":
 
                 top = min(current["loc"][1],next_item["loc"][1])
@@ -366,7 +366,7 @@ class AutoControl:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
             print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
-        #判斷是否到達通道
+        #判斷是否到達通道，到達的話，離開鎖定目標
         if self.current_verti_target == "UP":
             if py <= top:
                 print("到達通道頂部")
@@ -376,18 +376,23 @@ class AutoControl:
             if py >= bottom:
                 print("到達通道底部")
                 self.current_verti_target = None
-
-
-        #判斷爬下爬上
-        if self.current_verti_target == "UP":
+        offset = 1
+        #判斷:方向為"UP" 且 人物處於通道底部
+        if self.current_verti_target == "UP" and py == bottom :
             print("爬繩子")
-            if px < central_axis:
-                print("右邊移動")
-                return self._pack_action("MOVE", direction="RIGHT_UP")
+            if px < central_axis  :
+                print("往右抓繩")
+                return self._pack_action("ROPE", direction="RIGHT_UP")
             elif px >= central_axis:
-                print("左邊移動")
+                print("往左抓繩")
                 return self._pack_action("ROPE", direction="LEFT_UP")
             
+        #判斷:方向為"UP" 且 處於X軸範圍 
+        if self.current_verti_target == "UP" and central_axis - offset <= px <= central_axis + offset:
+            print("爬繩子")
+            return self._pack_action("ROPE", direction="UP")
+        
+        #判斷:方向為"DOWN"
         if self.current_verti_target == "DOWN":
             print("下繩子")
             if px < central_axis:

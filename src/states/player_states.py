@@ -47,7 +47,9 @@ class PlayerStates:
                 self.keyboard.move_down_to_left()
             elif direction == "RIGHT_DOWN":
                 self.keyboard.move_down_to_right()
-                
+            elif direction =="UP":
+                self.keyboard.enable_up(duration=3)
+
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
 

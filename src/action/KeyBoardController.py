@@ -12,18 +12,23 @@ class KeyBoard:
         self._attack_lock = threading.Lock()
         self._move_lock = threading.Lock()
         self._item_lock = threading.Lock()
-        self._pick_up_lock = threading.Lock()  
+        self._pick_up_lock = threading.Lock()
         self._jump_lock = threading.Lock()
+        self._down_lock = threading.Lock()
+        self._up_lock = threading.Lock()
         self._down_lock = threading.Lock()
         self._right_lock = threading.Lock()
         self._left_lock = threading.Lock()
+
         self._status_attack = False
         self._status_jump = False
+        self._status_up = False
         self._status_down = False
         self._status_right = False
         self._status_left = False
         self._status_item = False  
         self._pick_up = False
+
         #key value
         self.attack_key = config.get("keyboard.attack")
         self.up_key = config.get("keyboard.up")
@@ -82,20 +87,21 @@ class KeyBoard:
             interception.key_down(self.left_key)
             self._current_move = "LEFT"
 
-    def _jump_command(self):
+    def _jump_command(self,duration):
         try:
             interception.key_down(self.jump_key)
+            time.sleep(duration)
         finally:
             interception.key_up(self.jump_key)
             if self._status_jump:
                 self._status_jump = False
 
-    def enable_jump(self):
+    def enable_jump(self,duration=0.1):
         with self._jump_lock:
             if self._status_jump:
                 return
         self._status_jump = True
-        threading.Thread(target=self._jump_command,daemon=True).start() 
+        threading.Thread(target=self._jump_command,args=(duration,),daemon=True).start() 
 
     def _down_command(self,duration):
         try:
@@ -113,12 +119,21 @@ class KeyBoard:
             self._status_down = True
         threading.Thread(target=self._down_command, args=(duration,), daemon=True).start()
 
-    def enable_up(self):
+    def _up_command(self,duration):
+        try:
+            interception.key_down(self.up_key)
+            time.sleep(duration)
+        finally:
+            interception.key_up(self.up_key)
+            if self._status_up:
+                self._status_up = False
+
+    def enable_up(self,duration=0.1):
         with self._up_lock:
             if self._status_up:
                 return
             self._status_up = True
-        threading.Thread(target=self._up_command, daemon=True).start()
+        threading.Thread(target=self._up_command,args=(duration,), daemon=True).start()
 
     def _right_command(self,duration):
         try:
@@ -157,23 +172,15 @@ class KeyBoard:
     
     def grab_rope_to_left(self):
         '''向左跳抓繩子'''
-        interception.key_down(self.left_key)
-        interception.key_up(self.left_key)
-        interception.key_down(self.jump_key)
-        interception.key_up(self.jump_key)
-        interception.key_down(self.up_key)
-        time.sleep(1)
-        interception.key_up(self.up_key)
+        self.enable_left()
+        self.enable_jump()
+        self.enable_up(duration=0.5)
 
     def grab_rope_to_right(self):
         '''向右跳抓繩子'''
-        interception.key_down(self.right_key)
-        interception.key_up(self.right_key)
-        interception.key_down(self.jump_key)
-        interception.key_up(self.jump_key)
-        interception.key_down(self.up_key)
-        time.sleep(1)
-        interception.key_up(self.up_key)
+        self.enable_right()
+        self.enable_jump()
+        self.enable_up(duration=0.5)
 
     def move_down_to_right(self):
         self.enable_right(duration=0.3)
@@ -243,3 +250,26 @@ class KeyBoard:
                 return
             self._pick_up = True
         threading.Thread(target=self._pick_up_command, args=(self.pick_up_key,), daemon=True).start()
+
+    def _packet_wrapper(self, lock, status_attr, target, *args):
+        """
+        共用的「防重入 + 背景執行」包裝
+        lock: 對應的 threading.Lock
+        status_attr: 對應的旗標屬性名稱字串，例如 "_status_rope"
+        target: 實際要執行的方法
+        """
+        with lock:
+            if getattr(self, status_attr):
+                return
+            setattr(self, status_attr, True)
+
+        def _wrapper():
+            try:
+                target(*args)
+            except Exception as e:
+                logging.error(f"{target.__name__} 發生錯誤:{e}")
+            finally:
+                with lock:
+                    setattr(self, status_attr, False)
+
+        threading.Thread(target=_wrapper, daemon=True).start()
