@@ -50,6 +50,8 @@ class PlayerStates:
             else:
                 self.keyboard.enable_jump()
                 self.keyboard.enable_up()
+                
+            self.current_state = "IDLE"
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")

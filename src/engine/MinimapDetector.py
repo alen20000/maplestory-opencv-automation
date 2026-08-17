@@ -11,7 +11,7 @@ learning: 想法錯了 應該不用全圖匹配後取roi範圍偵測 ； 應該�
 設 小地圖定位點 螢幕座標為 x:15 y:110 窗口座標為 15-9 , 110-38 = 6, 72
 然後 模板切 x y  範圍就是 15+x  , 110 + y
 '''
-minimap_detect_range = (0,20,187,184)
+
 
 class MinimapDetector:
     def __init__(self):
@@ -21,7 +21,7 @@ class MinimapDetector:
         self.current_frame_bgr =None
         self.template_h,self.template_w = None,None
 
-        self.minimap_tl = (6,72)
+        self.minimap_tl = None
         self.minimap_br = None
         self.crop_frame_bgr = None
 
@@ -39,15 +39,37 @@ class MinimapDetector:
             
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
+    def _get_minimap_tl(self):
+        '''
+        抓小地圖的左上座標
+        這邊若直接寫死，因為遊戲重開都會偏移，座標會對不上
+        '''
+        try:
+            result = cv2.matchTemplate(self.current_frame_bgr, self.minimap_template,cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+
+            if max_val > 0.6:
+                logging.info(f"小地圖定位成功")
+                print(f"小地圖定位成功,位置:{max_loc}")
+                self.minimap_tl = max_loc
+                self._get_minimap_br()
+            else:
+                logging.info(f"小地圖定位失敗")
+        except Exception as e:
+            logging.info(f"小地圖定位失敗{e}")
 
     def _get_minimap_br(self):
         '''
         得到小地圖範圍的右下座標
         '''
-        self.template_h, self.template_w = self.minimap_template.shape[:2]
-        x2 = self.minimap_tl[0] + self.template_w
-        y2 = self.minimap_tl[1] + self.template_h
-        self.minimap_br = (x2,y2)
+        try:
+            self.template_h, self.template_w = self.minimap_template.shape[:2]
+            x2 = self.minimap_tl[0] + self.template_w
+            y2 = self.minimap_tl[1] + self.template_h
+            self.minimap_br = (x2,y2)
+
+        except Exception as e:
+            logging.info(f"小地圖定位失敗{e}")
 
     def _crop_minimap(self):
         '''
@@ -59,9 +81,11 @@ class MinimapDetector:
     def run(self,frame_bgr):
 
         self.current_frame_bgr = frame_bgr
-        #沒有定位minimap ，運行初始化minimap定位
+
+        #初始化minimap四角位置
         if self.minimap_br is None :
-            self._get_minimap_br()
+            self._get_minimap_tl()
+
         self._crop_minimap()
 
         #防呆
@@ -100,6 +124,7 @@ class MinimapDetector:
         '''
         測試用，顯示偵測範圍
         '''
+        minimap_detect_range = (0,20,187,184)
         x1,y1,x2,y2 = minimap_detect_range
         cv2.rectangle(self.current_frame_bgr,(x1,y1),(x2,y2),(100,100,100),3)
         cv2.imshow("TEST", self.current_frame_bgr)

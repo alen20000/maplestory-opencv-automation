@@ -1,15 +1,15 @@
 - action: walk
   loc:
   - 34
-  - 86
+  - 88
 - action: walk
   loc:
   - 130
-  - 86
+  - 88
 - action: rope_up
   loc:
-  - 85
-  - 86
+  - 76
+  - 88
 - action: walk
   loc:
   - 113

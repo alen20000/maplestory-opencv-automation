@@ -165,13 +165,10 @@ class AutoControl:
         c_x, c_y  =self.mini_player_loc
 
         #方向判斷
-        if t_x > c_x:
-            direction = "RIGHT"
-        elif t_x == c_x:
-            direction = None
-        else:
-            direction = "LEFT"
+        direction = "RIGHT" if t_x > c_x else ("LEFT" if t_x < c_x else None)
 
+        print(f"觸發垂直通道動作:{action_name},方向:{direction}")
+        #狀態機回傳值
         if action_name == "rope_down":
             return self._pack_action("ROPE_DOWN", direction=direction)
         elif action_name == "rope_up":
@@ -179,7 +176,8 @@ class AutoControl:
         elif action_name == "jump_down":
             return self._pack_action("JUMP_DOWN", direction=direction)
 
-        
+        if c_y >= t_y:
+            return None,None
 
     def _find_platform(self):
         """

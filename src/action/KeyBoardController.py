@@ -13,7 +13,9 @@ class KeyBoard:
         self._move_lock = threading.Lock()
         self._item_lock = threading.Lock()
         self._pick_up_lock = threading.Lock()  
+        self._jump_lock = threading.Lock()
         self._status_attack = False
+        self._status_jump = False
 
         self._status_item = False  
         self._pick_up = False
@@ -73,26 +75,36 @@ class KeyBoard:
             interception.key_down(self.left_key)
             self._current_move = "LEFT"
 
+    def _jump_command(self):
+        try:
+            interception.key_down(self.jump_key)
+        finally:
+            interception.key_up(self.jump_key)
+            if self._status_jump:
+                self._status_jump = False
+
+    def enable_jump(self):
+        with self._jump_lock:
+            if self._status_jump:
+                return
+        self._status_jump = True
+        threading.Thread(target=self._jump_command,daemon=True).start() 
+
+
     def enable_up(self):
 
         interception.key_down(self.up_key)
-        time.sleep(0.03)
+        time.sleep(0.1)
         interception.key_up(self.up_key)
-
-    def enable_jump(self):
-
-        interception.key_down(self.jump_key)
-        time.sleep(0.03)
-        interception.key_up(self.jump_key)
-
+    
     def enable_right(self):
         interception.key_down(self.right_key)
-        time.sleep(0.03)
+
         interception.key_up(self.right_key)
 
     def enable_left(self):
         interception.key_down(self.left_key)
-        time.sleep(0.03)
+
         interception.key_up(self.left_key)
 
 
