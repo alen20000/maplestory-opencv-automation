@@ -366,13 +366,25 @@ class AutoControl:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
             print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
+        #判斷是否到達通道
+        if self.current_verti_target == "UP":
+            if py <= top:
+                print("到達通道頂部")
+                self.current_verti_target = None
+
+        elif self.current_verti_target == "DOWN":
+            if py >= bottom:
+                print("到達通道底部")
+                self.current_verti_target = None
+
+
         #判斷爬下爬上
         if self.current_verti_target == "UP":
             print("爬繩子")
             if px < central_axis:
                 print("右邊移動")
                 return self._pack_action("MOVE", direction="RIGHT_UP")
-            elif px > central_axis:
+            elif px >= central_axis:
                 print("左邊移動")
                 return self._pack_action("ROPE", direction="LEFT_UP")
             
