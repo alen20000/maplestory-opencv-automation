@@ -111,9 +111,9 @@ class AutoControl:
                     time_interval = current_time - self.pervious_time
 
                     # 至少經過XX秒，才能再次使用樓梯
-                    if time_interval > 15:
+                    if time_interval > 5:
                         # 垂直通道移動
-                        self.is_climbing = True
+                        
                         self.pervious_time = current_time
                         result = self._verti_movement()
                         if result is not None:
@@ -173,6 +173,8 @@ class AutoControl:
     def _find_vertical_passage(self):
         '''
         找出垂直通道(繩子)，並製作出垂直通道範圍
+
+        若 x 為 0 ；  -3 ~3 之間 ，基礎素質能跳爬
         '''
         passage = []
         i = 0
@@ -181,7 +183,7 @@ class AutoControl:
             next_item = self.recored_data[i + 1]
 
             #垂直通道的offset，先寫死在這，有需要再抽離
-            offset = 2
+            offset = 3
             if current["action"] == "rope" and next_item["action"] == "rope":
 
                 top = min(current["loc"][1],next_item["loc"][1])
@@ -252,21 +254,32 @@ class AutoControl:
             if py >= bottom:
                 print("到達通道底部")
                 self.current_verti_target = None
-        offset = 1
+        #加點偏移量
+        offset = 3
+
         #判斷:方向為"UP" 且 人物處於通道底部
         if self.current_verti_target == "UP" and py == bottom :
+            '''
+            假設 繩子 X為0  原地上跳 X也要為0 才能抓住；
+            x = -1 與 1 左跳,右跳都抓不到繩子，要移動到x=0 用直接跳 或是 移動到 x= -2,2 則左跳右跳可以抓到繩子 
+            '''
             print("爬繩子")
-            if px < central_axis  :
+            if px <= central_axis - offset  :
                 print("往右抓繩")
                 return self._pack_action("ROPE", direction="RIGHT_UP")
-            elif px >= central_axis:
+            elif px >= central_axis + offset:
                 print("往左抓繩")
                 return self._pack_action("ROPE", direction="LEFT_UP")
+            elif px == central_axis:
+                print(f"原地上跳:人物X軸 {px}；繩子X軸 {central_axis}")
+                return self._pack_action("ROPE", direction="UP")
             
         #判斷:方向為"UP" 且 處於X軸範圍 
-        if self.current_verti_target == "UP" and central_axis - offset <= px <= central_axis + offset:
-            print("爬繩子")
-            return self._pack_action("ROPE", direction="UP")
+        elif self.current_verti_target == "UP" and central_axis - offset <= px <= central_axis + offset:
+            print("爬繩子中")
+            #狀態改變
+            self.is_climbing = True
+            return self._pack_action("CLIMB", direction="UP")
         
         #判斷:方向為"DOWN"
         if self.current_verti_target == "DOWN":

@@ -173,12 +173,14 @@ class KeyBoard:
     def grab_rope_to_left(self):
         '''向左跳抓繩子'''
         self.enable_left()
+        time.sleep(0.03)
         self.enable_jump()
         self.enable_up(duration=0.5)
 
     def grab_rope_to_right(self):
         '''向右跳抓繩子'''
         self.enable_right()
+        time.sleep(0.03)
         self.enable_jump()
         self.enable_up(duration=0.5)
 
@@ -192,11 +194,18 @@ class KeyBoard:
         time.sleep(0.01)
         self.enable_down()
 
+    def climb_up(self):
+        interception.key_down(self.up_key)
+
+
     ''' 停止釋放'''
     def release_all(self):
-        
-        self._status_attack= False
-        self._stop_move()
+        #釋放常用、高機率卡住的按鍵
+        interception.key_up(self.up_key)
+        interception.key_up(self.down_key)
+        interception.key_up(self.left_key)
+        interception.key_up(self.right_key)
+        interception.key_up(self.jump_key)
 
     def _stop_move(self):
         with self._move_lock:
