@@ -37,7 +37,7 @@ game_bot:
 auto_control_config:
 
   #尋怪功能開關 True/False
-  search_interval: False
+  search_interval: True
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 8
   
