@@ -14,9 +14,14 @@ class KeyBoard:
         self._item_lock = threading.Lock()
         self._pick_up_lock = threading.Lock()  
         self._jump_lock = threading.Lock()
+        self._down_lock = threading.Lock()
+        self._right_lock = threading.Lock()
+        self._left_lock = threading.Lock()
         self._status_attack = False
         self._status_jump = False
-
+        self._status_down = False
+        self._status_right = False
+        self._status_left = False
         self._status_item = False  
         self._pick_up = False
         #key value
@@ -92,23 +97,64 @@ class KeyBoard:
         self._status_jump = True
         threading.Thread(target=self._jump_command,daemon=True).start() 
 
+    def _down_command(self,duration):
+        try:
+            interception.key_down(self.down_key)
+            time.sleep(duration)
+        finally:
+            interception.key_up(self.down_key)
+            if self._status_down:
+                self._status_down = False
+
+    def enable_down(self,duration=0.1):
+        with self._down_lock:
+            if self._status_down:
+                return
+            self._status_down = True
+        threading.Thread(target=self._down_command, args=(duration,), daemon=True).start()
 
     def enable_up(self):
-        interception.key_down(self.up_key)
-        time.sleep(0.1)
-        interception.key_up(self.up_key)
-    
-    def enable_right(self):
-        interception.key_down(self.right_key)
+        with self._up_lock:
+            if self._status_up:
+                return
+            self._status_up = True
+        threading.Thread(target=self._up_command, daemon=True).start()
 
-        interception.key_up(self.right_key)
+    def _right_command(self,duration):
+        try:
+            interception.key_down(self.right_key)
+            time.sleep(duration)
+        finally:
+            interception.key_up(self.right_key)
+            if self.right_key:
+                self._status_right = False
 
-    def enable_left(self):
-        interception.key_down(self.left_key)
-        interception.key_up(self.left_key)
+    def enable_right(self,duration=0.1):
+        with self._right_lock:
+            if self._status_right:
+                return
+            self._status_right = True
+        threading.Thread(target=self._right_command,args=(duration,), daemon=True).start()
+
+    def _left_command(self,duration):
+        try:
+            interception.key_down(self.left_key)
+            time.sleep(duration)
+        finally:
+            interception.key_up(self.left_key)
+            if self.left_key:
+                self._status_left = False
+
+    def enable_left(self,duration=0.1):
+        with self._left_lock:
+            if self._status_left:
+                return
+            self._status_left = True
+        threading.Thread(target=self._left_command,args=(duration,), daemon=True).start()
 
     '''垂直移動'''
-
+    #先這樣，以後慢慢改
+    
     def grab_rope_to_left(self):
         '''向左跳抓繩子'''
         interception.key_down(self.left_key)
@@ -116,6 +162,8 @@ class KeyBoard:
         interception.key_down(self.jump_key)
         interception.key_up(self.jump_key)
         interception.key_down(self.up_key)
+        time.sleep(1)
+        interception.key_up(self.up_key)
 
     def grab_rope_to_right(self):
         '''向右跳抓繩子'''
@@ -124,6 +172,18 @@ class KeyBoard:
         interception.key_down(self.jump_key)
         interception.key_up(self.jump_key)
         interception.key_down(self.up_key)
+        time.sleep(1)
+        interception.key_up(self.up_key)
+
+    def move_down_to_right(self):
+        self.enable_right(duration=0.3)
+        time.sleep(0.01)
+        self.enable_down()
+
+    def move_down_to_left(self):
+        self.enable_left(duration=0.3)
+        time.sleep(0.01)
+        self.enable_down()
 
     ''' 停止釋放'''
     def release_all(self):

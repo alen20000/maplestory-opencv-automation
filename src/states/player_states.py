@@ -43,7 +43,11 @@ class PlayerStates:
                 self.keyboard.grab_rope_to_left()
             elif direction == "RIGHT_UP":
                 self.keyboard.grab_rope_to_right()
-
+            elif direction == "LEFT_DOWN":
+                self.keyboard.move_down_to_left()
+            elif direction == "RIGHT_DOWN":
+                self.keyboard.move_down_to_right()
+                
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
 

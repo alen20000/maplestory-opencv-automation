@@ -28,6 +28,7 @@ class AutoControl:
         self.current_platform = None #<-- 當前所在平台
         self.current_vertical_passage = None #<-- 當前所在垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
+        self.current_verti_target = None #<-- 當前垂直通道目標方向
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -94,13 +95,21 @@ class AutoControl:
             try:
                 # 垂直通道判斷
                 self.current_vertical_passage = self._check_vertical_passage()
+
                 # 觸發:在垂直通道內
                 if self.current_vertical_passage is not None:
+                    print(f"垂直通道:{self.current_vertical_passage}")
                     result = self._verti_movement()
+
                     if result is not None and result[0] is not None:
                         return result
-            except:
-                pass
+                else:
+                    self.current_verti_target = None   # 重置屬性
+
+            except Exception as e:
+                logging.error(f"垂直通道判斷失敗{e}")
+
+                
 
         #觸發:有人物座標時
         if self.mini_player_loc:
@@ -347,16 +356,35 @@ class AutoControl:
 
         px, py = self.mini_player_loc
 
-        #因為要靠近繩子，所以要求中軸
+        top = current_verti_passage["t_l"][1]
+        bottom = current_verti_passage["b_r"][1]
+        mid_y = (top + bottom) // 2
         central_axis = current_verti_passage["t_l"][0] + (current_verti_passage["b_r"][0] - current_verti_passage["t_l"][0]) // 2
-        print(f"中軸",central_axis)
 
-        if px < central_axis:
-            print("右邊移動")
-            return self._pack_action("MOVE", direction="RIGHT_UP")
-        elif px > central_axis:
-            print("左邊移動")
-            return self._pack_action("ROPE", direction="LEFT_UP")
+        # 必須鎖住目標方向
+        if self.current_verti_target is None:
+            self.current_verti_target = "UP" if py > mid_y else "DOWN"
+            print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
+
+        #判斷爬下爬上
+        if self.current_verti_target == "UP":
+            print("爬繩子")
+            if px < central_axis:
+                print("右邊移動")
+                return self._pack_action("MOVE", direction="RIGHT_UP")
+            elif px > central_axis:
+                print("左邊移動")
+                return self._pack_action("ROPE", direction="LEFT_UP")
+            
+        if self.current_verti_target == "DOWN":
+            print("下繩子")
+            if px < central_axis:
+                print("右邊移動")
+                return self._pack_action("ROPE", direction="RIGHT_DOWN")
+            elif px >= central_axis:
+                print("左邊移動")
+                return self._pack_action("ROPE", direction="LEFT_DOWN")
+            
         
         return None, None
         
