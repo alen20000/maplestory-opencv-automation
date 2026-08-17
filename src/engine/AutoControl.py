@@ -26,6 +26,7 @@ class AutoControl:
         self.platforms = [] #<-- 所有平台
         self.vertical_passage = [] #<-- 所有垂直通道
         self.current_platform = None #<-- 當前所在平台
+        self.current_vertical_passage = None #<-- 當前所在垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         # Loadding Config
         self._load_health_config()
@@ -68,6 +69,8 @@ class AutoControl:
                 self.platforms = self._find_platform()
                 self.vertical_passage = self._find_vertical_passage()
 
+                logging.warning(f"{map_name}地圖載入完成，平台數量:{len(self.platforms)},垂直通道數量:{len(self.vertical_passage)}")
+
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
 
@@ -83,21 +86,36 @@ class AutoControl:
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
-        #垂直通道判斷
-        if state.mini_player_loc:
-
-            result = self._check_current_vertical_passage()
-            
-            if result is not None:
-                return self._trigger_vertocal_action(result)
-        
-        # 平台判斷
+        #觸發:有人物座標時
         if state.mini_player_loc:
             try:
-                self.mini_player_loc = state.mini_player_loc
-                self.current_platform = self.check_current_platform()
+                # 垂直通道判斷
+                result = self._check_vertical_passage()
+                print(f"測試:{result}")
             except:
                 pass
+
+        #觸發:有人物座標時
+        if state.mini_player_loc:
+            try:
+                # 平台判斷
+                self.mini_player_loc = state.mini_player_loc
+                self.current_platform = self._check_current_platform()
+            except:
+                pass
+
+        #觸發:人物在平台內時
+        if self.current_platform:
+            #有怪則找怪
+            if state.mobs:
+                result = self._fk_that_mob(state)
+                return result
+            
+        #觸發:在平台內且有怪物時
+        if self.current_platform and self.enable_searching_mob :
+            #巡弋動作
+            result = self._enable_player_patrol()
+            return result
 
         #Debug
         # if self.current_platform is None:
@@ -105,79 +123,58 @@ class AutoControl:
         # else:
         #     print(f"目前在第{self.current_platform}個平台")
 
-
-        #人物在平台內
-        if self.current_platform:
-            #有怪則找怪
-            if state.mobs:
-                result = self._fk_that_mob(state)
-                return result
-        if self.current_platform and self.enable_searching_mob :
-            #巡弋動作
-            result = self._enable_player_patrol()
-            return result
-
         #若都沒有則閒置
         return "IDLE", None
-    
 
     def _find_vertical_passage(self):
         '''
-        找出垂直通道(繩子、跳下點)
+        找出垂直通道(繩子)，並製作出垂直通道範圍
         '''
+        passage = []
+        i = 0
+        while i < len(self.recored_data)-1:
+            current = self.recored_data[i]
+            next_item = self.recored_data[i + 1]
 
-        target_actions = ["rope_down", "rope_up", "jump_down"]
+            #垂直通道的offset ，應該寫死在這就好，就不抽出去了
+            offset = 3
+            if current["action"] == "rope" and next_item["action"] == "rope":
 
-        filtered_data = [
-        item for item in self.recored_data 
-        if item.get("action") in target_actions
-        ]
+                top = min(current["loc"][1],next_item["loc"][1])
+                bottom = max(next_item["loc"][1],current["loc"][1])
 
-        return filtered_data
+                left = min(current["loc"][0], next_item["loc"][0]) - offset
+                right = max(current["loc"][0], next_item["loc"][0]) + offset
+
+                passage.append({"t_l":(left,top),"b_r":(right,bottom)})
+                i += 2
+            else:
+                i += 1
+
+        return passage
     
-    def _check_current_vertical_passage(self):
+    def _check_vertical_passage(self):
         '''
-        檢查人物是否在垂直通道
+        判斷玩家在哪個垂直通道內
+
+        returns: 垂直通道的index|None
         '''
         if not self.mini_player_loc or not self.vertical_passage:
             return None
-        threshold = 3
 
-        matched_point = next(
-            (
-                point for point in self.vertical_passage
-                if math.dist(self.mini_player_loc,point["loc"]) <= threshold),None
-            
-        )
+        px, py = self.mini_player_loc 
 
-        return matched_point
+        for index, vert in enumerate(self.vertical_passage):
+            left, top = vert["t_l"]     
+            right, bottom = vert["b_r"] 
+            print(f"垂直通道:{index}垂直通道。左邊界: {left}, 右邊界: {right}")
+            if left <= px <= right and top <= py <= bottom:
+                # 加一個1，不然0的話再判斷可能為None
+                index += 1
 
-    def _trigger_vertocal_action(self,result:dict):
-        '''
-        觸發垂直通道動作
-        '''
-        if result is None:
-            return None,None
-        action_name = result["action"]
-        target_loc = result["loc"]
-        
-        t_x, t_y  = target_loc
-        c_x, c_y  =self.mini_player_loc
+                return index  
 
-        #方向判斷
-        direction = "RIGHT" if t_x > c_x else ("LEFT" if t_x < c_x else None)
-
-        print(f"觸發垂直通道動作:{action_name},方向:{direction}")
-        #狀態機回傳值
-        if action_name == "rope_down":
-            return self._pack_action("ROPE_DOWN", direction=direction)
-        elif action_name == "rope_up":
-            return self._pack_action("ROPE_UP", direction=direction)
-        elif action_name == "jump_down":
-            return self._pack_action("JUMP_DOWN", direction=direction)
-
-        if c_y >= t_y:
-            return None,None
+        return None
 
     def _find_platform(self):
         """
@@ -191,13 +188,14 @@ class AutoControl:
             current = self.recored_data[i]
             next_item = self.recored_data[i + 1]
 
+
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
                 top = current["loc"][1] - self.platform_offset
                 bottom = current["loc"][1] + self.platform_offset
 
                 left = min(current["loc"][0], next_item["loc"][0])
-                right = max(current["loc"][0], next_item["loc"][0])
+                right = max(current["loc"][0], next_item["loc"][0]) 
 
                 platforms.append({"t_l":(left,top),"b_r":(right,bottom)})
                 i += 2
@@ -206,7 +204,7 @@ class AutoControl:
 
         return platforms
 
-    def check_current_platform(self):
+    def _check_current_platform(self):
         """
         根據玩家目前的座標，判斷人在哪一個平台內
 
