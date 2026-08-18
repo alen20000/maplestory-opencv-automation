@@ -19,6 +19,7 @@ class KeyBoard:
         self._down_lock = threading.Lock()
         self._right_lock = threading.Lock()
         self._left_lock = threading.Lock()
+        self._release_all_lock = threading.Lock()
 
         self._status_attack = False
         self._status_jump = False
@@ -28,6 +29,7 @@ class KeyBoard:
         self._status_left = False
         self._status_item = False  
         self._pick_up = False
+        self._status_release_all = False
 
         #key value
         self.attack_key = config.get("keyboard.attack")
@@ -190,24 +192,28 @@ class KeyBoard:
         self.enable_down()
 
     def move_down_to_left(self):
-        self.enable_left(duration=0.3)
-        time.sleep(0.01)
-        self.enable_down()
+        interception.key_down(self.left_key)
+        interception.key_down(self.down_key)
 
     def climb_up(self):
         interception.key_down(self.up_key)
-
+    def climb_down(self):
+        interception.key_down(self.down_key)
 
     ''' 停止釋放'''
-    def release_all(self):
-        #釋放常用、高機率卡住的按鍵
+
+    def _release_all(self):
         interception.key_up(self.up_key)
         interception.key_up(self.down_key)
         interception.key_up(self.left_key)
         interception.key_up(self.right_key)
         interception.key_up(self.jump_key)
+        
+    def release_all(self):
+        #釋放常用、高機率卡住的按鍵
+        self._packet_wrapper(self._release_all_lock, "_status_release_all", self._release_all)
 
-    def _stop_move(self):
+    def stop_move(self):
         with self._move_lock:
             #如果正在移動，左右鍵彈起
             if self._current_move is not None:
