@@ -6,7 +6,7 @@
 | `auto_pick_up.bat` | 自動撿拾腳本 | V 正常 | 另外寫的自動拾取腳本，買不起寵物時用的 |
 | `Run_GetNametag.bat` | 擷取人物名牌 | V 正常 | 要先用這個抓自己人物名牌，才可以更準的定位。該起後找到乾淨的背景按下"Z"鍵，提取人物名牌。 |
 | `CaptureScreen.py` | 顯示座標與截圖 | V 正常 | 測算像素用 |
-|`Operation_Logger.py`|錄製小地圖的行動點|V 正常 |沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.yaml`設定`quickly_choice_map`|
+|`OperationLogger.py`|錄製小地圖的行動點|V 正常 |沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.yaml`設定`quickly_choice_map`|
 
 
 
