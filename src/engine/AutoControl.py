@@ -30,7 +30,8 @@ class AutoControl:
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         self.pervious_time = None #時間計算用
-        self.is_climbing = False #是否在爬樓梯
+        self.is_climbing_state = False #是否在爬樓梯
+        self.is_finding_rope_state =False #是否在找繩子
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -100,34 +101,42 @@ class AutoControl:
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
+        #TEST
+        if self.is_climbing_state:
+            print(f"爬樓梯狀態:{self.is_climbing_state}") 
+        if self.is_finding_rope_state :
+            print(f"找繩子狀態:{self.is_finding_rope_state}")
+
+
         #觸發:有人物座標時
         if self.mini_player_loc:
             try:
                 # 垂直通道判斷
                 self.current_vertical_passage = self._check_vertical_passage()
-                # 觸發:在垂直通道內
-                if self.current_vertical_passage is not None:
+                # 時間判斷
+                time_interval = current_time - self.pervious_time
+                time_threshold = 5
 
-                    time_interval = current_time - self.pervious_time
+                # 觸發:人物在垂直通道範圍 且 時間允許
+                if self.current_vertical_passage is not None and time_interval > time_threshold:
 
-                    # 至少經過XX秒，才能再次使用樓梯
-                    if time_interval > 5:
-                        # 垂直通道移動
-                        
-                        self.pervious_time = current_time
-                        result = self._verti_movement()
-                        if result is not None:
-                            return result
+                    self.pervious_time = current_time
+                    #判斷找繩子狀態與繩子中狀態
+                    result = self._verti_movement()
+                    if result is not None:
+                        return result
                 else:
-                    self.current_verti_target = None   # 重置屬性
-                    self.is_climbing = False
+                    # 重置狀態屬性
+                    self.current_verti_target = None   
+                    self.is_climbing_state = False
+                    self.is_finding_rope_state = False
 
             except Exception as e:
                 logging.error(f"垂直通道判斷失敗{e}")
 
-        # 觸發:在爬樓梯；感覺還能做出甚麼，先放著
-        if self.is_climbing:
-            return "CLIMB", None
+        #若"爬繩子狀態" 或 "找繩子狀態" 不觸發後面邏輯       
+        if self.is_climbing_state or self.is_finding_rope_state:
+            return None,None
 
         if platform:= self._handle_platform_logic(state):
             return platform
@@ -138,8 +147,8 @@ class AutoControl:
         # else:
         #     print(f"目前在第{self.current_platform}個平台")
 
-        #若都沒有則閒置
-        return "IDLE", None
+        
+        return None, None
 
     def _handle_platform_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
         """
@@ -244,12 +253,6 @@ class AutoControl:
             #debug
             # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
-        #判斷是否到達通道，到達的話，離開鎖定目標
-        if self.current_verti_target == "UP":
-            if py <= top:
-                print("到達通道頂部")
-                self.current_verti_target = None
-
         elif self.current_verti_target == "DOWN":
             if py >= bottom:
                 print("到達通道底部")
@@ -263,7 +266,8 @@ class AutoControl:
             假設 繩子 X為0  原地上跳 X也要為0 才能抓住；
             x = -1 與 1 左跳,右跳都抓不到繩子，要移動到x=0 用直接跳 或是 移動到 x= -2,2 則左跳右跳可以抓到繩子 
             '''
-            print("爬繩子")
+            self.is_finding_rope_state = True
+            print("找繩子")
             if px <= central_axis - offset  :
                 print("往右抓繩")
                 return self._pack_action("ROPE", direction="RIGHT_UP")
@@ -274,16 +278,25 @@ class AutoControl:
                 print(f"原地上跳:人物X軸 {px}；繩子X軸 {central_axis}")
                 return self._pack_action("ROPE", direction="UP")
             
-        #判斷:方向為"UP" 且 處於X軸範圍 
-        elif self.current_verti_target == "UP" and central_axis - offset <= px <= central_axis + offset:
-            print("爬繩子中")
+        #判斷:方向為"UP" 且 處於y軸範圍 
+        elif self.current_verti_target == "UP" and top <= py < bottom:
+            print("往上方爬行")
             #狀態改變
+            self.is_finding_rope_state =False
             self.is_climbing = True
             return self._pack_action("CLIMB", direction="UP")
+
+        elif self.current_verti_target == "UP" and py == top:
+            print("到達通道頂部")
+            self.current_verti_target = None
+            self.is_climbing_state = False
         
         #判斷:方向為"DOWN"
         if self.current_verti_target == "DOWN":
-            print("下繩子")
+
+            self.is_finding_rope_state = True
+            print("找繩子")
+
             if px < central_axis:
                 print("右邊移動")
                 return self._pack_action("ROPE", direction="RIGHT_DOWN")
@@ -291,6 +304,22 @@ class AutoControl:
                 print("左邊移動")
                 return self._pack_action("ROPE", direction="LEFT_DOWN")
             
+        #判斷:方向為"DOWN" 且 處於y軸範圍 
+        elif self.current_verti_target == "DOWN" and "UP" and top < py <= bottom:
+            print("往下方爬行")
+            #狀態改變
+
+            self.is_finding_rope_state =False
+            self.is_climbing = True
+
+            return self._pack_action("CLIMB", direction="DOWN")
+
+
+        elif self.current_verti_target == "DOWN" and py == bottom:
+            print("到達通道底部")
+            self.current_verti_target = None
+            self.is_climbing_state = False
+
         
         return None
         
@@ -438,6 +467,7 @@ class AutoControl:
         
         left_bound = current_plat["t_l"][0]   # 平台的左極限 X
         right_bound = current_plat["b_r"][0]  # 平台的右極限 X
+
         #Debug
         # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
         # print(f"開始巡邏，位置:{self.mini_player_loc}")
@@ -445,13 +475,13 @@ class AutoControl:
         # print(px,left_bound + self.buffer)
 
         if px <= left_bound + self.buffer:
-            self.search_direction = "RIGHT"   # 強制向右
-            print(f"即將轉向: {self.search_direction}")
+            self.search_direction = "RIGHT"   # 走到底右轉
+
             return self._pack_action("MOVE", direction="RIGHT")
 
         elif px >= right_bound - self.buffer:
-            self.search_direction = "LEFT"    # 強制向左
-            print(f"即將轉向: {self.search_direction}")
+            self.search_direction = "LEFT"    # 走到底左轉
+
             return self._pack_action("MOVE", direction="LEFT")
         else:
             return self._pack_action("MOVE", direction=self.search_direction)

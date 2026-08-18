@@ -275,15 +275,15 @@ class GameBot:
                 )
                 
                 '''
-                自動控制
-                decide_operation 回傳:行為、目標 [str, dict]
-                execute_behavior 狀態更新、下給input模組執行
+                decide_operation ,execute_behavior  -> (str, dict{})
                 '''
                 action_states, target_info = self.auto_control.select_operation(current_game_state)
                 # print(f"行為:{action_states} 目標:{target_info}")
-                if action_states is not None:
-                    has_mobs = target_info is not None
-                    current_state = self.player_states.execute_behavior(action_states, target_info)
+
+                #有東西在傳 None 不傳
+                if action_states is not None and target_info is not None:
+                    #發包給狀態機
+                    self.player_states.execute_behavior(action_states, target_info)
 
                 '''
                 ================
