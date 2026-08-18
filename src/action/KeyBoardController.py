@@ -20,6 +20,7 @@ class KeyBoard:
         self._right_lock = threading.Lock()
         self._left_lock = threading.Lock()
         self._release_all_lock = threading.Lock()
+        self._climb_down_lock = threading.Lock()
 
         self._status_attack = False
         self._status_jump = False
@@ -30,6 +31,7 @@ class KeyBoard:
         self._status_item = False  
         self._pick_up = False
         self._status_release_all = False
+        self._status_climb_down = False
 
         #key value
         self.attack_key = config.get("keyboard.attack")
@@ -187,18 +189,24 @@ class KeyBoard:
         self.enable_up(duration=0.5)
 
     def move_down_to_right(self):
-        self.enable_right(duration=0.3)
-        time.sleep(0.01)
-        self.enable_down()
+        self.enable_right(duration=0.5)
+        self.enable_down(duration=1)
 
     def move_down_to_left(self):
-        interception.key_down(self.left_key)
-        interception.key_down(self.down_key)
+        self.enable_left(duration=0.5)
+        self.enable_down(duration=1)
 
     def climb_up(self):
         interception.key_down(self.up_key)
+
+
+    def _climb_down_command(self):
+        self.enable_left()
+        self.enable_jump(duration=0.6)
+
     def climb_down(self):
-        interception.key_down(self.down_key)
+        self._packet_wrapper(self._climb_down_lock, "_status_climb_down", self._climb_down_command)
+
 
     ''' 停止釋放'''
 

@@ -28,8 +28,7 @@ class PlayerStates:
         if self.current_state != new_state and self.current_info != target_info:
             self.current_state = new_state
             self.current_info = target_info
-
-            direction = target_info.get('direction') if target_info else 'None'
+            direction = self.current_info.get("direction")
             logging.warning(f"狀態更新為: {self.current_state} ；方向為: {direction}")
 
         # 判定"攻擊"狀態
@@ -59,6 +58,11 @@ class PlayerStates:
                 self.keyboard.release_all()
                 self.keyboard.enable_up(duration=1)
                 self.keyboard.enable_jump()
+            elif direction == "DOWN":
+                self.keyboard.release_all()
+                self.keyboard.enable_down(duration=1)
+                
+
 
         # 判定"攀爬中"狀態
         elif self.current_state == "CLIMB" and self.current_info:
@@ -71,8 +75,9 @@ class PlayerStates:
             elif direction == "DOWN":
                 self.keyboard.climb_down()
 
-            elif distance == 0:
-                self.keyboard.release_all()
+
+            # elif distance == 0:
+            #     self.keyboard.release_all()
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")

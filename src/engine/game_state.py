@@ -18,6 +18,6 @@ class GameState:
     player_hp : Optional[float] = None
     roi_BBOX : Optional[BBox] = None
     mobs : list[MobInfo] = field(default_factory=list) 
-    frame : Optional[np.ndarray] = None
-    lost_track_count : int = 0
+    # frame : Optional[np.ndarray] = None
+    # lost_track_count : int = 0
     mini_player_loc : Optional[tuple[int,int]] = None
