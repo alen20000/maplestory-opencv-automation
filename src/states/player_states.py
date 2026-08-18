@@ -34,12 +34,12 @@ class PlayerStates:
         if self.current_state == "ATTACK":
             # 停止移動
             direction = target_info.get("direction")
-            self.keyboard._stop_move()
+            self.keyboard.stop_move()
             self.keyboard.enable_attack(direction)
 
         # 判定"去爬繩"狀態
         elif self.current_state == "ROPE" and target_info:
-            self.keyboard._stop_move()
+            self.keyboard.stop_move()
             direction = target_info.get("direction")
             if direction == "LEFT_UP":
                 self.keyboard.release_all()
@@ -52,7 +52,7 @@ class PlayerStates:
                 self.keyboard.move_down_to_left()
             elif direction == "RIGHT_DOWN":
                 self.keyboard.release_all()
-                self.keyboard.move_down_to_right()
+                self.keyboard.move_down_to_right()            
             elif direction =="UP":
                 self.keyboard.release_all()
                 self.keyboard.enable_up(duration=1)
@@ -60,13 +60,13 @@ class PlayerStates:
 
         # 判定"攀爬中"狀態
         elif self.current_state == "CLIMB" and target_info:
-            self.keyboard._stop_move()
+            self.keyboard.release_all()
             direction = target_info.get("direction")
             if direction == "UP":
-                self.keyboard.enable_up(duration=2)
+                self.keyboard.climb_up()
 
             elif direction == "DOWN":
-                self.keyboard.enable_down(duration=0.5)
+                self.keyboard.climb_down()
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
@@ -78,7 +78,7 @@ class PlayerStates:
             self.keyboard.enable_pick_up()
             
         elif self.current_state == "IDLE":
-            self.keyboard.release_all()
+            pass
 
         # 判定"治癒"狀態
         elif self.current_state.startswith("HEAL") and target_info:
