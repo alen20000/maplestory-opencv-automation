@@ -108,7 +108,7 @@ class AutoControl:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
         # 模塊:打怪物
-        if self.mini_player_loc:
+        if self.mini_player_loc and self.enable_searching_mob:
             if platform:= self._handle_platform_logic(state):
                 return platform
 
@@ -128,6 +128,8 @@ class AutoControl:
                     self.patrol_state = False
                     self.patrol_start_time = None
                 else:
+                    # 平台檢查
+                    self.current_platform = self._check_current_platform()
                     #正常巡邏
                     result = self._enable_player_patrol()
                     return result
@@ -143,6 +145,10 @@ class AutoControl:
                 if self.current_vertical_passage is not None:
 
                     self.pervious_time = current_time
+
+                    # 禁止戰鬥
+                    self.is_combat_state = False
+
                     # 開始垂直移動
                     result = self._verti_movement()
                     if result is not None:
@@ -157,13 +163,10 @@ class AutoControl:
 
         # 重置爬行方向的狀態
         self.current_verti_target = None
+        # 如果人物脫離垂直通道，則允許戰鬥
+        if self.current_vertical_passage is None:
+            self.is_combat_state = True
 
-        # if self.mini_player_loc and self.current_platform and self.enable_searching_mob :
-        #     #判斷目前平台
-        #     self.current_platform = self._check_current_platform()
-        #     #這是給找繩子用的巡邏
-        #     result = self._enable_player_patrol()
-        #     return result
 
         return None, None
 
@@ -487,6 +490,7 @@ class AutoControl:
             self.search_direction = "LEFT"    # 走到底左轉
 
             return self._pack_action("MOVE", direction="LEFT")
+        #這句不能改，否則人物會罰站
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
 

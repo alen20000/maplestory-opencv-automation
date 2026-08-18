@@ -40,7 +40,7 @@ class PlayerStates:
 
         # 判定"去爬繩"狀態
         elif self.current_state == "ROPE" and self.current_info:
-            # self.keyboard.stop_move()
+            self.keyboard.stop_move()
             direction = self.current_info.get("direction")
             if direction == "LEFT_UP":
                 # self.keyboard.release_all()
