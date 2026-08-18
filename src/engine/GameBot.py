@@ -239,10 +239,6 @@ class GameBot:
                 except:
                     pass
 
-                #繪製BBOX,Text
-                self._draw_mob(self.current_mobs_result)
-                self._show_player_loc(mini_player_loc)
-
                 # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
                 # 數據封包
                 current_game_state =  GameState(
@@ -250,8 +246,6 @@ class GameBot:
                     player_hp = self.player_hp,
                     roi_BBOX = self.roi_BBOX,
                     mobs = self.current_mobs_result,
-                    # frame = self.frame_bgr,
-                    # lost_track_count = self.lost_track_duration,
                     mini_player_loc = mini_player_loc,
                 )
                 
@@ -265,6 +259,11 @@ class GameBot:
                 if action_states is not None :
                     self.player_states.execute_behavior(action_states, target_info)
 
+                #繪製BBOX,Text
+                self._draw_mob(self.current_mobs_result)
+                self._show_player_loc(mini_player_loc)
+                self._show_player_action_states(action_states)
+                self._show_player_HP(self.player_hp)
                 '''
                 ================
                 '''
@@ -441,8 +440,14 @@ class GameBot:
     def _show_player_loc(self,player_loc):
         
         cv2.putText(self.frame_bgr, f"人物座標: {player_loc}", org=(10, 250),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 0), thickness=2)
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 0, 0), thickness=2)
 
+    def _show_player_action_states(self,action_state):
+        cv2.putText(self.frame_bgr, f"狀態: {action_state}", org=(10, 300),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 0, 0), thickness=2)
+    def _show_player_HP(self,HP):
+        cv2.putText(self.frame_bgr, f"血量: {int(HP)}%", org=(10, 350),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 225), thickness=2)
     def _draw_mob(self, mob_results: list):
         """
         解析怪物封包，然後畫出BBOX
