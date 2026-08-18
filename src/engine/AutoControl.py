@@ -35,7 +35,6 @@ class AutoControl:
         self.patrol_start_time = None #巡邏開始時間
 
         #States
-        self.patrol_state = True #巡邏狀態
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
         self.is_combat_state = True #戰鬥狀態
@@ -114,25 +113,22 @@ class AutoControl:
 
         # 模塊:左右邊界巡邏
         if self.current_platform and self.enable_searching_mob :
+            # 初始化"巡邏狀態"
+            if self.patrol_start_time is None:
+                self.patrol_start_time = current_time
+                self.patrol_state = True
 
-            if self.patrol_state:
+            # 找不到怪"X"秒 就關閉巡邏狀態
+            if   current_time - self.patrol_start_time > self.verti_move_threshold:
+                print("平台巡邏超時，切換至尋找上下通道")
 
-                # 初始化"巡邏狀態"
-                if self.patrol_start_time is None:
-                    self.patrol_start_time = current_time
-                    self.patrol_state = True
-
-                # 找不到怪"X"秒 就關閉巡邏狀態
-                if   current_time - self.patrol_start_time > self.verti_move_threshold:
-                    print("平台巡邏超時，切換至尋找上下通道")
-                    self.patrol_state = False
-                    self.patrol_start_time = None
-                else:
-                    # 平台檢查
-                    self.current_platform = self._check_current_platform()
-                    #正常巡邏
-                    result = self._enable_player_patrol()
-                    return result
+                self.patrol_start_time = None
+            else:
+                # 平台檢查
+                self.current_platform = self._check_current_platform()
+                #正常巡邏
+                result = self._enable_player_patrol()
+                return result
         
         # 模塊:找下移動模塊
         if self.mini_player_loc:
@@ -168,7 +164,7 @@ class AutoControl:
             self.is_combat_state = True
 
 
-        return None, None
+        return None,None
 
     def _handle_platform_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
         """
@@ -464,7 +460,7 @@ class AutoControl:
             # print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
 
-        return None, None
+        return None
 
     #=================
     # 邏輯塊: 水平移動

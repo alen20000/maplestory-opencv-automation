@@ -67,16 +67,13 @@ class PlayerStates:
         # 判定"攀爬中"狀態
 
         elif self.current_state == "CLIMB" :
-
-            self.keyboard.release_all()
+            self.keyboard.stop_move()
             direction = self.current_info.get("direction")
             # distance = self.current_info.get("distance")
             if direction == "UP":
                 self.keyboard.climb_up()
-
             elif direction == "DOWN":
                 self.keyboard.climb_down()
-
             # elif distance == 0:
             #     self.keyboard.release_all()
             
@@ -91,7 +88,7 @@ class PlayerStates:
             self.keyboard.enable_pick_up()
             
         elif self.current_state == "IDLE":
-            pass
+            self.keyboard.release_all()
 
         # 判定"治癒"狀態
         elif self.current_state.startswith("HEAL") and self.current_info:
