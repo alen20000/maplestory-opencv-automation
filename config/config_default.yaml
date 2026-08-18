@@ -19,6 +19,7 @@ player_setting:
     #人物的攻擊範圍(像素)
     attack_range: 100
 
+
 image_processing:
 #圖像匹配度設置，抓不到怪物或角色，在這邊調整過濾程度
   
@@ -40,19 +41,22 @@ auto_control_config:
   search_interval: True
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 12
-  
   #這是平台判定的偏移量，有些特殊地圖，平台Y軸落差很大時再動，否則預設 "5"像素
   platform_offset: 5
-  
+  #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
+  verti_move_threshold : 2
+
+
 health_detector:
-  #存放血條的是窗內位置 list[x1,y1,x2,y2]
+  #存放血條的是窗內位置對應的[x1,y1,x2,y2]
+  #如果換了其他版本楓之谷，這邊可以調整，也能偵測的到
   hp_lect: [504,755,608,766]
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]
-  # mp_lect:
+  # mp_lect:MP擴充佔位格
 
 keyboard:
-  #QWERTY
+  #鍵盤按鍵設定
   left: left
   right: right
   up: up

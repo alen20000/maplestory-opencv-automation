@@ -76,7 +76,6 @@ class PlayerStates:
 
             elif direction == "DOWN":
                 self.keyboard.climb_down()
-                print("正在往下")
 
             # elif distance == 0:
             #     self.keyboard.release_all()

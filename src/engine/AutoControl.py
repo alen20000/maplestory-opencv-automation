@@ -17,30 +17,31 @@ class AutoControl:
 
         # Search Config & Constants
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
-        self.platform_offset = config.get("auto_control_config.platform_offset", 5)
+        self.platform_offset = config.get("auto_control_config.platform_offset",5)
+        self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
         # Data Containers
         self.health_setting = {}
         self.search_direction = random.choice(["LEFT", "RIGHT"])
-        self.search_switch_time = time.time()
-        self.recored_data = []
+
+        self.recored_data = []#<-- 所有行為點的容器
         self.platforms = [] #<-- 所有平台
         self.vertical_passage = [] #<-- 所有垂直通道
-        self.current_platform = None #<-- 當前所在平台
-        self.current_vertical_passage = None #<-- 當前所在垂直通道
+        self.current_platform = None #<-- 當前人物所在的平台
+        self.current_vertical_passage = None #<-- 當前人物所在的垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
-        self.pervious_time = None #時間計算用
+
+        #Timer
         self.patrol_start_time = None #巡邏開始時間
 
-        #states
+        #States
         self.patrol_state = True #巡邏狀態
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
-
+        self.is_combat_state = True #戰鬥狀態
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
-        self._load_setting()
         # Parameters
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
 
@@ -85,9 +86,7 @@ class AutoControl:
 
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
-    def _load_setting(self):
-        self.pervious_time = time.time()
-        print(f"上一次時間:{self.pervious_time}")
+
     #=================
     # 主要邏輯
     #=================
@@ -111,7 +110,6 @@ class AutoControl:
         # 模塊:打怪物
         if self.mini_player_loc:
             if platform:= self._handle_platform_logic(state):
-
                 return platform
 
         # 模塊:左右邊界巡邏
@@ -125,7 +123,7 @@ class AutoControl:
                     self.patrol_state = True
 
                 # 找不到怪"X"秒 就關閉巡邏狀態
-                if   current_time - self.patrol_start_time > 2:
+                if   current_time - self.patrol_start_time > self.verti_move_threshold:
                     print("平台巡邏超時，切換至尋找上下通道")
                     self.patrol_state = False
                     self.patrol_start_time = None
@@ -138,17 +136,14 @@ class AutoControl:
         if self.mini_player_loc:
             try:
 
-                # 垂直通道判斷
+                # 判斷:人物是否在垂直通道內
                 self.current_vertical_passage = self._check_vertical_passage()
-                # 時間判斷
-                time_interval = current_time - self.pervious_time
-                time_threshold = 0
 
                 # 觸發:人物在垂直通道範圍 且 時間允許
-                if self.current_vertical_passage is not None and time_interval >= time_threshold:
+                if self.current_vertical_passage is not None:
 
                     self.pervious_time = current_time
-                    #判斷找繩子狀態與繩子中狀態
+                    # 開始垂直移動
                     result = self._verti_movement()
                     if result is not None:
                         return result
@@ -157,31 +152,19 @@ class AutoControl:
 
                     self.is_climbing_state = False
                     self.is_finding_rope_state = False
-
             except Exception as e:
                 logging.error(f"垂直通道判斷失敗{e}")
 
+        # 重置爬行方向的狀態
+        self.current_verti_target = None
 
-        #若"爬繩子狀態" 或 "找繩子狀態" 不觸發後面邏輯       
-        if self.is_climbing_state or self.is_finding_rope_state:
-            print("爬繩子狀態或找繩子狀態不觸發後面邏輯")
-            return None,None
-        else:
-            # 重置爬行方向的狀態
-            self.current_verti_target = None
+        # if self.mini_player_loc and self.current_platform and self.enable_searching_mob :
+        #     #判斷目前平台
+        #     self.current_platform = self._check_current_platform()
+        #     #這是給找繩子用的巡邏
+        #     result = self._enable_player_patrol()
+        #     return result
 
-        if self.mini_player_loc and self.current_platform and self.enable_searching_mob :
-            #這是給找繩子用的巡邏
-            result = self._enable_player_patrol()
-            return result
-        
-        # Debug
-        # if self.current_platform is None:
-        #     print("人物游離中")
-        # else:
-        #     print(f"目前在第{self.current_platform}個平台")
-
-        
         return None, None
 
     def _handle_platform_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
@@ -284,11 +267,9 @@ class AutoControl:
         # 固定上下的方向
         if self.current_verti_target is None:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
-            #debug
-            print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
-        #加點偏移量
-        x_offset = 3
+            #debug
+            # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
         #=================
         #   假設 繩子 X為0  原地上跳 X也要為0 才能抓住；
@@ -300,7 +281,6 @@ class AutoControl:
             self.is_finding_rope_state = True
 
             if px < central_axis :
-
                 return self._pack_action("ROPE", direction="RIGHT_UP")
             elif px > central_axis :
 
@@ -318,10 +298,10 @@ class AutoControl:
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         elif self.current_verti_target == "UP" and py <= top:
-
+            print("到達頂部，重置狀態")
             #到達頂部，重置狀態
             self.is_climbing_state = False
-            return self._pack_action("CLIMB", distance=0)
+            return self._pack_action("IDLE", None)
         
         #判斷:方向為"DOWN"
         if self.current_verti_target == "DOWN" and py == top:
@@ -334,28 +314,23 @@ class AutoControl:
             elif px > central_axis and py == top:
                 print("往左下跑")
                 return self._pack_action("ROPE", direction="LEFT_DOWN")
-            
-            #要加個py == top判定，否則下方的CLIMB DOWN不會觸發
-            elif px == central_axis and py == top:
+            elif px == central_axis and py == top: #<---要加個py == top判定，否則下方的CLIMB DOWN不會觸發
                 print("原地下降")
                 return self._pack_action("ROPE", direction=self.current_verti_target)
             
         #判斷:方向為"DOWN" 且 處於y軸範圍 
         elif self.current_verti_target == "DOWN"  and top < py <= bottom:
-            print("CLIMB_DOWN")
+            print("正在下爬")
             #狀態改變
             self.is_finding_rope_state =False
             self.is_climbing = True
-
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
-
         elif self.current_verti_target == "DOWN" and py >= bottom:
-
+            print("到達底部，重置狀態")
             #到達底部，重置狀態
             self.is_climbing_state = False
-
-            return self._pack_action("CLIMB", distance=0)
+            return self._pack_action("IDLE", None)
         
         return None
         
@@ -394,7 +369,6 @@ class AutoControl:
     def _check_current_platform(self):
         """
         根據玩家目前的座標，判斷人在哪一個平台內
-
         """
         if not self.mini_player_loc or not self.platforms:
             return None
@@ -489,11 +463,11 @@ class AutoControl:
 
         return None, None
 
-
+    #=================
+    # 邏輯塊: 水平移動
+    #=================
     def _enable_player_patrol(self)-> tuple[Optional[str], Optional[dict]]:
-        '''
-        巡邏邏輯
-        '''
+
 
         px, py = self.mini_player_loc
 
@@ -503,12 +477,6 @@ class AutoControl:
         
         left_bound = current_plat["t_l"][0]   # 平台的左極限 X
         right_bound = current_plat["b_r"][0]  # 平台的右極限 X
-
-        #Debug
-        # print(f"平台平台:{plat_index}平台。左邊界: {left_bound}, 右邊界: {right_bound}")
-        # print(f"開始巡邏，位置:{self.mini_player_loc}")
-        # print(current_plat)
-        # print(px,left_bound + self.buffer)
 
         if px <= left_bound + self.buffer:
             self.search_direction = "RIGHT"   # 走到底右轉
