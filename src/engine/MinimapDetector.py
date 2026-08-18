@@ -2,7 +2,7 @@ from config.config_loader import config
 import cv2
 import logging
 import numpy as np
-
+from src.utils.shared_info import shared_info
 '''
 人物黃點: RGB 255,255,136  HSV 是： [ 30 119 255]
 人物黃點: RGB 255,255,0  HSV 是： [ 30 255 255]
@@ -50,8 +50,9 @@ class MinimapDetector:
 
             if max_val > 0.6:
                 logging.info(f"小地圖定位成功")
-                print(f"小地圖定位成功,位置:{max_loc}")
                 self.minimap_tl = max_loc
+                #放入共享資訊
+                shared_info.update_minimap_anchor(self.minimap_tl)
                 self._get_minimap_br()
             else:
                 logging.info(f"小地圖定位失敗")
@@ -119,7 +120,6 @@ class MinimapDetector:
             player_y = int(np.mean(pts[:,1]))
 
             return (player_x,player_y)
-
 
     def _draw_minimap(self):
         '''
