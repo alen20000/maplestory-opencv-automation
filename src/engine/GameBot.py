@@ -95,7 +95,10 @@ class GameBot:
         '''
         try:
             self.bot_enabled = not self.bot_enabled
-            self.player_states.tobe_IDEL()
+            # 釋放所有熟鍵
+            import src.action.KeyBoardController as kb
+            kb = kb.KeyBoard()
+            kb.release_all()
             #這是[Info]層，但因為會被過濾所以放warning
             logging.warning(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
         except Exception as e:
@@ -269,8 +272,8 @@ class GameBot:
                     player_hp = self.player_hp,
                     roi_BBOX = self.roi_BBOX,
                     mobs = self.current_mobs_result,
-                    frame = self.frame_bgr,
-                    lost_track_count = self.lost_track_duration,
+                    # frame = self.frame_bgr,
+                    # lost_track_count = self.lost_track_duration,
                     mini_player_loc = mini_player_loc,
                 )
                 
