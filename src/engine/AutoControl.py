@@ -18,7 +18,7 @@ class AutoControl:
         # Search Config & Constants
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.platform_offset = config.get("auto_control_config.platform_offset", 5)
-        # Data Containers & States
+        # Data Containers
         self.health_setting = {}
         self.search_direction = random.choice(["LEFT", "RIGHT"])
         self.search_switch_time = time.time()
@@ -30,8 +30,13 @@ class AutoControl:
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         self.pervious_time = None #時間計算用
-        self.is_climbing_state = False #是否在爬樓梯
-        self.is_finding_rope_state =False #是否在找繩子
+        self.patrol_start_time = None #巡邏開始時間
+
+        #states
+        self.patrol_state = True #巡邏狀態
+        self.is_climbing_state = False #在爬樓梯狀態
+        self.is_finding_rope_state =False #找繩子狀態
+
         # Loadding Config
         self._load_health_config()
         self._load_map_data()
@@ -94,23 +99,45 @@ class AutoControl:
         #角色座標更新
         if state.mini_player_loc:
             self.mini_player_loc = state.mini_player_loc
+
         #時間標籤
         current_time =time.time()
-        #角色健康狀態
+
+        # 模塊:健康狀態(喝水)
         level , heal_key = self._health_status_check(state.player_hp)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
 
-        #TEST
-        # if self.is_climbing_state:
-        #     print(f"爬樓梯狀態:{self.is_climbing_state}") 
-        # if self.is_finding_rope_state :
-        #     print(f"找繩子狀態:{self.is_finding_rope_state}")
+        # 模塊:打怪物
+        if self.mini_player_loc:
+            if platform:= self._handle_platform_logic(state):
 
+                return platform
 
-        #觸發:有人物座標時
+        # 模塊:左右邊界巡邏
+        if self.current_platform and self.enable_searching_mob :
+
+            if self.patrol_state:
+
+                # 初始化"巡邏狀態"
+                if self.patrol_start_time is None:
+                    self.patrol_start_time = current_time
+                    self.patrol_state = True
+
+                # 找不到怪"X"秒 就關閉巡邏狀態
+                if   current_time - self.patrol_start_time > 2:
+                    print("平台巡邏超時，切換至尋找上下通道")
+                    self.patrol_state = False
+                    self.patrol_start_time = None
+                else:
+                    #正常巡邏
+                    result = self._enable_player_patrol()
+                    return result
+        
+        # 模塊:找下移動模塊
         if self.mini_player_loc:
             try:
+
                 # 垂直通道判斷
                 self.current_vertical_passage = self._check_vertical_passage()
                 # 時間判斷
@@ -143,9 +170,11 @@ class AutoControl:
             # 重置爬行方向的狀態
             self.current_verti_target = None
 
-        if platform:= self._handle_platform_logic(state):
-            return platform
-
+        if self.mini_player_loc and self.current_platform and self.enable_searching_mob :
+            #這是給找繩子用的巡邏
+            result = self._enable_player_patrol()
+            return result
+        
         # Debug
         # if self.current_platform is None:
         #     print("人物游離中")
@@ -171,15 +200,15 @@ class AutoControl:
         if self.current_platform:
             #有怪則找怪
             if state.mobs:
+                
+                # 觸發:有怪物就重置巡邏計時與狀態
+                self.patrol_start_time = None
+                self.patrol_state = True
+
                 result = self._fk_that_mob(state)
                 return result
             
-        #觸發:在平台內 且 開啟打怪功能 時
-        if self.current_platform and self.enable_searching_mob :
 
-            #巡弋動作
-            result = self._enable_player_patrol()
-            return result
         
     #=================
     # 邏輯塊: 垂直通道
@@ -281,16 +310,16 @@ class AutoControl:
                 return self._pack_action("ROPE", direction="UP")
             
         #判斷:方向為"UP" 且 處於y軸範圍 
-        elif self.current_verti_target == "UP" and top < py < bottom:
+        elif self.current_verti_target == "UP" and top <= py < bottom:
             print("CLIMB_UP")
             #狀態改變
             self.is_finding_rope_state =False
-            self.is_climbing = True
+            self.is_climbing_state = True
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         elif self.current_verti_target == "UP" and py <= top:
-            print("到達通道頂部，重置狀態")
 
+            #到達頂部，重置狀態
             self.is_climbing_state = False
             return self._pack_action("CLIMB", distance=0)
         
@@ -312,7 +341,7 @@ class AutoControl:
                 return self._pack_action("ROPE", direction=self.current_verti_target)
             
         #判斷:方向為"DOWN" 且 處於y軸範圍 
-        elif self.current_verti_target == "DOWN"  and top < py < bottom:
+        elif self.current_verti_target == "DOWN"  and top < py <= bottom:
             print("CLIMB_DOWN")
             #狀態改變
             self.is_finding_rope_state =False
@@ -322,9 +351,10 @@ class AutoControl:
 
 
         elif self.current_verti_target == "DOWN" and py >= bottom:
-            print("到達通道底部，重置狀態")
 
+            #到達底部，重置狀態
             self.is_climbing_state = False
+
             return self._pack_action("CLIMB", distance=0)
         
         return None

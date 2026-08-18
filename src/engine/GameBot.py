@@ -163,28 +163,6 @@ class GameBot:
 
         return frame_bgr
 
-    def _draw_mob(self, mob_results: list):
-        """
-        解析怪物封包，然後畫出BBOX
-        """
-        if mob_results and self.roi_BBOX is not None:
-            for mob_name, mob_details in mob_results:
-                
-                for detailed in mob_details:
-                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
-                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
-                    w, h = detailed["size"]
-                    score = detailed["score"]
-                    clean_name = re.sub(r'\s*\(\s*\d+\s*\)', '', mob_name)
-                    score_text = f"{score:.2f}"
-                    clean_name = f"{clean_name} {score_text}"
-
-                    draw_dectection_box(
-                        self.frame_bgr,
-                        (x1,y1),
-                        (x1+w, y1+h),
-                        label=clean_name,color = (0, 0, 255),
-                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
     def _is_window_valid(self):
         if not win32gui.IsWindow(self.hwnd):
@@ -300,7 +278,9 @@ class GameBot:
         finally:
             cv2.destroyAllWindows()
 
-
+    #=================
+    # 人物掃描邏輯
+    #=================
     def player_tracking_logic(self):
         '''
         角色位置提取:全局掃描/ROI掃描
@@ -415,7 +395,9 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
-
+    #=================
+    # 偵測器:怪物
+    #=================
     def MobDetector(self):
         '''
         與怪物偵測模組進行互動：傳送當前灰階圖，並取得回傳的怪物封包。
@@ -427,6 +409,10 @@ class GameBot:
 
             return mob_results
 
+    #=================
+    # 偵測器:健康
+    #=================
+
     def HealthDetector(self):
         '''
         get:self.player_hp
@@ -437,6 +423,9 @@ class GameBot:
         except Exception as e:
             logging.error(e)
 
+    #=================
+    # 偵測器:小地圖
+    #=================
     def MinimapDetector(self)-> tuple[int,int]:
         '''
         WIP
@@ -445,11 +434,38 @@ class GameBot:
         '''
         mini_player_loc = self.minimap_detector.run(self.frame_bgr)
         return mini_player_loc
+    
+    #=================
+    # 繪製函式
+    #=================
 
     def _show_player_loc(self,player_loc):
         
         cv2.putText(self.frame_bgr, f"人物座標: {player_loc}", org=(10, 250),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 0), thickness=2)
+
+    def _draw_mob(self, mob_results: list):
+        """
+        解析怪物封包，然後畫出BBOX
+        """
+        if mob_results and self.roi_BBOX is not None:
+            for mob_name, mob_details in mob_results:
+                
+                for detailed in mob_details:
+                    x1 = detailed["top_left"][0] + self.roi_BBOX.x1
+                    y1 = detailed["top_left"][1] + self.roi_BBOX.y1
+                    w, h = detailed["size"]
+                    score = detailed["score"]
+                    clean_name = re.sub(r'\s*\(\s*\d+\s*\)', '', mob_name)
+                    score_text = f"{score:.2f}"
+                    clean_name = f"{clean_name} {score_text}"
+
+                    draw_dectection_box(
+                        self.frame_bgr,
+                        (x1,y1),
+                        (x1+w, y1+h),
+                        label=clean_name,color = (0, 0, 255),
+                        top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
         
     # def get_client_screen_pos(self):

@@ -9,6 +9,7 @@ class KeyBoard:
         #捕捉與綁定滑鼠
         interception.auto_capture_devices(keyboard=True, mouse=True)
         #states
+        self._release_all_lock = threading.Lock()
         self._attack_lock = threading.Lock()
         self._move_lock = threading.Lock()
         self._item_lock = threading.Lock()
@@ -19,9 +20,10 @@ class KeyBoard:
         self._down_lock = threading.Lock()
         self._right_lock = threading.Lock()
         self._left_lock = threading.Lock()
-        self._release_all_lock = threading.Lock()
-        self._climb_down_lock = threading.Lock()
+        self._move_down_right_lock = threading.Lock()
+        self._move_down_left_lock = threading.Lock()
 
+        self._status_release_all = False
         self._status_attack = False
         self._status_jump = False
         self._status_up = False
@@ -30,8 +32,9 @@ class KeyBoard:
         self._status_left = False
         self._status_item = False  
         self._pick_up = False
-        self._status_release_all = False
-        self._status_climb_down = False
+        self._status_move_down_right = False
+        self._status_move_down_left = False
+
 
         #key value
         self.attack_key = config.get("keyboard.attack")
@@ -188,24 +191,24 @@ class KeyBoard:
         self.enable_jump()
         self.enable_up(duration=0.5)
 
-    def move_down_to_right(self):
-        self.enable_right(duration=0.5)
-        self.enable_down(duration=1)
+    def move_down_right(self):
+        interception.key_down(self.right_key)
+        time.sleep(0.03)
+        # interception.key_down(self.down_key)
 
-    def move_down_to_left(self):
-        self.enable_left(duration=0.5)
-        self.enable_down(duration=1)
+    def move_down_left(self):
+        interception.key_down(self.left_key)
+        time.sleep(0.03)
+        # interception.key_down(self.down_key)
 
     def climb_up(self):
         interception.key_down(self.up_key)
 
-
-    def _climb_down_command(self):
-        self.enable_left()
-        self.enable_jump(duration=0.6)
-
     def climb_down(self):
-        self._packet_wrapper(self._climb_down_lock, "_status_climb_down", self._climb_down_command)
+        self.enable_left(duration=0.5)
+        self.enable_jump(duration=0.5)
+
+
 
 
     ''' 停止釋放'''

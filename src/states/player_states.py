@@ -25,7 +25,7 @@ class PlayerStates:
             target_info (dict):  {"name": mob, "distance": distance, "direction": direction}
         """
         # 把持續狀態轉脈衝狀態，防止重複觸發
-        if self.current_state != new_state and self.current_info != target_info:
+        if self.current_state != new_state or self.current_info != target_info:
             self.current_state = new_state
             self.current_info = target_info
             direction = self.current_info.get("direction")
@@ -40,47 +40,50 @@ class PlayerStates:
 
         # 判定"去爬繩"狀態
         elif self.current_state == "ROPE" and self.current_info:
-            self.keyboard.stop_move()
+            # self.keyboard.stop_move()
             direction = self.current_info.get("direction")
             if direction == "LEFT_UP":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.grab_rope_to_left()
             elif direction == "RIGHT_UP":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.grab_rope_to_right()
             elif direction == "LEFT_DOWN":
                 self.keyboard.release_all()
-                self.keyboard.move_down_to_left()
+                self.keyboard.move_down_left()
             elif direction == "RIGHT_DOWN":
                 self.keyboard.release_all()
-                self.keyboard.move_down_to_right()            
+                self.keyboard.move_down_right()            
             elif direction =="UP":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.enable_up(duration=1)
                 self.keyboard.enable_jump()
             elif direction == "DOWN":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.enable_down(duration=1)
                 
 
 
         # 判定"攀爬中"狀態
-        elif self.current_state == "CLIMB" and self.current_info:
+
+        elif self.current_state == "CLIMB" :
+
             self.keyboard.release_all()
             direction = self.current_info.get("direction")
-            distance = self.current_info.get("distance")
+            # distance = self.current_info.get("distance")
             if direction == "UP":
                 self.keyboard.climb_up()
 
             elif direction == "DOWN":
                 self.keyboard.climb_down()
-
+                print("正在往下")
 
             # elif distance == 0:
             #     self.keyboard.release_all()
+            
 
-        elif self.current_state == "MOVE" and target_info:
-            direction = target_info.get("direction")
+        elif self.current_state == "MOVE" and self.current_info:
+            direction = self.current_info.get("direction")
 
             if direction == "LEFT":
                 self.keyboard.enable_move_left()
@@ -92,9 +95,9 @@ class PlayerStates:
             pass
 
         # 判定"治癒"狀態
-        elif self.current_state.startswith("HEAL") and target_info:
+        elif self.current_state.startswith("HEAL") and self.current_info:
             #健康修復狀態
-            key = target_info.get("key")
+            key = self.current_info.get("key")
             if key:
                 self.keyboard.enable_use_item(key)
             else:
