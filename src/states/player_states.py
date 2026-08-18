@@ -13,6 +13,7 @@ class PlayerStates:
 
         #State
         self.current_state = "IDLE"  
+        self.current_info = None
         #Instance
         self.keyboard = kb.KeyBoard()
 
@@ -24,8 +25,9 @@ class PlayerStates:
             target_info (dict):  {"name": mob, "distance": distance, "direction": direction}
         """
         # 把持續狀態轉脈衝狀態，防止重複觸發
-        if self.current_state != new_state:
+        if self.current_state != new_state and self.current_info != target_info:
             self.current_state = new_state
+            self.current_info = target_info
 
             direction = target_info.get('direction') if target_info else 'None'
             logging.warning(f"狀態更新為: {self.current_state} ；方向為: {direction}")
@@ -33,14 +35,14 @@ class PlayerStates:
         # 判定"攻擊"狀態
         if self.current_state == "ATTACK":
             # 停止移動
-            direction = target_info.get("direction")
+            direction = self.current_info.get("direction")
             self.keyboard.stop_move()
             self.keyboard.enable_attack(direction)
 
         # 判定"去爬繩"狀態
-        elif self.current_state == "ROPE" and target_info:
+        elif self.current_state == "ROPE" and self.current_info:
             self.keyboard.stop_move()
-            direction = target_info.get("direction")
+            direction = self.current_info.get("direction")
             if direction == "LEFT_UP":
                 self.keyboard.release_all()
                 self.keyboard.grab_rope_to_left()
@@ -59,14 +61,18 @@ class PlayerStates:
                 self.keyboard.enable_jump()
 
         # 判定"攀爬中"狀態
-        elif self.current_state == "CLIMB" and target_info:
+        elif self.current_state == "CLIMB" and self.current_info:
             self.keyboard.release_all()
-            direction = target_info.get("direction")
+            direction = self.current_info.get("direction")
+            distance = self.current_info.get("distance")
             if direction == "UP":
                 self.keyboard.climb_up()
 
             elif direction == "DOWN":
                 self.keyboard.climb_down()
+
+            elif distance == 0:
+                self.keyboard.release_all()
 
         elif self.current_state == "MOVE" and target_info:
             direction = target_info.get("direction")
