@@ -6,103 +6,135 @@ import os
 import win32gui
 import ctypes
 import sys
-import os
+import win32con
+import logging
 """
 一個簡單的自動撿拾腳本
 """
-AUTO_PICK_DELAY = 0.25
 
+
+'''參數'''
+AUTO_PICK_DELAY = 0.25
 GAME_TITLE = "新楓之谷：經典版"
 PICK_UP_KEY = "z" #<-撿拾預設鍵
-
-# 放按鍵忽略清單
-filter_typing = ['left', 'right', 'up', 'down']
-
+PICK_UP_COOLDOWN = 0.05
 
 class Bat:
     def __init__(self):
         # 初始化
         interception.auto_capture_devices(keyboard=True, mouse=False)
-        self.MapleStory_hhwnd = self.is_MapleStory_window()
-        self.last_key_time = 0
-        self.typing_timeout = 0.3  # 超過多少時間沒輸入，則自動拾取。
+        self.MapleStory_hhwnd = None
 
-        # states
-        self.state_busy = False
+        # Lock
+        self._pick_up_lock = threading.Lock()
         self._lock = threading.Lock()
+        # Flag
+        self._pick_up = False
+        self.is_picking_up = True
 
         # 開關旗標：set() = 開啟撿拾，clear() = 暫停撿拾
         # 背景執行緒只建立一次，靠這個旗標控制動/靜，不用每次都開新執行緒
         self.pick_event = threading.Event()
 
-    def _pick_up_action(self):
-        '''撿拾行為（背景常駐執行緒，永遠不結束）'''
-        while True:
-            # 沒開啟時卡在這裡等待，不耗 CPU；被 set() 後才會往下執行
-            self.pick_event.wait()
 
-            current_time = time.time()
-            if win32gui.GetForegroundWindow() == self.MapleStory_hhwnd:
-                with self._lock:
-                    if current_time - self.last_key_time > AUTO_PICK_DELAY:
-                        self.state_busy = False
-                    is_busy = self.state_busy
-
-                if is_busy is False:
-                    interception.press(PICK_UP_KEY)
-
-            time.sleep(AUTO_PICK_DELAY)
-
-    def _check_tpying(self, event):
-        '''檢查有沒有在輸入'''
-        if event.name in filter_typing:
-            return
-        with self._lock:
-            self.last_key_time = time.time()
-            self.state_busy = True
-
-    def is_MapleStory_window(self):
+    #===================
+    #按鍵模塊
+    #===================
+    def _pick_up_command(self, key):
         try:
-            MapleStory_hhwnd = win32gui.FindWindow(None, GAME_TITLE)
-            print(f"找到視窗{GAME_TITLE}，窗柄{MapleStory_hhwnd}")
-            return MapleStory_hhwnd
+            interception.key_down(key)
+            time.sleep(PICK_UP_COOLDOWN)
         except Exception as e:
-            print(f"沒找到視窗{GAME_TITLE}，異常{e}")
-            return False
+            pass
+        finally:
+            interception.key_up(key)
+            self._pick_up = False
+
+    def enable_pick_up(self):
+        current_hwnd = win32gui.GetForegroundWindow()
+        # 限定命令只發生在遊戲內
+        if current_hwnd != self.MapleStory_hhwnd:
+            return
+
+        if not self.is_picking_up:
+            return
+        
+        with self._pick_up_lock:
+            if not PICK_UP_KEY:
+                return
+            self._pick_up = True
+        threading.Thread(target=self._pick_up_command, args=(PICK_UP_KEY,), daemon=True).start()
 
     def toggle_pick_up(self):
         '''
         開/關 撿拾模式
         '''
-        
-        if self.pick_event.is_set():
-            print('退出拾取')
-            self.pick_event.clear()
+        if self.is_picking_up:
+            self.is_picking_up = False
+            print("關閉自動撿拾")
         else:
-            print('開啟拾取')
-            self.state_busy = False  # 清空上次殘留的狀態
-            self.pick_event.set()
-
-    def run(self):
-        print('=' * 6)
-        print("F2:開/關自動撿拾\nF3:退出程式")
-
-        # 開一個線程(唯一)
-        threading.Thread(target=self._pick_up_action, daemon=True).start()
-
-        # 綁定事件
-        keyboard.add_hotkey('f2', self.toggle_pick_up)
-        keyboard.add_hotkey('f3', self.exit_process)
-
-        # 鍵盤監聽
-        keyboard.hook(self._check_tpying)
-        # 等待(用途：阻斷程序結束)
-        keyboard.wait()
+            self.is_picking_up = True
+            print("開啟自動撿拾")
 
     def exit_process(self):
         print("退出結束")
         keyboard.unhook_all()  # 安全解除
         os._exit(0)
+    #===================
+    # 遊戲窗口管理
+    #===================
+    def is_MapleStory_window(self):
+        try:
+            MapleStory_hhwnd = win32gui.FindWindow(None, GAME_TITLE)
+            logging.info(f"找到視窗{GAME_TITLE}，窗柄{MapleStory_hhwnd}")
+            return MapleStory_hhwnd
+        except Exception as e:
+            logging.warning(f"沒找到視窗{GAME_TITLE}，異常{e}")
+            return False
+        
+    def bring_to_front_and_center_origin(self,hwnd:int):
+        '''
+        整理窗口位置
+        將視窗帶到最前、初始化位置
+        '''
+        try:
+            # 如果視窗被最小化了，先將它恢復正常大小
+            if win32gui.IsIconic(hwnd):
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+
+            # 將視窗帶到最前台
+            win32gui.SetForegroundWindow(hwnd)
+        except Exception as e:
+            print(f"置頂視窗失敗: {e}")
+
+        win32gui.SetWindowPos(hwnd, 0, 0, 0, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
+        #========================
+        # 初始化訊息
+        #========================
+    def _pre_loading(self):
+        self.MapleStory_hhwnd = self.is_MapleStory_window()
+
+    def run(self):
+        #========================
+        # 前置處理
+        self._pre_loading()
+        if self.MapleStory_hhwnd:
+            self.bring_to_front_and_center_origin(self.MapleStory_hhwnd)
+        #========================
+        print('=' * 20)
+        print("F2:開/關自動撿拾\nF3:退出程式")
+        print('=' * 20)
+
+        # HOTKEY
+        keyboard.add_hotkey('f2', self.toggle_pick_up)
+        keyboard.add_hotkey('f3', self.exit_process)
+        keyboard.add_hotkey('left', self.enable_pick_up)
+        keyboard.add_hotkey('right', self.enable_pick_up)
+        keyboard.add_hotkey('up', self.enable_pick_up)
+        keyboard.add_hotkey('down', self.enable_pick_up)
+        # Hooking
+        keyboard.wait()
+
 
 def is_admin():
     """檢查當前是否擁有管理員權限"""
@@ -122,7 +154,7 @@ if __name__ == "__main__":
     if not is_admin():
         run_as_admin()
         sys.exit()
-        
+
     #---主程序
     run = Bat()
     run.run()
