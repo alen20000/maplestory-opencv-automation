@@ -244,6 +244,7 @@ class GameBot:
                 current_game_state =  GameState(
                     player_center_loc = self.player_center_loc,
                     player_hp = self.player_hp,
+                    player_mp = self.player_mp,
                     roi_BBOX = self.roi_BBOX,
                     mobs = self.current_mobs_result,
                     mini_player_loc = mini_player_loc,
@@ -264,6 +265,7 @@ class GameBot:
                 self._show_player_loc(mini_player_loc)
                 self._show_player_action_states(action_states)
                 self._show_player_HP(self.player_hp)
+                self._show_player_MP(self.player_mp)
                 '''
                 ================
                 '''
@@ -418,7 +420,6 @@ class GameBot:
         try:
             #這裡以後若要做補MP偵測，不能這樣寫
             self.player_hp ,self.player_mp = self.health_dectector.run(self.frame_bgr)
-            print(f"HP:{self.player_hp} MP:{self.player_mp}")
 
         except Exception as e:
             logging.error(e)
@@ -448,8 +449,11 @@ class GameBot:
         cv2.putText(self.frame_bgr, f"狀態: {action_state}", org=(10, 300),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 0, 0), thickness=2)
     def _show_player_HP(self,HP):
-        cv2.putText(self.frame_bgr, f"血量: {int(HP)}%", org=(10, 350),
+        cv2.putText(self.frame_bgr, f"血量條: {int(HP)}%", org=(10, 350),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 225), thickness=2)
+    def _show_player_MP(self,MP):
+        cv2.putText(self.frame_bgr, f"魔力條: {int(MP)}%", org=(10, 400),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(225, 0, 225), thickness=2)
     def _draw_mob(self, mob_results: list):
         """
         解析怪物封包，然後畫出BBOX

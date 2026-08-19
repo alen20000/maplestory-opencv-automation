@@ -16,6 +16,7 @@ class GameState:
     '''
     player_center_loc : Optional[tuple[int,int]] = None
     player_hp : Optional[float] = None
+    player_mp : Optional[float] = None
     roi_BBOX : Optional[BBox] = None
     mobs : list[MobInfo] = field(default_factory=list) 
     # frame : Optional[np.ndarray] = None

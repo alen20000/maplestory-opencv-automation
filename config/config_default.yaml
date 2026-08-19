@@ -4,7 +4,7 @@ game:
 
 player_setting:
   #喝水設定 key:按鍵 Vale:觸發血線，低於就喝對應藥水
-  #常用按鍵 "delete"
+  #常用按鍵 ''delete"  "page down" "page up" "end" "home"
   health_setting:
     light:
       key: null
@@ -14,6 +14,16 @@ player_setting:
       value: 50
     critical:
       key: "delete"
+      value: 20
+  mp_setting:
+    light:
+      key: null
+      value: 80
+    medium:
+      key: null
+      value: 50
+    critical:
+      key: "pagedown"
       value: 20
 
   auto_control_config:
@@ -57,11 +67,10 @@ health_detector:
   #如果換了其他版本楓之谷，這邊可以調整，也能偵測的到
   hp_bar_template : img/health_detector/hp_template.png
   mp_bar_template : img/health_detector/mp_template.png
-  hp_lect: [504,755,608,766]
+  #血條顏色範圍
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]
-  #mp_lect:MP擴充佔位格
-  mp_lect: [680, 755, 704, 766]
+  #藍條顏色範圍
   lower_mp_color: [100, 132, 238]
   upper_mp_color: [107, 255, 255]
 keyboard:

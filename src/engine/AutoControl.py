@@ -21,6 +21,7 @@ class AutoControl:
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
         # Data Containers
         self.health_setting = {}
+        self.mp_setting = {}
         self.search_direction = random.choice(["LEFT", "RIGHT"])
 
         self.recored_data = []#<-- 所有行為點的容器
@@ -56,9 +57,9 @@ class AutoControl:
         喝水設定載入
         '''
 
-        raw = config.get("player_setting.health_setting") or {}
+        hp_raw = config.get("player_setting.health_setting") or {}
 
-        for level, setting in raw.items():
+        for level, setting in hp_raw.items():
             key = setting.get("key")
             value = setting.get("value")
             if key == "None":
@@ -68,6 +69,19 @@ class AutoControl:
                 "value" : value,
                 "key" : key,
             }
+        mp_raw = config.get("player_setting.mp_setting") or {}
+
+        for level, setting in mp_raw.items():
+            key = setting.get("key")
+            value = setting.get("value")
+            if key == "None":
+                key = None
+
+            self.mp_setting[level] = {
+                "value" : value,
+                "key" : key,
+            }
+
     def _load_map_data(self):
         try:
             map_name = config.get("quickly_choice_map")
@@ -94,6 +108,7 @@ class AutoControl:
         Args:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
         '''
+
         #角色座標更新
         if state.mini_player_loc:
             self.mini_player_loc = state.mini_player_loc
@@ -105,7 +120,10 @@ class AutoControl:
         level , heal_key = self._health_status_check(state.player_hp)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
-
+        level , mp_key = self._mp_status_check(state.player_mp)
+        if level is not None:
+            return f"HEAL_{level.upper()}", {"key": mp_key}
+        
         # 模塊:打怪物
         if self.mini_player_loc and self.enable_searching_mob:
             if platform:= self._handle_platform_logic(state):
@@ -426,6 +444,40 @@ class AutoControl:
                 return level, key
             
         return None, None
+
+    def _mp_status_check(self,player_mp): 
+
+        if not (0 <= player_mp <= 100):
+            logging.warning(f"血量取值異常: {player_mp} ")
+            return None, None
+
+        #防呆
+        if player_mp is None:
+            return None, None 
+
+        #按鍵預設，與GameBot同步
+        mp_setting = self.mp_setting
+
+        if not mp_setting:
+            return None, None 
+
+
+        #結構: {"light":    {"key": "delete", "value": 80},..,}
+        sorted_levels = sorted(
+            mp_setting.items(),
+            key=lambda item: item[1]["value"]
+        )
+
+        #主要判斷
+        for level, setting in sorted_levels:
+            if player_mp < setting["value"]:
+                key = setting["key"]
+                if key is None:
+                    continue   # 這個等級沒設按鍵，跳過，往下一級檢查
+                return level, key
+            
+        return None, None
+    
     #=================
     # 邏輯塊: 打怪物
     #=================

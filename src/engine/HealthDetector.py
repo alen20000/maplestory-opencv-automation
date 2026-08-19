@@ -16,6 +16,8 @@ class HealthDetector():
         #temaplate
         self.hp_bar_template = config.get("health_detector.hp_bar_template")
         self.mp_bar_template = config.get("health_detector.mp_bar_template")
+        #flag
+        self.if_loaded = False
     def _fetch_bar_lt_loc(self,frame:np.ndarray):
         """
         抓取健康條的範圍
@@ -45,7 +47,9 @@ class HealthDetector():
 
     def run(self,frame:np.ndarray):
 
-        self._fetch_bar_lt_loc(frame)
+        if not self.if_loaded:
+            self._fetch_bar_lt_loc(frame)
+            self.if_loaded = True
         hp_status = self.hp_detect(frame)
         mp_status = self.mp_detect(frame)
 
