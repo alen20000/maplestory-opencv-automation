@@ -1,5 +1,6 @@
 import src.action.KeyBoardController as kb
 import logging  
+from config.config_loader import config
 '''
 行為模式: ATTACK 、 APPROACH 、 IDLE
 ATTACK: 攻擊命令
@@ -16,6 +17,8 @@ class PlayerStates:
         self.current_info = None
         #Instance
         self.keyboard = kb.KeyBoard()
+        #Flag
+        self.is_Night_Lord = config.get("player_setting.auto_control_config.is_Night_Lord") #<-- 是否為鏢賊
 
     def execute_behavior(self, new_state, target_info=None):
         """
@@ -36,7 +39,10 @@ class PlayerStates:
             # 停止移動
             direction = self.current_info.get("direction")
             self.keyboard.stop_move()
-            self.keyboard.enable_attack(direction)
+            if self.is_Night_Lord:
+                self.keyboard.enable_night_lord_attack(direction)
+            else:
+                self.keyboard.enable_attack(direction)
 
         # 判定"去爬繩"狀態
         elif self.current_state == "ROPE" and self.current_info:
@@ -74,8 +80,7 @@ class PlayerStates:
                 self.keyboard.climb_up()
             elif direction == "DOWN":
                 self.keyboard.climb_down()
-            # elif distance == 0:
-            #     self.keyboard.release_all()
+
             
 
         elif self.current_state == "MOVE" and self.current_info:
@@ -103,3 +108,6 @@ class PlayerStates:
             self.keyboard.enable_pick_up()
 
 
+if __name__ == "__main__":
+    run = PlayerStates()
+    print(run.is_Night_Lord)

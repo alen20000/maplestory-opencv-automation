@@ -15,9 +15,12 @@ player_setting:
     critical:
       key: "delete"
       value: 20
+
   auto_control_config:
-    #人物的攻擊範圍(像素)
-    attack_range: 100
+    #功能:鏢賊跳射
+    is_Night_Lord: True
+    #人物的攻擊範圍(像素) 參考: 近戰:100 遠程:500
+    attack_range: 500
 
 
 image_processing:
@@ -29,9 +32,11 @@ image_processing:
   role_min_threshold : 0.6
 
 game_bot:
+  
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
-  roi_x_offset_l_width: 150
-  roi_x_offset_r_width: 150
+  #參考: 近戰 100-200 遠程 400-500
+  roi_x_offset_l_width: 500
+  roi_x_offset_r_width: 500
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 40
 
@@ -61,7 +66,7 @@ keyboard:
   right: right
   up: up
   down: down
-  attack: ctrl
+  attack: shift
   pick_up: z
   jump: alt
 

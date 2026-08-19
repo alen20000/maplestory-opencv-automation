@@ -11,6 +11,7 @@ class KeyBoard:
         #states
         self._release_all_lock = threading.Lock()
         self._attack_lock = threading.Lock()
+        self._night_lord_attack_lock = threading.Lock()
         self._move_lock = threading.Lock()
         self._item_lock = threading.Lock()
         self._pick_up_lock = threading.Lock()
@@ -25,6 +26,7 @@ class KeyBoard:
 
         self._status_release_all = False
         self._status_attack = False
+        self._status_night_lord_attack = False #Night_Lord_attack
         self._status_jump = False
         self._status_up = False
         self._status_down = False
@@ -72,6 +74,34 @@ class KeyBoard:
             self._status_attack = True
             threading.Thread(target=self._attack_command,args=(direction,),daemon=True).start() 
 
+    def _night_lord_att_command(self, direction):
+        try: 
+            key = self.right_key if direction == "RIGHT" else self.left_key
+            interception.key_down(key)
+            interception.key_up(key)
+
+            time.sleep(0.1)
+
+            interception.key_down(self.jump_key)
+            interception.key_down(self.attack_key)
+            time.sleep(0.3)
+        except Exception as e:
+            logging.error(f"攻擊行為發生錯誤:{e}")
+            
+        finally:
+            interception.key_up(self.attack_key)
+            interception.key_up(self.jump_key)
+            with self._attack_lock:
+                self._status_night_lord_attack = False
+
+    def enable_night_lord_attack(self,direction):
+        with self._night_lord_attack_lock:
+            if self._status_night_lord_attack:
+                #攻擊還在發生，不再傳輸攻擊指令
+                return
+            self._status_night_lord_attack = True
+            threading.Thread(target=self._night_lord_att_command,args=(direction,),daemon=True).start()
+            
     ''' 移動行為 '''
 
     def enable_move_right(self):
