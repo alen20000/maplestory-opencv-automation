@@ -7,12 +7,15 @@ import win32gui
 from PIL import ImageGrab
 import numpy as np
 import ctypes
+import sys
+import os
 import time
 from src.engine.MinimapDetector import MinimapDetector
 import src.action.HotkeyManager as hk
 import win32con
 from pathlib import Path
 import yaml
+
 
 '''
 還不確定是測試用，還是模組一部分。
@@ -61,6 +64,9 @@ class OperationLogger:
         self.player_loc = None
         self.recored_data = []
 
+    #=================
+    # 初始化與加載資源
+    #=================
     def _connect_window(self):
         '''
         掛勾遊戲視窗
@@ -184,6 +190,7 @@ class OperationLogger:
 
     #=================
     # 熟鍵綁定
+    #=================
     def _rope_point(self):
         '''
         爬繩點
@@ -225,10 +232,31 @@ class OperationLogger:
         import sys
         sys.exit(0)
 
+    #=================
+    # 作業系統管理員權限
+    #=================
+def is_admin():
+    """檢查當前是否擁有管理員權限"""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    """以管理員權限重新執行當前腳本"""
+    script = os.path.abspath(sys.argv[0])
+    params = ' '.join([f'"{arg}"' for arg in sys.argv[1:]])
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{script}" {params}', None, 1)
+
 if __name__ == "__main__":
+        #---管理員權限
+        if not is_admin():
+            run_as_admin()
+            sys.exit()
         #---日誌模組
         logger.setup_logging()
-
         #--- run
         run = OperationLogger()
         run.run()
+
+
