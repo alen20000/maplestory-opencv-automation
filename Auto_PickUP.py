@@ -4,14 +4,16 @@ import keyboard
 import time
 import os
 import win32gui
-
+import ctypes
+import sys
+import os
 """
 一個簡單的自動撿拾腳本
 """
 AUTO_PICK_DELAY = 0.25
 
 GAME_TITLE = "新楓之谷：經典版"
-PICK_UP_KEY = "z"
+PICK_UP_KEY = "z" #<-撿拾預設鍵
 
 # 放按鍵忽略清單
 filter_typing = ['left', 'right', 'up', 'down']
@@ -102,7 +104,25 @@ class Bat:
         keyboard.unhook_all()  # 安全解除
         os._exit(0)
 
+def is_admin():
+    """檢查當前是否擁有管理員權限"""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    """以管理員權限重新執行當前腳本"""
+    script = os.path.abspath(sys.argv[0])
+    params = ' '.join([f'"{arg}"' for arg in sys.argv[1:]])
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{script}" {params}', None, 1)
 
 if __name__ == "__main__":
+    #---管理員權限
+    if not is_admin():
+        run_as_admin()
+        sys.exit()
+        
+    #---主程序
     run = Bat()
     run.run()
