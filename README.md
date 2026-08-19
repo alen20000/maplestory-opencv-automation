@@ -102,7 +102,7 @@ pip install -r requirements.txt
 | `Auto_PickUP.py` | 自動撿拾腳本 |  拾取腳本，當有觸發"方向鍵"的"上下左右"時，會自動觸發撿拾按鍵 |
 | `GetNameTag.py` | 擷取人物名牌 |  要先用這個抓自己人物名牌，才可以更準的定位。該起後找到乾淨的背景按下"Z"鍵，提取人物名牌。 |
 | `CaptureScreen.py` | 顯示座標與截圖 |  計算螢幕座標與視窗內座標  |
-|`OperationLogger.py`|錄製小地圖的行動點|沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.yaml`設定`quickly_choice_map`|
+|`OperationLogger.py`|錄製小地圖的行動點|沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.ymal`設定`quickly_choice_map`|
 ---
 ## Tech Stack
 
@@ -112,7 +112,7 @@ pip install -r requirements.txt
 * **樣板匹配 (Template Matching)**：
   * **灰階與二值化預處理**：將畫面與模板轉為灰階，利用 `cv2.threshold` (OTSU 演算法) 消除雜訊、突顯輪廓。
   * **切片匹配 (Splitted Template Matching)**：
-    * 將模板圖片進行寬度切片（`split_width`），分別與遊戲畫面進行比對，。
+    * 將模板圖片進行寬度切片（`split_width`），分別與遊戲畫面進行比對。
     * 支援使用遮罩（Mask）過濾背景干擾。
   * **歸一化相關係數 / 平方差匹配 (`cv2.matchTemplate`)**：
     * 選用 `cv2.minMaxLoc` 尋找最佳匹配點（最高相似度或最小差異值），並設定閾值（Threshold）過濾錯誤結果。
