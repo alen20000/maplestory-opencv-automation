@@ -17,7 +17,7 @@ player_setting:
       value: 20
 
   auto_control_config:
-    #功能:鏢賊跳射
+    #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
     is_Night_Lord: True
     #人物的攻擊範圍(像素) 參考: 近戰:100 遠程:500
     attack_range: 500
@@ -55,11 +55,15 @@ auto_control_config:
 health_detector:
   #存放血條的是窗內位置對應的[x1,y1,x2,y2]
   #如果換了其他版本楓之谷，這邊可以調整，也能偵測的到
+  hp_bar_template : img/health_detector/hp_template.png
+  mp_bar_template : img/health_detector/mp_template.png
   hp_lect: [504,755,608,766]
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]
-  # mp_lect:MP擴充佔位格
-
+  #mp_lect:MP擴充佔位格
+  mp_lect: [680, 755, 704, 766]
+  lower_mp_color: [100, 132, 238]
+  upper_mp_color: [107, 255, 255]
 keyboard:
   #鍵盤按鍵設定
   left: left

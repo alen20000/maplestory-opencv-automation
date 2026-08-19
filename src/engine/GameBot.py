@@ -64,7 +64,7 @@ class GameBot:
 
         #---健康參數
         self.player_hp = None
-
+        self.player_mp = None
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
@@ -417,7 +417,9 @@ class GameBot:
         '''
         try:
             #這裡以後若要做補MP偵測，不能這樣寫
-            self.player_hp = self.health_dectector.hp_detect(self.frame_bgr)
+            self.player_hp ,self.player_mp = self.health_dectector.run(self.frame_bgr)
+            print(f"HP:{self.player_hp} MP:{self.player_mp}")
+
         except Exception as e:
             logging.error(e)
 

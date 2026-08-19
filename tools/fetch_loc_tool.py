@@ -14,7 +14,7 @@ from PIL import ImageGrab
 import time
 '''
 可以用滑快來選取座標與範圍
-
+或是直接輸入座標
 '''
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
@@ -42,10 +42,14 @@ frame_bgr = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR) #影像處理預設�
 
 # 拖拉滑鼠框選要當 template 的區域，選完按 Enter 或 Space 確認，按 c 取消
 roi = cv2.selectROI("拖曳框選 HP 條區域，選完按 Enter", frame_bgr, showCrosshair=True)
-x, y, w, h = roi
-print(f"座標: x1={x}, y1={y}, x2={x+w}, y2={y+h}")
 
-cropped = frame_bgr[y:y+h, x:x+w]
+#直接輸入座標
+# x1, y1, x2, y2 = (620, 789, 724, 800)
+w = x2 - x1
+h = y2 - y1
+print(f"座標: x1={x1}, y1={y1}, x2={x2}, y2={y2}")
+
+cropped = frame_bgr[y1:y2, x1:x2]
 cv2.imwrite("hp_template.png", cropped)
 print("已存檔 hp_template.png")
 
