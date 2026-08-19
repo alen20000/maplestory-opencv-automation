@@ -9,15 +9,17 @@ import sys
 import win32con
 import logging
 """
-一個簡單的自動撿拾腳本
+半自動撿拾腳本
+
+當有觸發"方向鍵"的"上下左右"時，會自動觸發撿拾按鍵
 """
 
 
-'''參數'''
+'''參數(可以在這裡調整)'''
 AUTO_PICK_DELAY = 0.25
 GAME_TITLE = "新楓之谷：經典版"
 PICK_UP_KEY = "z" #<-撿拾預設鍵
-PICK_UP_COOLDOWN = 0.05
+PICK_UP_COOLDOWN = 0.05 #<-撿拾冷卻時間(秒)
 
 class Bat:
     def __init__(self):
