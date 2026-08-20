@@ -23,7 +23,7 @@ class AutoControl:
         self.health_setting = {}
         self.mp_setting = {}
         self.search_direction = random.choice(["LEFT", "RIGHT"])
-
+        #---[座標用容器]
         self.recored_data = []#<-- 所有行為點的容器
         self.platforms = [] #<-- 所有平台
         self.vertical_passage = [] #<-- 所有垂直通道
@@ -31,10 +31,15 @@ class AutoControl:
         self.current_vertical_passage = None #<-- 當前人物所在的垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
-
+        #---[道具用容器]
+        self.mp_sorted_levels = [] #<-- 藍水等級排序
+        self.hp_sorted_levels =[] #<-- 紅水等級排序
         #Timer
         self.patrol_start_time = None #巡邏開始時間
-
+        self.hp_cooldown = 5 #<--紅水冷卻時間
+        self.mp_cooldown = 5 #<--藍水冷卻時間
+        self.last_hp_time = None #<--上次喝紅時間
+        self.last_mp_time = None #<--上次喝藍時間
         #States
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
@@ -58,7 +63,6 @@ class AutoControl:
         '''
 
         hp_raw = config.get("player_setting.health_setting") or {}
-
         for level, setting in hp_raw.items():
             key = setting.get("key")
             value = setting.get("value")
@@ -69,19 +73,27 @@ class AutoControl:
                 "value" : value,
                 "key" : key,
             }
+        # mp_setting 結構範例: {"light": {"key": "delete", "value": 80}, ...}
+        self.hp_sorted_levels = sorted(
+            self.health_setting.items(),
+            key=lambda item: item[1]["value"]
+        )
         mp_raw = config.get("player_setting.mp_setting") or {}
-
         for level, setting in mp_raw.items():
             key = setting.get("key")
             value = setting.get("value")
-            if key == "None":
+            if key == "None":           #<--沒設置的水線，會被拋棄
                 key = None
 
             self.mp_setting[level] = {
                 "value" : value,
                 "key" : key,
             }
-
+        # mp_setting 結構範例: {"light": {"key": "delete", "value": 80}, ...}
+        self.mp_sorted_levels = sorted(
+            self.mp_setting.items(),
+            key=lambda item: item[1]["value"]
+        )
     def _load_map_data(self):
         try:
             map_name = config.get("quickly_choice_map")
@@ -117,10 +129,10 @@ class AutoControl:
         current_time =time.time()
 
         # 模塊:健康狀態(喝水)
-        level , heal_key = self._health_status_check(state.player_hp)
+        level , heal_key = self._health_status_check(state.player_hp,current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
-        level , mp_key = self._mp_status_check(state.player_mp)
+        level , mp_key = self._mp_status_check(state.player_mp, current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
         
@@ -407,73 +419,69 @@ class AutoControl:
     #=================
     # 邏輯塊: 健康狀態
     #=================
-    def _health_status_check(self,player_hp): 
+    def _health_status_check(self,player_hp,current_time): 
 
         '''
         血量情況判斷與行動分流
         回傳: 血量分級、對應按鍵
         '''
 
-        if not (0 <= player_hp <= 100):
+        if player_hp is None:
+            return None, None  # 防呆:# player_hp 為 None 時提前擋下
+
+        if not (0 < player_hp <= 100):
             logging.warning(f"血量取值異常: {player_hp} ")
             return None, None
 
-        #防呆
-        if player_hp is None:
-            return None, None 
-
-        #按鍵預設，與GameBot同步
-        health_setting = self.health_setting
-
-        if not health_setting:
+        if not self.health_setting:
             return None, None 
 
 
-        #結構: {"light":    {"key": "delete", "value": 80},..,}
-        sorted_levels = sorted(
-            health_setting.items(),
-            key=lambda item: item[1]["value"]
-        )
+
+        if self.last_hp_time is None:
+            self.last_hp_time = current_time
+        # 喝水冷卻時間
+        if (current_time - self.last_hp_time) < self.hp_cooldown:
+            return None, None
 
         #主要判斷
-        for level, setting in sorted_levels:
+        for level, setting in self.hp_sorted_levels:
             if player_hp < setting["value"]:
                 key = setting["key"]
                 if key is None:
                     continue   # 這個等級沒設按鍵，跳過，往下一級檢查
+                self.last_hp_time = current_time
                 return level, key
-            
         return None, None
 
-    def _mp_status_check(self,player_mp): 
+    def _mp_status_check(self,player_mp,current_time): 
 
-        if not (0 <= player_mp <= 100):
-            logging.warning(f"血量取值異常: {player_mp} ")
+
+        if player_mp is None:
+            return None, None  # 防呆:# player_mp 為 None 時提前擋下
+
+        if not (0 < player_mp <= 100):
+            logging.warning(f"魔力取值異常: {player_mp} ")
             return None, None
 
-        #防呆
-        if player_mp is None:
+
+        # 沒有設定喝水，直接回傳None
+        if not self.mp_setting:
             return None, None 
 
-        #按鍵預設，與GameBot同步
-        mp_setting = self.mp_setting
-
-        if not mp_setting:
-            return None, None 
-
-
-        #結構: {"light":    {"key": "delete", "value": 80},..,}
-        sorted_levels = sorted(
-            mp_setting.items(),
-            key=lambda item: item[1]["value"]
-        )
-
+        if self.last_mp_time is None:
+            self.last_mp_time = current_time
+        # 喝水冷卻時間
+        if (current_time - self.last_mp_time) < self.mp_cooldown:
+            return None, None
+        
         #主要判斷
-        for level, setting in sorted_levels:
+        for level, setting in self.mp_sorted_levels:
             if player_mp < setting["value"]:
                 key = setting["key"]
                 if key is None:
                     continue   # 這個等級沒設按鍵，跳過，往下一級檢查
+                self.last_mp_time = current_time
                 return level, key
             
         return None, None
