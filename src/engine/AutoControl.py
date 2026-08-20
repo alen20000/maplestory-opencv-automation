@@ -328,7 +328,7 @@ class AutoControl:
             
         #判斷:方向為"UP" 且 處於y軸範圍 
         elif self.current_verti_target == "UP" and top <= py < bottom:
-            print("CLIMB_UP")
+            print("向上爬行...")
             #狀態改變
             self.is_finding_rope_state =False
             self.is_climbing_state = True
@@ -341,17 +341,17 @@ class AutoControl:
             return self._pack_action("IDLE", None)
         
         #判斷:方向為"DOWN"
-        if self.current_verti_target == "DOWN" and py == top:
+        if self.current_verti_target == "DOWN" and  top <= py <= top + trigger_tolerance:
             #狀態改變
             self.is_finding_rope_state = True
 
-            if px < central_axis and py == top:
+            if px < central_axis :
                 print("往右下跑")
                 return self._pack_action("ROPE", direction="RIGHT_DOWN")
-            elif px > central_axis and py == top:
+            elif px > central_axis :
                 print("往左下跑")
                 return self._pack_action("ROPE", direction="LEFT_DOWN")
-            elif px == central_axis and py == top: #<---要加個py == top判定，否則下方的CLIMB DOWN不會觸發
+            elif px == central_axis :
                 print("原地下降")
                 return self._pack_action("ROPE", direction=self.current_verti_target)
             
