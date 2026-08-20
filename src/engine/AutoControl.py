@@ -50,6 +50,9 @@ class AutoControl:
         # Parameters
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
 
+        #Flags
+        self.patrol_active = True 
+
 
         #Toggle/
         self.enable_searching_mob = config.get("auto_control_config.search_interval", False) # <-- 搜尋怪物功能
@@ -151,11 +154,11 @@ class AutoControl:
             # 找不到怪"X"秒 就關閉巡邏狀態
             if   current_time - self.patrol_start_time > self.verti_move_threshold:
                 print("平台巡邏超時，切換至尋找上下通道")
-
+                self.patrol_active = False
                 self.patrol_start_time = None
-            else:
+            elif self.patrol_active:
                 # 平台檢查
-                self.current_platform = self._check_current_platform()
+                # self.current_platform = self._check_current_platform()
                 #正常巡邏
                 result = self._enable_player_patrol()
                 return result
@@ -180,10 +183,13 @@ class AutoControl:
                     if result is not None:
                         return result
                 else:
-                    # 重置狀態屬性
-
+                    # 假如，爬繩子，則重置狀態屬性
+                    
+                    if self.is_climbing_state or self.is_finding_rope_state:
+                        self.patrol_active = True
                     self.is_climbing_state = False
                     self.is_finding_rope_state = False
+                    
             except Exception as e:
                 logging.error(f"垂直通道判斷失敗{e}")
 
@@ -241,8 +247,8 @@ class AutoControl:
             offset = 3
             if current["action"] == "rope" and next_item["action"] == "rope":
 
-                top = min(current["loc"][1],next_item["loc"][1])
-                bottom = max(next_item["loc"][1],current["loc"][1])
+                top = min(current["loc"][1],next_item["loc"][1]) 
+                bottom = max(next_item["loc"][1],current["loc"][1]) 
 
                 left = min(current["loc"][0], next_item["loc"][0]) - offset
                 right = max(current["loc"][0], next_item["loc"][0]) + offset
@@ -298,21 +304,23 @@ class AutoControl:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
 
             #debug
-            # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
+            print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
         #=================
         #   假設 繩子 X為0  原地上跳 X也要為0 才能抓住；
         #   x = -1 與 1 左跳,右跳都抓不到繩子，要移動到x=0 用直接跳 或是 移動到 x= -2,2 則左跳右跳可以抓到繩子 
         #=================
-        
-        #判斷:方向為"UP" 且 人物處於通道底部
-        if self.current_verti_target == "UP" and py == bottom :
+        #容忍值
+        trigger_tolerance = 3
+        #判斷:方向為"UP" 且 人物處於通道底部附近
+        if self.current_verti_target == "UP" and  bottom - trigger_tolerance <= py <= bottom :
             self.is_finding_rope_state = True
 
             if px < central_axis :
+                print("往右跳爬")
                 return self._pack_action("ROPE", direction="RIGHT_UP")
             elif px > central_axis :
-
+                print("往左跳爬")
                 return self._pack_action("ROPE", direction="LEFT_UP")
             elif px == central_axis:
                 print(f"原地上跳:人物X軸 {px}；繩子X軸 {central_axis}")
@@ -374,6 +382,9 @@ class AutoControl:
         """
 
         platforms = []
+
+        #平台誤差範圍
+
         i= 0
         while i < len(self.recored_data)-1:
             current = self.recored_data[i]
@@ -523,10 +534,12 @@ class AutoControl:
         return None
 
     #=================
-    # 邏輯塊: 水平移動
+    # 邏輯塊: 人物移動
     #=================
     def _enable_player_patrol(self)-> tuple[Optional[str], Optional[dict]]:
-
+        '''
+        功能:平台範圍內左右巡邏
+        '''
 
         px, py = self.mini_player_loc
 
@@ -549,6 +562,9 @@ class AutoControl:
         #這句不能改，否則人物會罰站
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
+
+
+
 
     #=================
     # 工具
