@@ -221,15 +221,49 @@ class KeyBoard:
         self.enable_jump()
         self.enable_up(duration=0.5)
 
-    def move_down_right(self):
-        interception.key_down(self.right_key)
-        time.sleep(0.03)
-        # interception.key_down(self.down_key)
+    def _move_down_right_command(self, duration=0.3):
+        try:
+            interception.key_down(self.right_key)
+            time.sleep(0.03)              # 先給右鍵一點時間讓角色轉向/移動一小步
+            interception.key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
+            time.sleep(duration)
+        except Exception as e:
+            logging.error(f"下滑動作發生錯誤:{e}")
+        finally:
+            interception.key_up(self.right_key)
+            interception.key_up(self.down_key)
+            with self._move_down_right_lock:
+                self._status_move_down_right = False
 
-    def move_down_left(self):
-        interception.key_down(self.left_key)
-        time.sleep(0.03)
-        # interception.key_down(self.down_key)
+    def move_down_right(self, duration=0.3):
+        '''向右下移動'''
+        with self._move_down_right_lock:
+            if self._status_move_down_right:
+                return
+            self._status_move_down_right = True
+        threading.Thread(target=self._move_down_right_command, args=(duration,), daemon=True).start()
+
+    def _move_down_left_command(self, duration=0.3):
+        try:
+            interception.key_down(self.left_key)
+            time.sleep(0.03)              # 先給左鍵一點時間讓角色轉向/移動一小步
+            interception.key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
+            time.sleep(duration)
+        except Exception as e:
+            logging.error(f"下滑動作發生錯誤:{e}")
+        finally:
+            interception.key_up(self.left_key)
+            interception.key_up(self.down_key)
+            with self._move_down_left_lock:
+                self._status_move_down_left = False
+
+    def move_down_left(self, duration=0.3):
+        '''向左下移動'''
+        with self._move_down_left_lock:
+            if self._status_move_down_left:
+                return
+            self._status_move_down_left = True
+        threading.Thread(target=self._move_down_left_command, args=(duration,), daemon=True).start()
 
     def climb_up(self):
         interception.key_down(self.up_key)

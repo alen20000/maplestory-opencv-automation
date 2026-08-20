@@ -26,10 +26,11 @@ player_setting:
       key: "pagedown"
       value: 20
 
+  #戰鬥設置
   auto_control_config:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
-    is_Night_Lord: True
-    #人物的攻擊範圍(像素) 參考: 近戰:100 遠程:500
+    is_Night_Lord: False
+    #人物的攻擊範圍(像素) 參考: 近戰:80-100 遠程:200-500
     attack_range: 500
 
 
@@ -44,27 +45,27 @@ image_processing:
 game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
-  #參考: 近戰 100-200 遠程 400-500
-  roi_x_offset_l_width: 500
-  roi_x_offset_r_width: 500
+  #參考: 近戰 100-200 遠程 300-500
+  roi_x_offset_l_width: 150
+  roi_x_offset_r_width: 150
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 40
 
 auto_control_config:
 
   #尋怪功能開關 True/False
-  search_interval: True
+  search_interval: False
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 15
   #這是平台判定的偏移量，有些特殊地圖，平台Y軸落差很大時再動，否則預設 "5"像素
-  platform_offset: 5
+  platform_offset: 7
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
-  verti_move_threshold : 2
+  verti_move_threshold : 0
 
 
 health_detector:
-  #存放血條的是窗內位置對應的[x1,y1,x2,y2]
-  #如果換了其他版本楓之谷，這邊可以調整，也能偵測的到
+
+  #健康條匹配模板
   hp_bar_template : img/health_detector/hp_template.png
   mp_bar_template : img/health_detector/mp_template.png
   #血條顏色範圍
@@ -73,6 +74,7 @@ health_detector:
   #藍條顏色範圍
   lower_mp_color: [100, 132, 238]
   upper_mp_color: [107, 255, 255]
+
 keyboard:
   #鍵盤按鍵設定
   left: left
