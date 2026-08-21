@@ -189,7 +189,7 @@ class AutoControl:
 
                 # 觸發:人物在垂直通道範圍 且 時間允許
                 if self.current_vertical_passage is not None:
-
+                    print("開始爬抓取繩子")
                     self.pervious_time = current_time
 
                     # 禁止戰鬥
@@ -325,69 +325,62 @@ class AutoControl:
             #debug
             print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
-        #=================
-        #   假設 繩子 X為0  原地上跳 X也要為0 才能抓住；
-        #   x = -1 與 1 左跳,右跳都抓不到繩子，要移動到x=0 用直接跳 或是 移動到 x= -2,2 則左跳右跳可以抓到繩子 
-        #=================
         #容忍值
         trigger_tolerance = 3
-        #判斷:方向為"UP" 且 人物處於通道底部附近
-        if self.current_verti_target == "UP" and  bottom - trigger_tolerance <= py <= bottom :
 
-            #狀態改變:找繩子
-            self.is_finding_rope_state = True
+        if self.current_verti_target == "UP":
 
-            if px < central_axis :
-                print("往右跳爬")
-                return self._pack_action("ROPE", direction="RIGHT_UP")
-            elif px > central_axis :
-                print("往左跳爬")
-                return self._pack_action("ROPE", direction="LEFT_UP")
-
+            if  py <= top :
+                print("到達頂部，重置狀態")
+                self._exit_verti()
+                return None
             
-        #判斷:方向為"UP" 且 處於y軸範圍 
-        elif self.current_verti_target == "UP" and top - trigger_tolerance < py < bottom:
+            #行為:找方向跳抓繩子
+            if self.current_verti_target == "UP" and  bottom - trigger_tolerance <= py <= bottom :
 
-            print("向上爬行...")
+                #狀態改變:找繩子
+                self.is_finding_rope_state = True
 
-            #狀態改變:退出找繩子，進入爬繩子
-            self.is_finding_rope_state =False
+                if px <= central_axis :
+                    print("往右跳爬")
+                    return self._pack_action("ROPE", direction="RIGHT_UP")
+                elif px >= central_axis :
+                    print("往左跳爬")
+                    return self._pack_action("ROPE", direction="LEFT_UP")
+
+            # 其餘情況全部視為爬行中
+            if self.is_finding_rope_state:
+                self.is_finding_rope_state = False
             self.is_climbing_state = True
+            print(f"向上爬行...;爬行狀態:{self.is_climbing_state}")
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
-        elif self.current_verti_target == "UP" and py <= top - trigger_tolerance:
-            print("到達頂部，重置狀態")
-            self._exit_verti()
-            return None
-        
-        #判斷:方向為"DOWN"
-        if self.current_verti_target == "DOWN" and  top <= py <= top + trigger_tolerance:
+        if self.current_verti_target == "DOWN":
 
-            #狀態改變:找繩子
-            self.is_finding_rope_state = True
-
-            if px < central_axis :
-                print("往右下跑")
-                return self._pack_action("ROPE", direction="RIGHT_DOWN")
-            elif px > central_axis :
-                print("往左下跑")
-                return self._pack_action("ROPE", direction="LEFT_DOWN")
-
+            if self.current_verti_target == "DOWN" and py >= bottom:
+                print("到達底部，重置狀態")
+                #到達底部，重置狀態
+                self._exit_verti()
+                return None
             
-        #判斷:方向為"DOWN" 且 處於y軸範圍 
-        elif self.current_verti_target == "DOWN"  and top < py <= bottom:
-            print("正在下爬")
-            #狀態改變:退出找繩子，進入爬繩子
-            self.is_finding_rope_state =False
-            self.is_climbing = True
+            if top <= py <= top + trigger_tolerance:
+                #狀態改變:找繩子
+                self.is_finding_rope_state = True
+
+                if px <= central_axis :
+                    print("往右下跑")
+                    return self._pack_action("ROPE", direction="RIGHT_DOWN")
+                elif px >= central_axis :
+                    print("往左下跑")
+                    return self._pack_action("ROPE", direction="LEFT_DOWN")
+
+            # 其餘情況全部視為爬行中
+            if self.is_finding_rope_state:
+                self.is_finding_rope_state = False
+            self.is_climbing_state = True
+            print(f"向下爬行...;爬行狀態:{self.is_climbing_state}")
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
-        elif self.current_verti_target == "DOWN" and py >= bottom:
-            print("到達底部，重置狀態")
-            #到達底部，重置狀態
-            self._exit_verti()
-            return None
-        
         return None
     def _enter_verti(self):
         '''
@@ -675,17 +668,25 @@ class AutoControl:
         # 先試著找「跟目前平台 x 範圍有重疊」的通道，這些是人物可移動到的
         reachable_candidates = []
         if self.current_platform:
-            #先抓定位平台座標
+            #先抓定位平台座標(這邊要記得減一還原正確index)
             plat = self.platforms[self.current_platform - 1]
             plat_left, plat_right = plat["t_l"][0], plat["b_r"][0]
 
+            plat_y = plat["t_l"][1] 
+            y_tolerance = 15
+
             for index, passage in enumerate(self.vertical_passage):
                 p_left, p_right = passage["t_l"][0], passage["b_r"][0]
-                # 通道的 x 範圍，跟目前平台的 x 範圍有重疊，才算走得到
-                if not (p_right < plat_left or p_left > plat_right):
-                    reachable_candidates.append(index)
+                p_top, p_bottom = passage["t_l"][1], passage["b_r"][1]
 
-        # 如果有找到能走到的候選，只在這些裡面挑最近的
+                x_overlap = not (p_right < plat_left or p_left > plat_right)
+                y_touch = (abs(p_top - plat_y) <= y_tolerance) or (abs(p_bottom - plat_y) <= y_tolerance)
+
+                if x_overlap and y_touch:
+                    reachable_candidates.append(index)
+        print(f"可到達的垂直通道:{reachable_candidates}")
+
+        # 如果有找到能走到的候選，只在這些裡面挑最近的，沒有的話才找全部
         search_pool = reachable_candidates if reachable_candidates else range(len(self.vertical_passage))
 
         nearest_verti_passage_index = None
@@ -712,12 +713,13 @@ class AutoControl:
 
     def _move_to_verti_passage(self, verti_passage_index)-> tuple[Optional[str], Optional[dict]]:
         '''
+        功能:控制人物移動到目標垂直通道
         arges: 
             verti_passage_index: 垂直通道的index
         return:
             self._pack_action("MOVE", direction="RIGHT"or "LEFT")
         '''
-        px , py = self.mini_player_loc
+        px , _ = self.mini_player_loc
 
         if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
             return self._pack_action("MOVE", direction="RIGHT")
@@ -730,7 +732,7 @@ class AutoControl:
         """
         將行為打包成字典
         """
-        return action_type, kwargs if kwargs else None
+        return action_type, kwargs
 
 
 
