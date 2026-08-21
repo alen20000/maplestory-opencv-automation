@@ -53,9 +53,8 @@ class AutoControl:
         #Flags
         self.patrol_active = True 
 
-
         #Toggle/
-        self.enable_searching_mob = config.get("auto_control_config.search_interval", False) # <-- 搜尋怪物功能
+        self.enable_searching_mob = config.get("auto_control_config.search_interval", False) # <-- 搜尋怪物功能(開//關)
     #=================
     # 載入設定
     #=================
@@ -138,13 +137,20 @@ class AutoControl:
         level , mp_key = self._mp_status_check(state.player_mp, current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
-
-        # 判斷:人物在平台外
-        if not self.current_platform:
-
-            result = self._find_nearest_platform()
-            print(f"最近的平台是{result}")
         
+        '''測試用'''
+        # # 判斷: (人物超出範圍) 人物在平台外，也不再繩子上
+        # if not self.current_platform and self.current_vertical_passage is None:
+        #     result = self._find_nearest_platform()
+        #     print(f"最近的平台是{result}")
+        # # 判斷: (人物超出範圍) 人物在平台外，也不再平台上
+        # if not self.current_platform and self.current_platform  is None:
+        #     result = self._find_nearest_platform()
+        #     print(f"最近的垂直通道是{result}")
+        '''
+        =======
+        '''
+
         # 模塊:打怪物
         if self.mini_player_loc and self.enable_searching_mob:
             if platform:= self._handle_platform_logic(state):
@@ -157,24 +163,26 @@ class AutoControl:
                 self.patrol_start_time = current_time
                 self.patrol_state = True
 
-            # 找不到怪"X"秒 就關閉巡邏狀態
+            # 判斷:幾秒找不到怪，就關閉巡邏狀態
             if   current_time - self.patrol_start_time > self.verti_move_threshold:
                 print("平台巡邏超時，切換至尋找上下通道")
-                self.patrol_active = False
+                self.patrol_active = False   #<-- 為False 時，在方找垂直路徑的模塊才能運作
                 self.patrol_start_time = None
             elif self.patrol_active:
-                # 平台檢查
-                # self.current_platform = self._check_current_platform()
-                #正常巡邏
+                # 開始巡弋找怪
                 result = self._enable_player_patrol()
                 return result
         
-        # 模塊:找下移動模塊
+        # 模塊:開始找路徑進行垂直移動
         if self.mini_player_loc:
             try:
 
                 # 判斷:人物是否在垂直通道內
                 self.current_vertical_passage = self._check_vertical_passage()
+
+                if isinstance(self.current_vertical_passage, int):
+                    index = self._find_nearest_verti_passage()
+                    self._move_to_verti_passage(index)
 
                 # 觸發:人物在垂直通道範圍 且 時間允許
                 if self.current_vertical_passage is not None:
@@ -266,11 +274,12 @@ class AutoControl:
 
         return passage
     
-    def _check_vertical_passage(self):
+    def _check_vertical_passage(self) -> Optional[int]:
         '''
         判斷玩家在哪個垂直通道內
 
-        returns: 垂直通道的index|None
+        returns: 
+            傳回垂直通道的index|None
         '''
         if not self.mini_player_loc or not self.vertical_passage:
             return None
@@ -478,7 +487,7 @@ class AutoControl:
             return None, None  # 防呆:# player_mp 為 None 時提前擋下
 
         if not (0 < player_mp <= 100):
-            logging.warning(f"魔力取值異常: {player_mp} ")
+            logging.info(f"魔力取值異常: {player_mp} ")
             return None, None
 
 
@@ -572,17 +581,17 @@ class AutoControl:
     def _find_nearest_platform(self):
         """
         功能:找最近的平台
-        return: 平台引所對應的index (有加一個1，為了防止判斷為None的情況)
+        return: 平台引所對應的index 
         """
         if not self.mini_player_loc or not self.platforms:
             return None
 
         px , py = self.mini_player_loc
 
-        nearest_platform = None
+        nearest_platform_index = None
         #跟找怪邏輯一樣，從無限距離開始判斷
         nearest_distance = float('inf')
-        print(self.platforms)
+
         for index, plat in enumerate(self.platforms):
 
             left, top = plat["t_l"]
@@ -598,10 +607,55 @@ class AutoControl:
 
             if distance < nearest_distance:
                 nearest_distance = distance
-                best_index = index
+                nearest_platform_index  = index
 
-        return best_index
+        return nearest_platform_index 
+    def _find_nearest_verti_passage(self) -> Optional[int]:
+        """
+        功能:找最近的垂直通道
+        return: 平台引所對應的index 
+        """
+        if not self.mini_player_loc or not self.vertical_passage:
+            return None
 
+        px , py = self.mini_player_loc
+
+        nearest_verti_passage_index = None
+        #跟找怪邏輯一樣，從無限距離開始判斷
+        nearest_distance = float('inf')
+
+        for index, plat in enumerate(self.vertical_passage):
+
+            left, top = plat["t_l"]
+            right, bottom = plat["b_r"]
+
+            if left <= px <= right:
+                dx = 0
+            else:
+                dx = min(abs(px - left), abs(px - right))
+            dy = min(abs(py - top), abs(py - bottom))
+
+            distance = (dx ** 2 + dy ** 2) ** 0.5
+
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_verti_passage_index  = index
+
+        return nearest_verti_passage_index
+
+    def _move_to_verti_passage(self, verti_passage_index)-> tuple[Optional[str], Optional[dict]]:
+        '''
+        arges: 
+            verti_passage_index: 垂直通道的index
+        return:
+            self._pack_action("MOVE", direction="RIGHT"or "LEFT")
+        '''
+        px , py = self.mini_player_loc
+
+        if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
+            return self._pack_action("MOVE", direction="RIGHT")
+        else:
+            return self._pack_action("MOVE", direction="LEFT")
     #=================
     # 工具
     #=================
