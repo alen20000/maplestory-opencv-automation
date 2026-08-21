@@ -137,19 +137,6 @@ class AutoControl:
         level , mp_key = self._mp_status_check(state.player_mp, current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
-        
-        '''測試用'''
-        # # 判斷: (人物超出範圍) 人物在平台外，也不再繩子上
-        # if not self.current_platform and self.current_vertical_passage is None:
-        #     result = self._find_nearest_platform()
-        #     print(f"最近的平台是{result}")
-        # # 判斷: (人物超出範圍) 人物在平台外，也不再平台上
-        # if not self.current_platform and self.current_platform  is None:
-        #     result = self._find_nearest_platform()
-        #     print(f"最近的垂直通道是{result}")
-        '''
-        =======
-        '''
 
         # 模塊:打怪物
         if self.battle_active :
@@ -172,7 +159,11 @@ class AutoControl:
                 # 開始巡弋找怪
                 result = self._enable_player_patrol()
                 return result
-        
+
+        #角色脫困難
+        if self.current_platform is None and self.current_vertical_passage is None:
+            return self.player_unstuck()
+
         # 模塊:開始找路徑進行垂直移動
         if self.mini_player_loc:
             try:
@@ -218,6 +209,7 @@ class AutoControl:
             self.is_combat_state = True
 
 
+
         return None,None
 
     def _handle_platform_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
@@ -245,7 +237,19 @@ class AutoControl:
                 return result
             
 
-        
+    def player_unstuck(self):
+        '''
+        角色脫困
+        '''
+
+        #去最近平台
+        result = self._find_nearest_platform()
+        if result is not None:
+            print("""自動去最近的平台""")
+            return self._move_to_platform(result)
+        else:
+            return None
+
     #=================
     # 邏輯塊: 垂直通道
     #=================
@@ -623,69 +627,41 @@ class AutoControl:
 
         return nearest_platform_index 
     
-    # def _find_nearest_verti_passage(self) -> Optional[int]:
-    #     """
-    #     功能:找最近的垂直通道
-    #     return: 平台引所對應的index 
-    #     問題:純畢氏距離找最近通道
-    #         隔著平台會卡住
-    #     """
-    #     if not self.mini_player_loc or not self.vertical_passage:
-    #         return None
-
-    #     px , py = self.mini_player_loc
-
-    #     nearest_verti_passage_index = None
-    #     #跟找怪邏輯一樣，從無限距離開始判斷
-    #     nearest_distance = float('inf')
-
-    #     for index, plat in enumerate(self.vertical_passage):
-
-    #         left, top = plat["t_l"]
-    #         right, bottom = plat["b_r"]
-
-    #         if left <= px <= right:
-    #             dx = 0
-    #         else:
-    #             dx = min(abs(px - left), abs(px - right))
-
-    #         dy = min(abs(py - top), abs(py - bottom))
-    #         distance = (dx ** 2 + dy ** 2) ** 0.5
-
-    #         if distance < nearest_distance:
-    #             nearest_distance = distance
-    #             nearest_verti_passage_index  = index
-
-    #     return nearest_verti_passage_index
 
     def _find_nearest_verti_passage(self) -> Optional[int]:
-
+        """
+        功能:先找目前平台內最近的垂直通道
+        return: 平台引所對應的index 
+        """
         if not self.mini_player_loc or not self.vertical_passage:
             return None
+        #更新一下目前在哪一個平台，沒有平台就會進入全域找通道
+        self.current_platform = self._check_current_platform()
 
         px, py = self.mini_player_loc
 
         # 先試著找「跟目前平台 x 範圍有重疊」的通道，這些是人物可移動到的
         reachable_candidates = []
+
         if self.current_platform:
             #先抓定位平台座標(這邊要記得減一還原正確index)
             plat = self.platforms[self.current_platform - 1]
+            #取出 plat 的 t_l b_r點
             plat_left, plat_right = plat["t_l"][0], plat["b_r"][0]
-
-            plat_y = plat["t_l"][1] 
-            y_tolerance = 15
+            plat_top, plat_bottom = plat["t_l"][1], plat["b_r"][1] 
 
             for index, passage in enumerate(self.vertical_passage):
                 p_left, p_right = passage["t_l"][0], passage["b_r"][0]
                 p_top, p_bottom = passage["t_l"][1], passage["b_r"][1]
 
                 x_overlap = not (p_right < plat_left or p_left > plat_right)
-                y_touch = (abs(p_top - plat_y) <= y_tolerance) or (abs(p_bottom - plat_y) <= y_tolerance)
+                y_touch = (plat_top <= p_top <= plat_bottom) or (plat_top <= p_bottom <= plat_bottom)
 
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)
-        print(f"可到達的垂直通道:{reachable_candidates}")
 
+        print(f"可到達的垂直通道:{reachable_candidates}")
+        print(f"[DEBUG] 玩家座標: px={px}, py={py}, current_platform={self.current_platform}")
         # 如果有找到能走到的候選，只在這些裡面挑最近的，沒有的話才找全部
         search_pool = reachable_candidates if reachable_candidates else range(len(self.vertical_passage))
 
@@ -725,6 +701,23 @@ class AutoControl:
             return self._pack_action("MOVE", direction="RIGHT")
         else:
             return self._pack_action("MOVE", direction="LEFT")
+
+    def _move_to_platform(self, platform_index)-> tuple[Optional[str], Optional[dict]]:
+        '''
+        功能:控制人物移動到目標垂直通道
+        arges: 
+            verti_passage_index: 垂直通道的index
+        return:
+            self._pack_action("MOVE", direction="RIGHT"or "LEFT")
+        '''
+        if self.mini_player_loc:
+            px , _ = self.mini_player_loc
+
+            if px < self.vertical_passage[platform_index]["t_l"][0]:
+                return self._pack_action("MOVE", direction="RIGHT")
+            else:
+                return self._pack_action("MOVE", direction="LEFT")
+        return None
     #=================
     # 工具
     #=================
@@ -736,3 +729,37 @@ class AutoControl:
 
 
 
+    # def _find_nearest_verti_passage(self) -> Optional[int]:
+    #     """
+    #     功能:找最近的垂直通道
+    #     return: 平台引所對應的index 
+    #     問題:純畢氏距離找最近通道
+    #         隔著平台會卡住
+    #     """
+    #     if not self.mini_player_loc or not self.vertical_passage:
+    #         return None
+
+    #     px , py = self.mini_player_loc
+
+    #     nearest_verti_passage_index = None
+    #     #跟找怪邏輯一樣，從無限距離開始判斷
+    #     nearest_distance = float('inf')
+
+    #     for index, plat in enumerate(self.vertical_passage):
+
+    #         left, top = plat["t_l"]
+    #         right, bottom = plat["b_r"]
+
+    #         if left <= px <= right:
+    #             dx = 0
+    #         else:
+    #             dx = min(abs(px - left), abs(px - right))
+
+    #         dy = min(abs(py - top), abs(py - bottom))
+    #         distance = (dx ** 2 + dy ** 2) ** 0.5
+
+    #         if distance < nearest_distance:
+    #             nearest_distance = distance
+    #             nearest_verti_passage_index  = index
+
+    #     return nearest_verti_passage_index
