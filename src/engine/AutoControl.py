@@ -726,14 +726,12 @@ class AutoControl:
 
             print(f"走去{platform_index}平台")
 
-
-
             # (1) 防卡監測
             stuck_action =self._detect_move_stuck()
             if stuck_action is not None:
                 return stuck_action
             # (2) 主邏輯
-            if px < self.vertical_passage[platform_index]["t_l"][0]:
+            if px < self.platforms[platform_index]["t_l"][0]:
                 return self._pack_action("MOVE", direction="RIGHT")
             else:
                 return self._pack_action("MOVE", direction="LEFT")
