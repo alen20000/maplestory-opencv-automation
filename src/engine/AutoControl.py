@@ -138,6 +138,12 @@ class AutoControl:
         level , mp_key = self._mp_status_check(state.player_mp, current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
+
+        # 判斷:人物在平台外
+        if not self.current_platform:
+
+            result = self._find_nearest_platform()
+            print(f"最近的平台是{result}")
         
         # 模塊:打怪物
         if self.mini_player_loc and self.enable_searching_mob:
@@ -286,7 +292,7 @@ class AutoControl:
 
     def _verti_movement(self):
         """
-        垂直移動判斷
+        垂直移動邏輯
         """
         #通道有+1，要減掉才是正確的index
         verti_index = self.current_vertical_passage -1
@@ -563,8 +569,38 @@ class AutoControl:
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
 
+    def _find_nearest_platform(self):
+        """
+        功能:找最近的平台
+        return: 平台引所對應的index (有加一個1，為了防止判斷為None的情況)
+        """
+        if not self.mini_player_loc or not self.platforms:
+            return None
 
+        px , py = self.mini_player_loc
 
+        nearest_platform = None
+        #跟找怪邏輯一樣，從無限距離開始判斷
+        nearest_distance = float('inf')
+        print(self.platforms)
+        for index, plat in enumerate(self.platforms):
+
+            left, top = plat["t_l"]
+            right, bottom = plat["b_r"]
+
+            if left <= px <= right:
+                dx = 0
+            else:
+                dx = min(abs(px - left), abs(px - right))
+            dy = min(abs(py - top), abs(py - bottom))
+
+            distance = (dx ** 2 + dy ** 2) ** 0.5
+
+            if distance < nearest_distance:
+                nearest_distance = distance
+                best_index = index
+
+        return best_index
 
     #=================
     # 工具
