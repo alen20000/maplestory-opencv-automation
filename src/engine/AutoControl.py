@@ -180,7 +180,9 @@ class AutoControl:
                 # 判斷:人物是否在垂直通道內
                 self.current_vertical_passage = self._check_vertical_passage()
 
-                if isinstance(self.current_vertical_passage, int):
+                # 觸發:不在垂直通道範圍
+                if self.current_vertical_passage is None:
+                    #自動去最近的垂直通道
                     index = self._find_nearest_verti_passage()
                     self._move_to_verti_passage(index)
 
