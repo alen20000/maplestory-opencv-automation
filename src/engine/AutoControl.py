@@ -51,8 +51,8 @@ class AutoControl:
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
 
         #Flags
-        self.patrol_active = True 
-
+        self.patrol_active = True  #巡邏
+        self.battle_active = True  #戰鬥
         #Toggle/
         self.enable_searching_mob = config.get("auto_control_config.search_interval", False) # <-- 搜尋怪物功能(開//關)
     #=================
@@ -109,8 +109,8 @@ class AutoControl:
                 self.platforms = self._find_platform()
                 self.vertical_passage = self._find_vertical_passage()
 
-                logging.warning(f"{map_name}地圖載入完成，平台數量:{len(self.platforms)},垂直通道數量:{len(self.vertical_passage)}")
-
+                logging.info(f"{map_name}地圖載入完成，平台數量:{len(self.platforms)},垂直通道數量:{len(self.vertical_passage)}")
+                print(f"{map_name}地圖載入完成\n平台數量:{len(self.platforms)}\n垂直通道數量:{len(self.vertical_passage)}")
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
 
@@ -152,9 +152,10 @@ class AutoControl:
         '''
 
         # 模塊:打怪物
-        if self.mini_player_loc and self.enable_searching_mob:
-            if platform:= self._handle_platform_logic(state):
-                return platform
+        if self.battle_active :
+            if self.mini_player_loc and self.enable_searching_mob :
+                if platform:= self._handle_platform_logic(state):
+                    return platform
 
         # 模塊:左右邊界巡邏
         if self.current_platform and self.enable_searching_mob :
@@ -163,11 +164,10 @@ class AutoControl:
                 self.patrol_start_time = current_time
                 self.patrol_state = True
 
-            # 判斷:幾秒找不到怪，就關閉巡邏狀態
+            # 判斷:幾秒找不到怪，進入找通道
             if   current_time - self.patrol_start_time > self.verti_move_threshold:
-                print("平台巡邏超時，切換至尋找上下通道")
-                self.patrol_active = False   #<-- 為False 時，在方找垂直路徑的模塊才能運作
-                self.patrol_start_time = None
+
+                action = self._enter_verti()
             elif self.patrol_active:
                 # 開始巡弋找怪
                 result = self._enable_player_patrol()
@@ -184,7 +184,8 @@ class AutoControl:
                 if self.current_vertical_passage is None:
                     #自動去最近的垂直通道
                     index = self._find_nearest_verti_passage()
-                    self._move_to_verti_passage(index)
+                    print(f"自動去最近的{index +1}號垂直通道")
+                    return  self._move_to_verti_passage(index)
 
                 # 觸發:人物在垂直通道範圍 且 時間允許
                 if self.current_vertical_passage is not None:
@@ -210,7 +211,8 @@ class AutoControl:
                 logging.error(f"垂直通道判斷失敗{e}")
 
         # 重置爬行方向的狀態
-        self.current_verti_target = None
+        if self.current_verti_target is None:
+            self.current_verti_target = None
         # 如果人物脫離垂直通道，則允許戰鬥
         if self.current_vertical_passage is None:
             self.is_combat_state = True
@@ -331,6 +333,8 @@ class AutoControl:
         trigger_tolerance = 3
         #判斷:方向為"UP" 且 人物處於通道底部附近
         if self.current_verti_target == "UP" and  bottom - trigger_tolerance <= py <= bottom :
+
+            #狀態改變:找繩子
             self.is_finding_rope_state = True
 
             if px < central_axis :
@@ -345,21 +349,23 @@ class AutoControl:
             
         #判斷:方向為"UP" 且 處於y軸範圍 
         elif self.current_verti_target == "UP" and top <= py < bottom:
+
             print("向上爬行...")
-            #狀態改變
+
+            #狀態改變:退出找繩子，進入爬繩子
             self.is_finding_rope_state =False
             self.is_climbing_state = True
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         elif self.current_verti_target == "UP" and py <= top:
             print("到達頂部，重置狀態")
-            #到達頂部，重置狀態
-            self.is_climbing_state = False
-            return self._pack_action("IDLE", None)
+            self._exit_verti()
+            return None
         
         #判斷:方向為"DOWN"
         if self.current_verti_target == "DOWN" and  top <= py <= top + trigger_tolerance:
-            #狀態改變
+
+            #狀態改變:找繩子
             self.is_finding_rope_state = True
 
             if px < central_axis :
@@ -375,7 +381,7 @@ class AutoControl:
         #判斷:方向為"DOWN" 且 處於y軸範圍 
         elif self.current_verti_target == "DOWN"  and top < py <= bottom:
             print("正在下爬")
-            #狀態改變
+            #狀態改變:退出找繩子，進入爬繩子
             self.is_finding_rope_state =False
             self.is_climbing = True
             return self._pack_action("CLIMB", direction=self.current_verti_target)
@@ -383,12 +389,27 @@ class AutoControl:
         elif self.current_verti_target == "DOWN" and py >= bottom:
             print("到達底部，重置狀態")
             #到達底部，重置狀態
-            self.is_climbing_state = False
-            return self._pack_action("IDLE", None)
+            self._exit_verti()
+            return None
         
         return None
-        
+    def _enter_verti(self):
+        '''
+        功能:進入通道前，狀態改變
+            關閉:巡邏、打怪
+        '''
+        self.patrol_active = False   #
+        self.patrol_start_time = None
+        self.battle_active = False
 
+    def _exit_verti(self):
+        '''
+        功能:離開通道時，狀態重置
+        '''
+        self.current_verti_target = None
+        self.is_climbing_state = False
+        self.patrol_active = True
+        self.battle_active = True
     #=================
     # 邏輯塊: 水平平台
     #=================
@@ -458,7 +479,7 @@ class AutoControl:
             return None, None  # 防呆:# player_hp 為 None 時提前擋下
 
         if not (0 < player_hp <= 100):
-            logging.warning(f"血量取值異常: {player_hp} ")
+            logging.debug(f"血量取值異常: {player_hp} ")
             return None, None
 
         if not self.health_setting:
