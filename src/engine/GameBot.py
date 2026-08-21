@@ -232,6 +232,20 @@ class GameBot:
         
         try:
             while True:
+                # 窗口相關處理
+                
+                #若窗口縮小，等待窗口還原
+                if not self._is_window_valid():
+                    time.sleep(1)
+                    continue
+                
+                is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
+                if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
+                    self.player_states.keyboard.release_all()
+                    self.player_states.keyboard.stop_move()
+                self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
+
+                #抓圖函式
                 self.frame_bgr = self._scan_full_screen()
                 '''
                 ==============
@@ -246,15 +260,6 @@ class GameBot:
                         break
                     continue  
 
-                # 窗口相關處理
-
-                self._is_window_valid()
-                
-                is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
-                if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
-                    self.player_states.keyboard.release_all()
-                    self.player_states.keyboard.stop_move()
-                self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
 
                 # start =time.time() 
 
@@ -296,7 +301,11 @@ class GameBot:
                 '''
                 ================
                 '''
+
+                #OpenCV 的"Game Debug View"窗口顯示
+                window_name = "Game Debug View"
                 cv2.imshow("Game Debug View", self.frame_bgr)
+                cv2.moveWindow(window_name, 1280, 700)
                 cv2.waitKey(1)
 
                 # print(f"一個while循環耗時: {time.time() - start:.3f}")
