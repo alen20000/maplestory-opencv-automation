@@ -32,7 +32,7 @@ class PlayerStates:
             self.current_state = new_state
             self.current_info = target_info
             direction = self.current_info.get("direction")
-            logging.warning(f"狀態更新為: {self.current_state} ；方向為: {direction}")
+            logging.info(f"狀態更新為: {self.current_state} ；方向為: {direction}")
 
         # 判定"攻擊"狀態
         if self.current_state == "ATTACK":
