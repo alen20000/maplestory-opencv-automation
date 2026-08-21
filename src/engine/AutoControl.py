@@ -343,12 +343,10 @@ class AutoControl:
             elif px > central_axis :
                 print("往左跳爬")
                 return self._pack_action("ROPE", direction="LEFT_UP")
-            elif px == central_axis:
-                print(f"原地上跳:人物X軸 {px}；繩子X軸 {central_axis}")
-                return self._pack_action("ROPE", direction="UP")
+
             
         #判斷:方向為"UP" 且 處於y軸範圍 
-        elif self.current_verti_target == "UP" and top <= py < bottom:
+        elif self.current_verti_target == "UP" and top - trigger_tolerance < py < bottom:
 
             print("向上爬行...")
 
@@ -357,7 +355,7 @@ class AutoControl:
             self.is_climbing_state = True
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
-        elif self.current_verti_target == "UP" and py <= top:
+        elif self.current_verti_target == "UP" and py <= top - trigger_tolerance:
             print("到達頂部，重置狀態")
             self._exit_verti()
             return None
@@ -374,9 +372,7 @@ class AutoControl:
             elif px > central_axis :
                 print("往左下跑")
                 return self._pack_action("ROPE", direction="LEFT_DOWN")
-            elif px == central_axis :
-                print("原地下降")
-                return self._pack_action("ROPE", direction=self.current_verti_target)
+
             
         #判斷:方向為"DOWN" 且 處於y軸範圍 
         elif self.current_verti_target == "DOWN"  and top < py <= bottom:
