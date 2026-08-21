@@ -30,6 +30,7 @@ class AutoControl:
         self.current_platform = None #<-- 當前人物所在的平台
         self.current_vertical_passage = None #<-- 當前人物所在的垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
+        self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         #---[道具用容器]
         self.mp_sorted_levels = [] #<-- 藍水等級排序
@@ -40,6 +41,7 @@ class AutoControl:
         self.mp_cooldown = 5 #<--藍水冷卻時間
         self.last_hp_time = None #<--上次喝紅時間
         self.last_mp_time = None #<--上次喝藍時間
+        self.detect_move_stuck_timer = 0 #<--停留時間
         #States
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
@@ -660,8 +662,6 @@ class AutoControl:
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)
 
-        print(f"可到達的垂直通道:{reachable_candidates}")
-        print(f"[DEBUG] 玩家座標: px={px}, py={py}, current_platform={self.current_platform}")
         # 如果有找到能走到的候選，只在這些裡面挑最近的，沒有的話才找全部
         search_pool = reachable_candidates if reachable_candidates else range(len(self.vertical_passage))
 
@@ -697,6 +697,12 @@ class AutoControl:
         '''
         px , _ = self.mini_player_loc
 
+        # (1) 防卡監測
+        stuck_action =self._detect_move_stuck()
+        if stuck_action is not None:
+            return stuck_action
+        
+        # (2) 主邏輯
         if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
             return self._pack_action("MOVE", direction="RIGHT")
         else:
@@ -704,7 +710,7 @@ class AutoControl:
 
     def _move_to_platform(self, platform_index)-> tuple[Optional[str], Optional[dict]]:
         '''
-        功能:控制人物移動到目標垂直通道
+        功能:控制人物移動到目標平台
         arges: 
             verti_passage_index: 垂直通道的index
         return:
@@ -713,11 +719,19 @@ class AutoControl:
         if self.mini_player_loc:
             px , _ = self.mini_player_loc
 
+            # (1) 防卡監測
+            stuck_action =self._detect_move_stuck()
+            if stuck_action is not None:
+                return stuck_action
+            # (2) 主邏輯
             if px < self.vertical_passage[platform_index]["t_l"][0]:
                 return self._pack_action("MOVE", direction="RIGHT")
             else:
                 return self._pack_action("MOVE", direction="LEFT")
         return None
+
+
+    
     #=================
     # 工具
     #=================
@@ -727,8 +741,29 @@ class AutoControl:
         """
         return action_type, kwargs
 
+    def _detect_move_stuck(self):
+        ''' 
+        監視，兩個 move指令之間的間隔，人物位置沒有變化，但表move無效，重新觸發脈衝
+        '''
+        current_time = time.time()
+        #初始化
+        if self.last_player_loc is None:
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
+            return None
+        # 變動監測
+        if self.last_player_loc != self.mini_player_loc:
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
+            return None 
+        
+        if current_time - self.detect_move_stuck_timer > 1.5:
+            print("人物位置沒有變化，重新觸發脈衝")
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer  = current_time
+            return self._pack_action("IDLE",command="STOP_MOVE")
 
-
+        
     # def _find_nearest_verti_passage(self) -> Optional[int]:
     #     """
     #     功能:找最近的垂直通道
