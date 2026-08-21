@@ -167,7 +167,7 @@ class AutoControl:
 
             # 平台在更新一下，也許掉到別的平台
             self.current_platform = self._check_current_platform()
-            
+
             if self.current_platform is  None:
                 return self.player_unstuck()
 
@@ -770,40 +770,4 @@ class AutoControl:
             print("人物位置沒有變化，重新觸發脈衝")
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer  = current_time
-            return self._pack_action("IDLE",command="STOP")
-
-        
-    # def _find_nearest_verti_passage(self) -> Optional[int]:
-    #     """
-    #     功能:找最近的垂直通道
-    #     return: 平台引所對應的index 
-    #     問題:純畢氏距離找最近通道
-    #         隔著平台會卡住
-    #     """
-    #     if not self.mini_player_loc or not self.vertical_passage:
-    #         return None
-
-    #     px , py = self.mini_player_loc
-
-    #     nearest_verti_passage_index = None
-    #     #跟找怪邏輯一樣，從無限距離開始判斷
-    #     nearest_distance = float('inf')
-
-    #     for index, plat in enumerate(self.vertical_passage):
-
-    #         left, top = plat["t_l"]
-    #         right, bottom = plat["b_r"]
-
-    #         if left <= px <= right:
-    #             dx = 0
-    #         else:
-    #             dx = min(abs(px - left), abs(px - right))
-
-    #         dy = min(abs(py - top), abs(py - bottom))
-    #         distance = (dx ** 2 + dy ** 2) ** 0.5
-
-    #         if distance < nearest_distance:
-    #             nearest_distance = distance
-    #             nearest_verti_passage_index  = index
-
-    #     return nearest_verti_passage_index
+            return self._pack_action("IDLE",command="STOP_MOVE")
