@@ -60,7 +60,7 @@ class PlayerStates:
             elif direction == "RIGHT_DOWN":
                 self.keyboard.release_all()
                 self.keyboard.move_down_right()  
-                          
+
             elif direction =="UP":
                 # self.keyboard.release_all()
                 self.keyboard.enable_up(duration=1)
@@ -93,8 +93,12 @@ class PlayerStates:
                 self.keyboard.enable_move_right()
             self.keyboard.enable_pick_up()
             
-        elif self.current_state == "IDLE":
-            self.keyboard.release_all()
+        elif self.current_state == "IDLE" and self.current_info:
+            command = self.current_info.get("command")
+            if command == "STOP_MOVE":
+                print("停止移動")
+                # 停止移動
+                self.keyboard.stop_move()
 
         # 判定"治癒"狀態
         elif self.current_state.startswith("HEAL") and self.current_info:

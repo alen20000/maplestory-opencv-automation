@@ -164,7 +164,12 @@ class AutoControl:
 
         #角色脫困難
         if self.current_platform is None and self.current_vertical_passage is None:
-            return self.player_unstuck()
+
+            # 平台在更新一下，也許掉到別的平台
+            self.current_platform = self._check_current_platform()
+            
+            if self.current_platform is  None:
+                return self.player_unstuck()
 
         # 模塊:開始找路徑進行垂直移動
         if self.mini_player_loc:
@@ -247,7 +252,7 @@ class AutoControl:
         #去最近平台
         result = self._find_nearest_platform()
         if result is not None:
-            print("""自動去最近的平台""")
+            
             return self._move_to_platform(result)
         else:
             return None
@@ -719,6 +724,10 @@ class AutoControl:
         if self.mini_player_loc:
             px , _ = self.mini_player_loc
 
+            print(f"走去{platform_index}平台")
+
+
+
             # (1) 防卡監測
             stuck_action =self._detect_move_stuck()
             if stuck_action is not None:
@@ -761,7 +770,7 @@ class AutoControl:
             print("人物位置沒有變化，重新觸發脈衝")
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer  = current_time
-            return self._pack_action("IDLE",command="STOP_MOVE")
+            return self._pack_action("IDLE",command="STOP")
 
         
     # def _find_nearest_verti_passage(self) -> Optional[int]:
