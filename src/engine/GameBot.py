@@ -16,10 +16,11 @@ from src.engine.AutoControl import AutoControl
 from src.engine.HealthDetector import HealthDetector
 from src.engine.game_state import GameState
 from src.engine.MinimapDetector import MinimapDetector
+import src.action.KeyBoardController as kb
 import time
 import re
 import src.action.HotkeyManager as hk
-import win32con
+import win32con,win32gui
 
 '''
 快捷鍵:
@@ -60,7 +61,7 @@ class GameBot:
         self.last_loc = None  # 記住上一次找到的位置
         self.player_center_loc = None
         self.current_mobs_result =None
-        self.lost_track_duration = 0#<-  人物失蹤計算
+
 
         #---健康參數
         self.player_hp = None
@@ -73,12 +74,17 @@ class GameBot:
 
         #---視窗狀態
         self.bot_enabled = True
+        is_game_window_foreground = True  # <- 記錄「上一輪迴圈」遊戲視窗是否為前景視窗
 
         #---熟鍵設定
         self.hotkey_manager = hk.HotkeyManager()
         self.hotkey_manager.register(win32con.VK_F9, self._toggle_bot)
         self.hotkey_manager.register(win32con.VK_F12, self._exit_app)
-        
+
+    #=================
+    # 初始化加載
+    #=================
+
     def _connect_window(self):
         '''
         hook the game window
@@ -88,35 +94,6 @@ class GameBot:
             logging.info(f"成功讀取遊戲標題: {self.game_title }，視窗句柄: {self.hwnd}")
         else:
             logging.info(f"未匹配到指定窗口{self.game_title }")
-
-    def _toggle_bot(self):
-        '''
-        功能: 切換bot狀態，預設F9
-        '''
-        try:
-            self.bot_enabled = not self.bot_enabled
-            # 釋放所有熟鍵
-            import src.action.KeyBoardController as kb
-            kb = kb.KeyBoard()
-            kb.release_all()
-            #這是[Info]層，但因為會被過濾所以放warning
-            logging.warning(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
-        except Exception as e:
-            logging.error(e)
-
-    def _exit_app(self):
-        '''
-        功能:關掉程式
-        '''
-        logging.info("正在關閉應用程式...")
-        self.bot_enabled = False
-        
-        # 銷毀所有 OpenCV 視窗
-        cv2.destroyAllWindows()
-        
-        # 結束整個程式 (可以透過回傳或直接 sys.exit)
-        import sys
-        sys.exit(0)
 
     def _load_game_resources(self):
         """預先載入資源"""       
@@ -133,8 +110,50 @@ class GameBot:
         self.health_dectector = HealthDetector()
         self.auto_control = AutoControl()
         self.minimap_detector = MinimapDetector()
+        self.keyboard = kb.KeyBoard()
         logging.info(f"已載入屬性與實例")
 
+    #=================
+    # 熟鍵控制
+    #=================
+
+    def _toggle_bot(self):
+        '''
+        功能: 切換bot狀態，預設F9
+        '''
+        try:
+            self.bot_enabled = not self.bot_enabled
+
+            # 釋放所有熟鍵
+            self.keyboard.release_all()
+            self.keyboard.stop_move()
+
+            #這是[Info]層，但因為會被過濾所以放warning
+            logging.warning(f"[Bot 狀態]: {'啟動' if self.bot_enabled else '暫停'}")
+        except Exception as e:
+            logging.error(e)
+
+    def _exit_app(self):
+        '''
+        功能:關掉程式
+        '''
+        logging.info("正在關閉應用程式...")
+        self.bot_enabled = False
+
+        # 釋放所有熟鍵
+        self.keyboard.release_all()
+        self.keyboard.stop_move()
+
+        # 銷毀所有 OpenCV 視窗
+        cv2.destroyAllWindows()
+        
+        # 結束整個程式 (可以透過回傳或直接 sys.exit)
+        import sys
+        sys.exit(0)
+
+    #=================
+    # 窗口處理
+    #=================
     def _scan_full_screen(self):
         '''以窗柄去掃描遊戲畫面'''
         try:
@@ -160,9 +179,7 @@ class GameBot:
             if self.frame_size is None:
                 y, x = frame_bgr.shape[:2]  # (height, width)
                 self.frame_size = (x ,y)
-
         return frame_bgr
-
 
     def _is_window_valid(self):
         if not win32gui.IsWindow(self.hwnd):
@@ -176,10 +193,13 @@ class GameBot:
             return False
         return True
 
-    def _lost_track_count(self):
-        self.lost_track_duration += 1
-        return True
-    
+    def _is_game_window_foreground(self):
+        '''
+        檢查遊戲視窗目前是否為前景視窗
+        '''
+        return win32gui.GetForegroundWindow() == self.hwnd
+
+
     def run(self):
 
         """#pre_process"""
@@ -199,6 +219,10 @@ class GameBot:
 
         #process
         self.screen_loop()
+
+    #=================
+    # 主控制
+    #=================
 
     def screen_loop(self):
         '''
@@ -222,8 +246,15 @@ class GameBot:
                         break
                     continue  
 
-                # 窗口偵測
+                # 窗口相關處理
+
                 self._is_window_valid()
+                
+                is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
+                if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
+                    self.player_states.keyboard.release_all()
+                    self.player_states.keyboard.stop_move()
+                self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
 
                 # start =time.time() 
 
@@ -233,11 +264,6 @@ class GameBot:
                 self.current_mobs_result = self.MobDetector()
                 mini_player_loc = self.MinimapDetector()
 
-                #測試
-                try:
-                    pass
-                except:
-                    pass
 
                 # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
                 # 數據封包
@@ -256,9 +282,10 @@ class GameBot:
                 action_states, target_info = self.auto_control.select_operation(current_game_state)
                 # print(f"行為:{action_states} 目標:{target_info}")
 
-                #至少有  action_states 才傳輸給狀態機
-                if action_states is not None :
-                    self.player_states.execute_behavior(action_states, target_info)
+
+                #至少有 action_states 才傳輸給狀態機 且 本輪遊戲視窗在前景
+                if action_states is not None and is_game_window_foreground:
+                        self.player_states.execute_behavior(action_states, target_info)
 
                 #繪製BBOX,Text
                 self._draw_mob(self.current_mobs_result)
@@ -293,13 +320,10 @@ class GameBot:
 
                 #防止max_loc沒東西時report
                 if player_loc is not None:
-                    self.lost_track_duration = 0 #<-  人物失蹤計算歸零
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
                 else:
-                    #計算人物失聯時間
-                    self._lost_track_count()
-                    if self.lost_track_duration > 30:
-                        self.lost_track_duration = 0
+                    pass
+
 
             else:
                 #進入ROI掃

@@ -272,17 +272,16 @@ class KeyBoard:
         self.enable_left(duration=0.5)
         self.enable_jump(duration=0.5)
 
-
-
-
     ''' 停止釋放'''
 
     def _release_all(self):
+        time.sleep(0.1)
         interception.key_up(self.up_key)
         interception.key_up(self.down_key)
         interception.key_up(self.left_key)
         interception.key_up(self.right_key)
         interception.key_up(self.jump_key)
+        interception.key_up(self.attack_key)
         
     def release_all(self):
         #釋放常用、高機率卡住的按鍵
