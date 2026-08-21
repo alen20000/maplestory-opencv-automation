@@ -629,22 +629,70 @@ class AutoControl:
                 nearest_platform_index  = index
 
         return nearest_platform_index 
+    
+    # def _find_nearest_verti_passage(self) -> Optional[int]:
+    #     """
+    #     功能:找最近的垂直通道
+    #     return: 平台引所對應的index 
+    #     問題:純畢氏距離找最近通道
+    #         隔著平台會卡住
+    #     """
+    #     if not self.mini_player_loc or not self.vertical_passage:
+    #         return None
+
+    #     px , py = self.mini_player_loc
+
+    #     nearest_verti_passage_index = None
+    #     #跟找怪邏輯一樣，從無限距離開始判斷
+    #     nearest_distance = float('inf')
+
+    #     for index, plat in enumerate(self.vertical_passage):
+
+    #         left, top = plat["t_l"]
+    #         right, bottom = plat["b_r"]
+
+    #         if left <= px <= right:
+    #             dx = 0
+    #         else:
+    #             dx = min(abs(px - left), abs(px - right))
+
+    #         dy = min(abs(py - top), abs(py - bottom))
+    #         distance = (dx ** 2 + dy ** 2) ** 0.5
+
+    #         if distance < nearest_distance:
+    #             nearest_distance = distance
+    #             nearest_verti_passage_index  = index
+
+    #     return nearest_verti_passage_index
+
     def _find_nearest_verti_passage(self) -> Optional[int]:
-        """
-        功能:找最近的垂直通道
-        return: 平台引所對應的index 
-        """
+
         if not self.mini_player_loc or not self.vertical_passage:
             return None
 
-        px , py = self.mini_player_loc
+        px, py = self.mini_player_loc
+
+        # 先試著找「跟目前平台 x 範圍有重疊」的通道，這些是人物可移動到的
+        reachable_candidates = []
+        if self.current_platform:
+            #先抓定位平台座標
+            plat = self.platforms[self.current_platform - 1]
+            plat_left, plat_right = plat["t_l"][0], plat["b_r"][0]
+
+            for index, passage in enumerate(self.vertical_passage):
+                p_left, p_right = passage["t_l"][0], passage["b_r"][0]
+                # 通道的 x 範圍，跟目前平台的 x 範圍有重疊，才算走得到
+                if not (p_right < plat_left or p_left > plat_right):
+                    reachable_candidates.append(index)
+
+        # 如果有找到能走到的候選，只在這些裡面挑最近的
+        search_pool = reachable_candidates if reachable_candidates else range(len(self.vertical_passage))
 
         nearest_verti_passage_index = None
-        #跟找怪邏輯一樣，從無限距離開始判斷
         nearest_distance = float('inf')
 
-        for index, plat in enumerate(self.vertical_passage):
-
+        for index in search_pool:
+            plat = self.vertical_passage[index]
             left, top = plat["t_l"]
             right, bottom = plat["b_r"]
 
@@ -658,7 +706,7 @@ class AutoControl:
 
             if distance < nearest_distance:
                 nearest_distance = distance
-                nearest_verti_passage_index  = index
+                nearest_verti_passage_index = index
 
         return nearest_verti_passage_index
 
