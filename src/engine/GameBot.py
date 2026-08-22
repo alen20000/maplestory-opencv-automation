@@ -49,7 +49,6 @@ class GameBot:
         self.roi_crop_frame_gray = None
         self.frame_size:tuple[int, int] = None # (x,y)typle
         self.dectect_False_count = 0
-
         #---掃描設定
         self.method = cv2.TM_CCOEFF_NORMED
         self.min_threshold = config.get("image_processing.role_min_threshold")
@@ -103,6 +102,8 @@ class GameBot:
         self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
         self.my_character_template_binary = BGR2Binary(self.my_character_template)
+
+
 
         #模組實例化
         self.mob_detector = MobDetector()
@@ -199,7 +200,37 @@ class GameBot:
         '''
         return win32gui.GetForegroundWindow() == self.hwnd
 
+    def _render_cv2_view(self, mini_player_loc, action_states):
+        '''
+        功能:統一畫圖
+        '''
+        self._draw_mob(self.current_mobs_result)
+        self._show_player_loc(mini_player_loc)
+        self._show_player_action_states(action_states)
+        self._show_player_HP(self.player_hp)
+        self._show_player_MP(self.player_mp)
 
+
+        cv2.imshow("Game Debug View", self.frame_bgr)
+        cv2.moveWindow("Game Debug View", 1280, 700)
+        cv2.waitKey(1)
+
+
+    def _render_minimap_overlay(self):
+        '''
+        小地圖渲染
+        (這裡的資料來自MiniMapDetector，應該拿一次就好，但有空再改)
+        '''
+        if self.minimap_detector.crop_frame_bgr is None:
+            return
+        overlay = self.minimap_detector.crop_frame_bgr.copy()
+
+        for layer in self.auto_control.get_debug_geometry():
+            for top_left, bottom_right in layer["boxes"]:
+                cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
+
+        cv2.imshow("Minimap Debug", overlay)
+        cv2.moveWindow("Minimap Debug", 1800, 780)
     def run(self):
 
         """#pre_process"""
@@ -293,21 +324,15 @@ class GameBot:
                         self.player_states.execute_behavior(action_states, target_info)
 
                 #繪製BBOX,Text
-                self._draw_mob(self.current_mobs_result)
-                self._show_player_loc(mini_player_loc)
-                self._show_player_action_states(action_states)
-                self._show_player_HP(self.player_hp)
-                self._show_player_MP(self.player_mp)
+                self._render_cv2_view(mini_player_loc, action_states)
+                self._render_minimap_overlay()
+
+
                 '''
                 ================
                 '''
 
                 #OpenCV 的"Game Debug View"窗口顯示
-                window_name = "Game Debug View"
-                cv2.imshow("Game Debug View", self.frame_bgr)
-                cv2.moveWindow(window_name, 1280, 700)
-                cv2.waitKey(1)
-
                 # print(f"一個while循環耗時: {time.time() - start:.3f}")
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
@@ -509,6 +534,7 @@ class GameBot:
                         (x1+w, y1+h),
                         label=clean_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+                    
 
         
     # def get_client_screen_pos(self):

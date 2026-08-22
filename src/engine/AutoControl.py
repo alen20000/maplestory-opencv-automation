@@ -107,7 +107,9 @@ class AutoControl:
             if yaml_path.exists():
                 with open(yaml_path, "r") as f:
                     self.recored_data = yaml.safe_load(f)
-                # 找出平台
+                #====
+                # 找出、分類各動作點
+                #====
                 self.platforms = self._find_platform()
                 self.vertical_passage = self._find_vertical_passage()
 
@@ -132,7 +134,7 @@ class AutoControl:
         #時間標籤
         current_time =time.time()
 
-        # 模塊:健康狀態(喝水)
+        # 1. 檢查健康
         level , heal_key = self._health_status_check(state.player_hp,current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}
@@ -140,29 +142,29 @@ class AutoControl:
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
 
-        # 模塊:打怪物
+        # 2. 執行戰鬥
         if self.battle_active :
             if self.mini_player_loc and self.enable_searching_mob :
-                if platform:= self._handle_platform_logic(state):
+                if platform:= self._handle_combat_logic(state):
                     return platform
 
-        # 模塊:左右邊界巡邏
+        # 3. 執行巡邏
         if self.current_platform and self.enable_searching_mob :
             # 初始化"巡邏狀態"
             if self.patrol_start_time is None:
                 self.patrol_start_time = current_time
-                self.patrol_state = True
+                # self.patrol_state = True
 
             # 判斷:幾秒找不到怪，進入找通道
             if   current_time - self.patrol_start_time > self.verti_move_threshold:
-
                 action = self._enter_verti()
             elif self.patrol_active:
                 # 開始巡弋找怪
+
                 result = self._enable_player_patrol()
                 return result
 
-        #角色脫困難
+        # 4.角色脫困
         if self.current_platform is None and self.current_vertical_passage is None:
 
             # 平台在更新一下，也許掉到別的平台
@@ -171,7 +173,7 @@ class AutoControl:
             if self.current_platform is  None:
                 return self.player_unstuck()
 
-        # 模塊:開始找路徑進行垂直移動
+        # 5.其他路徑移動(垂直移動)
         if self.mini_player_loc:
             try:
 
@@ -190,7 +192,7 @@ class AutoControl:
                     print("開始爬抓取繩子")
                     self.pervious_time = current_time
 
-                    # 禁止戰鬥
+                    # 重置狀態屬性:不可戰鬥
                     self.is_combat_state = False
 
                     # 開始垂直移動
@@ -219,9 +221,9 @@ class AutoControl:
 
         return None,None
 
-    def _handle_platform_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
+    def _handle_combat_logic(self, state: GameState) -> tuple[Optional[str], Optional[dict]]:
         """
-        處理平台內判斷、打怪、巡弋邏輯
+        模塊:整合平台內判斷、打怪
         """
             #觸發:有人物座標時
         if self.mini_player_loc:
@@ -232,13 +234,13 @@ class AutoControl:
                 logging.error(f"平台判斷失敗{e}")
 
         #觸發:人物在平台內時
-        if self.current_platform:
+        if self.current_platform is not None:
             #有怪則找怪
             if state.mobs:
                 
                 # 觸發:有怪物就重置巡邏計時與狀態
                 self.patrol_start_time = None
-                self.patrol_state = True
+                # self.patrol_state = True
 
                 result = self._fk_that_mob(state)
                 return result
@@ -252,7 +254,6 @@ class AutoControl:
         #去最近平台
         result = self._find_nearest_platform()
         if result is not None:
-            
             return self._move_to_platform(result)
         else:
             return None
@@ -307,8 +308,6 @@ class AutoControl:
 
             if left <= px <= right and top <= py <= bottom:
                 # 加一個1，不然0的話再判斷可能為None
-                index += 1
-
                 return index  
 
         return None
@@ -458,9 +457,6 @@ class AutoControl:
             right, bottom = plat["b_r"] 
 
             if left <= px <= right and top <= py <= bottom:
-                # 加一個1，不然0的話再判斷可能為None
-                index += 1
-
                 return index  
 
         return None
@@ -651,8 +647,8 @@ class AutoControl:
         reachable_candidates = []
 
         if self.current_platform:
-            #先抓定位平台座標(這邊要記得減一還原正確index)
-            plat = self.platforms[self.current_platform - 1]
+
+            plat = self.platforms[self.current_platform]
             #取出 plat 的 t_l b_r點
             plat_left, plat_right = plat["t_l"][0], plat["b_r"][0]
             plat_top, plat_bottom = plat["t_l"][1], plat["b_r"][1] 
@@ -730,6 +726,7 @@ class AutoControl:
             stuck_action =self._detect_move_stuck()
             if stuck_action is not None:
                 return stuck_action
+            print(self.platforms[platform_index])
             # (2) 主邏輯
             if px < self.platforms[platform_index]["t_l"][0]:
                 return self._pack_action("MOVE", direction="RIGHT")
@@ -769,3 +766,14 @@ class AutoControl:
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer  = current_time
             return self._pack_action("IDLE",command="STOP_MOVE")
+
+
+
+    def get_debug_geometry(self):
+        '''
+        給Gamebot的資料封包
+        '''
+        return [
+            {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
+            {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
+        ]
