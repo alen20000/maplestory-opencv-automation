@@ -69,17 +69,34 @@ class MinimapDetector:
         upper_player_color = np.array([35, 255, 255])
 
         mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
-        #抓住符合顏色。 這邊還有 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓輪廓的寫法，可以嘗試(可選)
-        pts = cv2.findNonZero(mask)
+        #舊版:抓取所有顏色，然後取平均
+        # pts = cv2.findNonZero(mask)
+        # if  pts is not None and len(pts) > 2:
+        #     print("test",pts.shape)
+        #     print(cv2.__file__)
+        #     print("cv2 version is :",cv2.__version__)
+        #     #第一維是 點(矩陣列)，第二維是(x,y)
+        #     player_x = int(np.mean(pts[:,0])) # <--這邊把所有目標取平均了
+        #     player_y = int(np.mean(pts[:,1])) # <--這邊把所有目標取平均了
 
-        if  pts is not None and len(pts) > 2:
+            # return (player_x,player_y)
 
-            #第一維是 點(矩陣列)，第二維是(x,y)
-            player_x = int(np.mean(pts[:,0]))
-            player_y = int(np.mean(pts[:,1]))
+        #抓住符合顏色最大那塊。 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓最大輪廓
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return None
 
-            return (player_x,player_y)
+        # 只取面積最大的色塊，視為玩家
+        largest = max(contours, key=cv2.contourArea)
 
+        M = cv2.moments(largest)
+        if M["m00"] == 0:
+            return None
+
+        player_x = int(M["m10"] / M["m00"])
+        player_y = int(M["m01"] / M["m00"])
+
+        return (player_x, player_y)
     # def _draw_match_map(self,loc):
     #     '''
     #     測試用

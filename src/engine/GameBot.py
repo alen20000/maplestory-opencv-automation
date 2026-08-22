@@ -36,6 +36,7 @@ class GameBot:
         #--視窗設定
         self.game_title = config.get("game.title")
         self.hwnd = None
+        self.client_window_tl = None # <- 客戶端左上原點，也是偏移量
         #-- ROI參數
 
         self.roi_left_offset = config.get("game_bot.roi_x_offset_l_width")
@@ -169,7 +170,7 @@ class GameBot:
             client_tl = win32gui.ClientToScreen(self.hwnd, (client_rect[0], client_rect[1]))
             client_br = win32gui.ClientToScreen(self.hwnd, (client_rect[2], client_rect[3]))
             screen_rect  = (client_tl[0], client_tl[1], client_br[0], client_br[1])
-
+            self.client_window_tl = client_tl
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
             return None
@@ -232,12 +233,12 @@ class GameBot:
         if self.minimap_detector.crop_frame_bgr is None:
             return
         overlay = self.minimap_detector.crop_frame_bgr.copy()
-
+        # dx , dy = 8,0
         for layer in self.auto_control.get_debug_geometry():
             for top_left, bottom_right in layer["boxes"]:
                 cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
 
-        cv2.circle(overlay, mini_player_loc, 3, [255,255,0], 1)
+        cv2.circle(overlay, (mini_player_loc[0] , mini_player_loc[1]), 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)
 
 
