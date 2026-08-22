@@ -212,7 +212,7 @@ class GameBot:
 
 
         cv2.imshow("Game Debug View", self.frame_bgr)
-        cv2.moveWindow("Game Debug View", 1280, 700)
+
         cv2.waitKey(1)
 
 
@@ -230,7 +230,17 @@ class GameBot:
                 cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
 
         cv2.imshow("Minimap Debug", overlay)
-        cv2.moveWindow("Minimap Debug", 1800, 780)
+
+
+    def _setting_cv2_map(self):
+        '''
+        預先幫cv2 設立空視窗，可以拉長變形、拖曳窗口
+        '''
+        cv2.namedWindow("Minimap Debug", cv2.WINDOW_NORMAL)
+        cv2.moveWindow("Minimap Debug", 1500, 0)
+
+        cv2.namedWindow("Game Debug View", cv2.WINDOW_NORMAL)    
+        cv2.moveWindow("Game Debug View", 1280, 700)
     def run(self):
 
         """#pre_process"""
@@ -242,8 +252,9 @@ class GameBot:
                 ctypes.windll.user32.SetProcessDPIAware()
             except:
                 pass
+        self._setting_cv2_map()
         self._connect_window()
-        #adjusying display window
+        #adjusting display window
         bring_to_front_and_center_origin(self.hwnd)
         self._load_game_resources()
 
