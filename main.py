@@ -1,10 +1,17 @@
+import ctypes
+# 強制讓 Python 程式識別真實的螢幕 DPI 像素，避免抓圖範圍縮水
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+except:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except:
+        pass
 from src.engine.GameBot import GameBot
 import src.utils.logger as logger
 import logging
 import os
 import sys
-import ctypes
-
     #=================
     # 作業系統管理員權限
     #=================
