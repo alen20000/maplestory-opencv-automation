@@ -105,6 +105,13 @@ pip install -r requirements.txt
 >[ISSUE -> FIX] 健康模組:把HP偵測範圍寫死，導致若畫面DPI縮放，偵測範圍會跑掉；修正後，改模板匹配初始化座標。 
 
 >[TODO] 卡死走回: 還沒弄
+
+>[ISSUE] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題。
+<p align="center">
+  <img src="./assets/issue-minimap.png" width="300">
+  <br>
+  <em>移動點設定範例</em>
+</p>
 ---
 
 ## Tools
