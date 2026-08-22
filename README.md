@@ -26,6 +26,7 @@
 | **自動打怪** | 可設定武器攻擊距離<br>支持鏢賊跳射 |
 | **自動撿取** | 移動時自動觸發撿拾按鍵 |
 | **自動喝水** | 喝紅藥水<br>喝藍藥水 |
+| **卡住脫離**| 找最近平台返回|
 
 ---
 ### 開發/測試環境
@@ -110,7 +111,7 @@ pip install -r requirements.txt
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
   <br>
-  <em>移動點設定範例</em>
+  <em>cv2畫出的BBOX與原版地圖不合</em>
 </p>
 ---
 
