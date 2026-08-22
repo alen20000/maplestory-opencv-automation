@@ -16,11 +16,7 @@ learning: 想法錯了 應該不用全圖匹配後取roi範圍偵測 ； 應該�
 class MinimapDetector:
     def __init__(self):
 
-        self.minimap_name = None
-        self.minimap_template = None
         self.current_frame_bgr =None
-        self.template_h,self.template_w = None,None
-
         self.crop_frame_bgr = None
 
         #load config
@@ -28,7 +24,7 @@ class MinimapDetector:
 
     def _load_minimap_config(self):
         '''
-        地圖仔入
+        地圖載入
         '''
         try:
             #load map img

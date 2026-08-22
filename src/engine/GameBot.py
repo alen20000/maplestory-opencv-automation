@@ -1,3 +1,4 @@
+import ctypes
 
 import cv2
 import numpy as np
@@ -7,7 +8,6 @@ from src.utils.common import (get_window_handle_and_rect_by,
 bring_to_front_and_center_origin,cent_coord,get_bbox_from_center,draw_dectection_box,BGR2Binary,convert_img2xy
 )
 from src.engine.MobHunting import MobDetector
-import ctypes
 from src.utils.boxes import BBox
 from config.config_loader import config
 import logging
@@ -243,14 +243,7 @@ class GameBot:
     def run(self):
 
         """#pre_process"""
-        # 強制讓 Python 程式識別真實的螢幕 DPI 像素，避免抓圖範圍縮水
-        try:
-            ctypes.windll.shcore.SetProcessDpiAwareness(2)
-        except:
-            try:
-                ctypes.windll.user32.SetProcessDPIAware()
-            except:
-                pass
+
         self._setting_cv2_map()
         self._connect_window()
         #adjusting display window

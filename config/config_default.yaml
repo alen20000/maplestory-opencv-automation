@@ -56,18 +56,17 @@ auto_control_config:
   #尋怪功能開關 True/False
   search_interval: True
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 15
-  #這是平台判定的偏移量，有些特殊地圖，平台Y軸落差很大時再動，否則預設 "5"像素
-  platform_offset: 7
+  buffer: 5
+
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
-  verti_move_threshold : 5
+  verti_move_threshold : 10
 
 
 health_detector:
 
-  #健康條匹配模板
-  hp_bar_template : img/health_detector/hp_template.png
-  mp_bar_template : img/health_detector/mp_template.png
+  #健康條的座標；解析度、DPI設定都會影響判定範圍，若發現判定不準，需自行測量範圍
+  hp_bar_loc : [503, 751, 608, 754]
+  mp_bar_loc : [611, 751, 716, 754]
   #血條顏色範圍
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]

@@ -17,7 +17,7 @@ class AutoControl:
 
         # Search Config & Constants
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
-        self.platform_offset = config.get("auto_control_config.platform_offset",5)
+
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
         # Data Containers
         self.health_setting = {}
@@ -430,8 +430,8 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                top = current["loc"][1] - 5
-                bottom = current["loc"][1]  + 3
+                top = current["loc"][1] - 5   #向上偏移:5
+                bottom = current["loc"][1]  + 3  #向下偏移:3
 
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0]) 
