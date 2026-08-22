@@ -51,6 +51,10 @@ pip install -r requirements.txt
 * 先到路徑`./config/config_data`
    設定`quickly_choice_map`的對應地圖。
 * 進入遊戲，開啟`OperationLogger.py`，錄製`平台點`與`垂直移動的通道`
+<p align="center">
+  <img src="./assets/OperationLogger_demo.png" width="200"><br>
+  <em >小地圖可以看見所畫的通道</em>
+</p>
 
 #### IV. 啟動程序:
 * 確認角色已經在對應的遊戲地圖，打開`main.py`，運行程序。
@@ -107,11 +111,11 @@ pip install -r requirements.txt
 
 >[TODO] 卡死走回: 還沒弄
 
->[ISSUE] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題。
+>[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
   <br>
-  <em>cv2畫出的BBOX與原版地圖不合</em>
+  <em>cv2畫出的BBOX與原版地圖不合(已修復))</em>
 </p>
 ---
 
