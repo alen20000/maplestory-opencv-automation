@@ -21,15 +21,15 @@ class MinimapDetector:
         self.current_frame_bgr =None
         self.template_h,self.template_w = None,None
 
-        self.minimap_tl = None
-        self.minimap_br = None
         self.crop_frame_bgr = None
 
         #load config
         self._load_minimap_config()
 
     def _load_minimap_config(self):
-            
+        '''
+        地圖仔入
+        '''
         try:
             #load map img
             map_name = config.get("quickly_choice_map")
@@ -39,64 +39,27 @@ class MinimapDetector:
             
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
-    def _get_minimap_tl(self):
-        '''
-        抓小地圖的左上座標
-        這邊若直接寫死，因為遊戲重開都會偏移，座標會對不上
-        '''
-        try:
-            result = cv2.matchTemplate(self.current_frame_bgr, self.minimap_template,cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-            if max_val > 0.6:
-                logging.info(f"小地圖定位成功")
-                self.minimap_tl = max_loc
-                #放入共享資訊
-                shared_info.update_minimap_anchor(self.minimap_tl)
-                self._get_minimap_br()
-            else:
-                logging.info(f"小地圖定位失敗")
-        except Exception as e:
-            logging.info(f"小地圖定位失敗{e}")
 
-    def _get_minimap_br(self):
+    def _crop_minimap(self,frame_bgr):
         '''
-        得到小地圖範圍的右下座標
+        輸入: 全圖彩色
+        動作: 裁切小地圖範圍，並存入 self.crop_frame_bgr
         '''
-        try:
-            self.template_h, self.template_w = self.minimap_template.shape[:2]
-            x2 = self.minimap_tl[0] + self.template_w
-            y2 = self.minimap_tl[1] + self.template_h
-            self.minimap_br = (x2,y2)
-
-        except Exception as e:
-            logging.info(f"小地圖定位失敗{e}")
-
-    def _crop_minimap(self):
-        '''
-        聚焦偵測範圍
-        '''
-        #FK! opencv切片 每次都搞死我
-        self.crop_frame_bgr = self.current_frame_bgr[self.minimap_tl[1]:self.minimap_br[1],self.minimap_tl[0]:self.minimap_br[0]]
+        h,w = self.minimap_template.shape[:2]
+        x1 , y1 = 6 , 72 #<-- 這邊寫死
+        return frame_bgr[y1 : y1 + h, x1 : x1 + w]
 
     def run(self,frame_bgr):
 
-        self.current_frame_bgr = frame_bgr
+        self.crop_frame_bgr = self._crop_minimap(frame_bgr)
 
-        #初始化minimap四角位置
-        if self.minimap_br is None :
-            self._get_minimap_tl()
-
-        if self.minimap_tl != None :
-            self._crop_minimap()
-
-        #防呆
+        #防呆:沒畫面就不偵測
         if self.crop_frame_bgr is None:
             return
-        player_loc = self._detect_player_loc(self.crop_frame_bgr )
-
-        #Debug
-        # cv2.rectangle(self.current_frame_bgr,(self.minimap_tl),(self.minimap_br),(100,100,100),3)
+        
+        # 取得人物座標
+        player_loc = self._detect_player_loc(self.crop_frame_bgr)
 
         return player_loc
 
@@ -121,20 +84,10 @@ class MinimapDetector:
 
             return (player_x,player_y)
 
-    def _draw_minimap(self):
-        '''
-        測試用，顯示偵測範圍
-        '''
-        minimap_detect_range = (0,20,187,184)
-        x1,y1,x2,y2 = minimap_detect_range
-        cv2.rectangle(self.current_frame_bgr,(x1,y1),(x2,y2),(100,100,100),3)
-        cv2.imshow("TEST", self.current_frame_bgr)
-        cv2.waitKey(0)
-
-    def _draw_match_map(self,loc):
-        '''
-        測試用
-        '''
-        x1,y1 = loc[0],loc[1]
-        x2,y2 = x1+self.minimap_template.shape[1],y1+self.minimap_template.shape[0]
-        cv2.rectangle(self.current_frame_bgr,(x1,y1),(x2,y2),(0,0,255),3)
+    # def _draw_match_map(self,loc):
+    #     '''
+    #     測試用
+    #     '''
+    #     x1,y1 = loc[0],loc[1]
+    #     x2,y2 = x1+self.minimap_template.shape[1],y1+self.minimap_template.shape[0]
+    #     cv2.rectangle(self.current_frame_bgr,(x1,y1),(x2,y2),(0,0,255),3)

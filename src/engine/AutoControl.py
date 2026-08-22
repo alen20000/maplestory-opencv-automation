@@ -430,8 +430,8 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                top = current["loc"][1] - self.platform_offset
-                bottom = current["loc"][1] + self.platform_offset
+                top = current["loc"][1] - 5
+                bottom = current["loc"][1]  + 3
 
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0]) 
@@ -726,7 +726,7 @@ class AutoControl:
             stuck_action =self._detect_move_stuck()
             if stuck_action is not None:
                 return stuck_action
-            print(self.platforms[platform_index])
+
             # (2) 主邏輯
             if px < self.platforms[platform_index]["t_l"][0]:
                 return self._pack_action("MOVE", direction="RIGHT")
@@ -771,7 +771,7 @@ class AutoControl:
 
     def get_debug_geometry(self):
         '''
-        給Gamebot的資料封包
+        給Gamebot的座標資料封包
         '''
         return [
             {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},

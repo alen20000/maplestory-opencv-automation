@@ -216,10 +216,9 @@ class GameBot:
         cv2.waitKey(1)
 
 
-    def _render_minimap_overlay(self):
+    def _render_minimap_overlay(self,mini_player_loc):
         '''
         小地圖渲染
-        (這裡的資料來自MiniMapDetector，應該拿一次就好，但有空再改)
         '''
         if self.minimap_detector.crop_frame_bgr is None:
             return
@@ -228,7 +227,7 @@ class GameBot:
         for layer in self.auto_control.get_debug_geometry():
             for top_left, bottom_right in layer["boxes"]:
                 cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
-
+        cv2.circle(overlay, mini_player_loc, 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)
 
 
@@ -336,7 +335,7 @@ class GameBot:
 
                 #繪製BBOX,Text
                 self._render_cv2_view(mini_player_loc, action_states)
-                self._render_minimap_overlay()
+                self._render_minimap_overlay(mini_player_loc)
 
 
                 '''
