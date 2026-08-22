@@ -36,6 +36,12 @@ class GameBot:
         #--視窗設定
         self.game_title = config.get("game.title")
         self.hwnd = None
+        #-- ROI參數
+
+        self.roi_left_offset = config.get("game_bot.roi_x_offset_l_width")
+        self.roi_right_offset = config.get("game_bot.roi_x_offset_r_width")
+        self.roi_top_offset = config.get("game_bot.roi_y_offset_t_high")
+        self.roi_bottom_offset = config.get("game_bot.roi_y_offset_b_high")
 
         #---角色屬性
         self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'
@@ -61,10 +67,10 @@ class GameBot:
         self.player_center_loc = None
         self.current_mobs_result =None
 
-
         #---健康參數
         self.player_hp = None
         self.player_mp = None
+
         ##--模組實例
         self.mob_detector = None
         self.player_states = None
@@ -159,10 +165,10 @@ class GameBot:
         '''以窗柄去掃描遊戲畫面'''
         try:
             #這邊還能優化 以後看到記得改
-            screen_rect = win32gui.GetClientRect(self.hwnd)
-            screen_rect_point_top_left = win32gui.ClientToScreen(self.hwnd, (screen_rect[0], screen_rect[1]))
-            screen_rect_point_bottom_right = win32gui.ClientToScreen(self.hwnd, (screen_rect[2], screen_rect[3]))
-            screen_rect = (screen_rect_point_top_left[0], screen_rect_point_top_left[1], screen_rect_point_bottom_right[0], screen_rect_point_bottom_right[1])  
+            client_rect = win32gui.GetClientRect(self.hwnd)
+            client_tl = win32gui.ClientToScreen(self.hwnd, (client_rect[0], client_rect[1]))
+            client_br = win32gui.ClientToScreen(self.hwnd, (client_rect[2], client_rect[3]))
+            screen_rect  = (client_tl[0], client_tl[1], client_br[0], client_br[1])
 
         except Exception as e:
             logging.error(f"screen_loop 發生例外錯誤: {e}", exc_info=True)
@@ -209,10 +215,13 @@ class GameBot:
         self._show_player_action_states(action_states)
         self._show_player_HP(self.player_hp)
         self._show_player_MP(self.player_mp)
-
-
+        self._draw_player()
+        if self.roi_BBOX:
+            self._draw_player_roi_bbox()
+        if self.player_center_loc:
+            # 人物判定的中心點
+            cv2.circle(self.frame_bgr, self.player_center_loc, 5, [42,42,165], 3)
         cv2.imshow("Game Debug View", self.frame_bgr)
-
         cv2.waitKey(1)
 
 
@@ -227,6 +236,7 @@ class GameBot:
         for layer in self.auto_control.get_debug_geometry():
             for top_left, bottom_right in layer["boxes"]:
                 cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
+
         cv2.circle(overlay, mini_player_loc, 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)
 
@@ -378,10 +388,10 @@ class GameBot:
                 #計算角色BBOX
                 self.role_BBOX = get_bbox_from_center(self.player_center_loc,self.my_character_template_size)
 
-                role_name = f"玩家 {self.role_score:.2f}"
-                #繪製角色BBOX
-                draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label=role_name,
-                top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
+                # role_name = f"玩家 {self.role_score:.2f}"
+                # #繪製角色BBOX
+                # draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label=role_name,
+                # top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
             else:
                 pass
 
@@ -414,17 +424,13 @@ class GameBot:
         局部掃描:
         '''
         try:
-            # # 設定搜尋範圍的位移量[!] 之後變數要移走
-            # x_offset, y_offset = config.get("game_bot.roi_x_offset"), config.get("game_bot.roi_y_offset")
-            x_offset_l_w = config.get("game_bot.roi_x_offset_l_width")
-            x_offset_r_w = config.get("game_bot.roi_x_offset_r_width")
-            y_offset_t_h = config.get("game_bot.roi_y_offset_t_high")
-            y_offset_b_h = config.get("game_bot.roi_y_offset_b_high")
-            # Tuple都是[x,y]位置
-            top = max(0, self.player_center_loc[1] - y_offset_t_h)
-            left = max(0, self.player_center_loc[0] - x_offset_l_w)
-            bottom = min(self.frame_size[1], self.player_center_loc[1] + y_offset_b_h )
-            right = min(self.frame_size[0], self.player_center_loc[0]  + x_offset_r_w)
+
+
+            # Type is tuple(x,y)
+            top = max(0, self.player_center_loc[1] - self.roi_top_offset)
+            left = max(0, self.player_center_loc[0] - self.roi_left_offset)
+            bottom = min(self.frame_size[1], self.player_center_loc[1] + self.roi_bottom_offset)
+            right = min(self.frame_size[0], self.player_center_loc[0]  + self.roi_right_offset)
 
             # 計算ROI範圍
             self.roi_BBOX = BBox(left, top, right, bottom)
@@ -443,9 +449,9 @@ class GameBot:
                 self.player_center_loc = cent_coord(player_loc_globally , self.my_character_template_size)
                 self.role_BBOX = get_bbox_from_center(self.player_center_loc , self.my_character_template_size)
 
-                # 繪製偵查範圍
-                draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="偵測範圍",
-                top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
+                # # 繪製偵查範圍
+                # draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="偵測範圍",
+                # top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
 
                 return  True
             
@@ -537,8 +543,20 @@ class GameBot:
                         (x1+w, y1+h),
                         label=clean_name,color = (0, 0, 255),
                         top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-                    
+    def _draw_player(self):
+        '''
+        劃出玩家BBOX
+        '''
+        role_name = f"玩家 {self.role_score:.2f}"
+        draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label=role_name,
+                top_padding=80, bottom_padding=0, left_padding=0, right_padding=0,color=(219,112,147))
 
+    def _draw_player_roi_bbox(self):
+        '''
+        劃出玩家ROI BBOX
+        '''
+        draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="搜索範圍",
+            top_padding=0, bottom_padding=0, left_padding=0, right_padding=0,color=(42,42,165))
         
     # def get_client_screen_pos(self):
     #     '''

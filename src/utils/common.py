@@ -28,9 +28,6 @@ def get_window_handle_and_rect_by(title_name:str)-> tuple[int, tuple[int, int, i
 
     return hwnd, window_rect
 
-
-
-
 def bring_to_front_and_center_origin(hwnd:int):
     '''
     整理窗口位置
