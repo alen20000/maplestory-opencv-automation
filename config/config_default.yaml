@@ -56,10 +56,10 @@ auto_control_config:
   #尋怪功能開關 True/False
   search_interval: True
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 5
+  buffer: 8
 
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
-  verti_move_threshold : 10
+  verti_move_threshold : 3
 
 
 health_detector:
