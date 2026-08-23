@@ -48,3 +48,4 @@ if __name__ == "__main__":
         logging.info("'Ctrl+C'中斷程式")
     finally:
         logging.info("正常關閉")
+        input("程式已結束，請按 Enter 鍵關閉視窗...")

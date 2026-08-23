@@ -230,7 +230,8 @@ class GameBot:
         '''
         小地圖渲染
         '''
-        if self.minimap_detector.crop_frame_bgr is None:
+        #防呆:沒資料會導致CTD的，直接攔截
+        if self.minimap_detector.crop_frame_bgr is None or mini_player_loc is None:
             return
         overlay = self.minimap_detector.crop_frame_bgr.copy()
         # dx , dy = 8,0
@@ -329,7 +330,13 @@ class GameBot:
                 '''
                 decide_operation ,execute_behavior  -> (str, dict{})
                 '''
-                action_states, target_info = self.auto_control.select_operation(current_game_state)
+                try:
+                    action_states, target_info = self.auto_control.select_operation(current_game_state)
+                except Exception as e:
+                    msg = (action_states , target_info)
+                    logging.error(f"auto_control.select_operation 發生例外錯誤: {e}。數據:{msg }", exc_info=True)
+                    continue
+
                 # print(f"行為:{action_states} 目標:{target_info}")
 
 
