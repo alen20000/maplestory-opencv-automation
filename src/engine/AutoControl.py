@@ -184,12 +184,12 @@ class AutoControl:
                 if self.current_vertical_passage is None:
                     #自動去最近的垂直通道
                     index = self._find_nearest_verti_passage()
-                    print(f"自動去最近的{index +1}號垂直通道")
+                    print(f"\r自動去最近的{index +1}號垂直通道",end="", flush=True)
                     return  self._move_to_verti_passage(index)
 
                 # 觸發:人物在垂直通道範圍 且 時間允許
                 if self.current_vertical_passage is not None:
-                    print("開始爬抓取繩子")
+                    print("\r開始爬抓取繩子",end="", flush=True)
                     self.pervious_time = current_time
 
                     # 重置狀態屬性:不可戰鬥
@@ -362,7 +362,7 @@ class AutoControl:
             if self.is_finding_rope_state:
                 self.is_finding_rope_state = False
             self.is_climbing_state = True
-            print(f"向上爬行...;爬行狀態:{self.is_climbing_state}")
+            print(f"\r向上爬行...;爬行狀態:{self.is_climbing_state}",end="", flush=True)
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         if self.current_verti_target == "DOWN":
@@ -388,7 +388,7 @@ class AutoControl:
             if self.is_finding_rope_state:
                 self.is_finding_rope_state = False
             self.is_climbing_state = True
-            print(f"向下爬行...;爬行狀態:{self.is_climbing_state}")
+            print(f"\r向下爬行...;爬行狀態:{self.is_climbing_state}",end="", flush=True)
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         return None
@@ -704,7 +704,7 @@ class AutoControl:
             return stuck_action
         
         # (2) 主邏輯
-        if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
+        if px <= self.vertical_passage[verti_passage_index]["t_l"][0]:
             return self._pack_action("MOVE", direction="RIGHT")
         else:
             return self._pack_action("MOVE", direction="LEFT")
@@ -720,7 +720,7 @@ class AutoControl:
         if self.mini_player_loc:
             px , _ = self.mini_player_loc
 
-            print(f"走去{platform_index}平台")
+            print(f"\r走去{platform_index}平台",end="", flush=True)
 
             # (1) 防卡監測
             stuck_action =self._detect_move_stuck()
