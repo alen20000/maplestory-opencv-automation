@@ -98,6 +98,10 @@ class PlayerStates:
                 print("停止移動")
                 # 停止移動
                 self.keyboard.stop_move()
+            if command == "RELEASE_ALL":
+                print("釋放所有熟鍵")
+                # 釋放所有熟鍵
+                self.keyboard.release_all()
 
         # 判定"治癒"狀態
         elif self.current_state.startswith("HEAL") and self.current_info:

@@ -211,12 +211,15 @@ class GameBot:
         '''
         功能:統一畫圖
         '''
+        #防呆:沒以下數據拋棄
+
         self._draw_mob(self.current_mobs_result)
         self._show_player_loc(mini_player_loc)
         self._show_player_action_states(action_states)
         self._show_player_HP(self.player_hp)
         self._show_player_MP(self.player_mp)
-        self._draw_player()
+        if self.role_BBOX:
+            self._draw_player()
         if self.roi_BBOX:
             self._draw_player_roi_bbox()
         if self.player_center_loc:
@@ -333,8 +336,7 @@ class GameBot:
                 try:
                     action_states, target_info = self.auto_control.select_operation(current_game_state)
                 except Exception as e:
-                    msg = (action_states , target_info)
-                    logging.error(f"auto_control.select_operation 發生例外錯誤: {e}。數據:{msg }", exc_info=True)
+                    logging.error(f"auto_control.select_operation 發生例外錯誤: {e}", exc_info=True)
                     continue
 
                 # print(f"行為:{action_states} 目標:{target_info}")
@@ -391,15 +393,9 @@ class GameBot:
                         self.player_center_loc = None
                         self.dectect_False_count = 0
 
-            #得到中心座標，則繪製bounding box
             if self.player_center_loc is not None:
-                #計算角色BBOX
+                # 角色bbox座標  tuple[tuple[int,int],tuple[int,int]
                 self.role_BBOX = get_bbox_from_center(self.player_center_loc,self.my_character_template_size)
-
-                # role_name = f"玩家 {self.role_score:.2f}"
-                # #繪製角色BBOX
-                # draw_dectection_box(self.frame_bgr,self.role_BBOX.top_left,self.role_BBOX.bottom_right,label=role_name,
-                # top_padding=100, bottom_padding=0, left_padding=0, right_padding=0)
             else:
                 pass
 

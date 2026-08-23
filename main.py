@@ -31,21 +31,22 @@ def run_as_admin():
 
 
 if __name__ == "__main__":
-
-    #---管理員權限
-    if not is_admin():
-        run_as_admin()
-        sys.exit()
-    # 啟動日誌
-    logger.setup_logging()
     try:
+        # 啟動日誌
+        logger.setup_logging()
+        #---管理員權限
+        if not is_admin():
+            run_as_admin()
+            sys.exit()
+        try:
 
-        run = GameBot()
-        run.run()
+            run = GameBot()
+            run.run()
+        except Exception as e:
+            logging.exception(f"未預期的例外錯誤: {e}")
+        except KeyboardInterrupt:
+            logging.info("'Ctrl+C'中斷程式")
+            logging.info("正常關閉")
+
     except Exception as e:
-        logging.exception(f"未預期的例外錯誤: {e}")
-    except KeyboardInterrupt:
-        logging.info("'Ctrl+C'中斷程式")
-    finally:
-        logging.info("正常關閉")
-        input("程式已結束，請按 Enter 鍵關閉視窗...")
+        logging.exception(f"main.py發生未預期的例外錯誤: {e}")
