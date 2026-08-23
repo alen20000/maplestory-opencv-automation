@@ -11,7 +11,7 @@ from src.engine.MobHunting import MobDetector
 from src.utils.boxes import BBox
 from config.config_loader import config
 import logging
-from src.states.player_states import PlayerStates
+from src.action.ActionHandler import ActionHandler
 from src.engine.AutoControl import AutoControl
 from src.engine.HealthDetector import HealthDetector
 from src.engine.game_state import GameState
@@ -114,7 +114,7 @@ class GameBot:
 
         #模組實例化
         self.mob_detector = MobDetector()
-        self.player_states = PlayerStates() #init player state
+        self.action_handler = ActionHandler()
         self.health_dectector = HealthDetector()
         self.auto_control = AutoControl()
         self.minimap_detector = MinimapDetector()
@@ -334,7 +334,7 @@ class GameBot:
                 decide_operation ,execute_behavior  -> (str, dict{})
                 '''
                 try:
-                    action_states, target_info = self.auto_control.select_operation(current_game_state)
+                    action_oder, target_info = self.auto_control.select_operation(current_game_state)
                 except Exception as e:
                     logging.error(f"auto_control.select_operation 發生例外錯誤: {e}", exc_info=True)
                     continue
@@ -343,11 +343,11 @@ class GameBot:
 
 
                 #至少有 action_states 才傳輸給狀態機 且 本輪遊戲視窗在前景
-                if action_states is not None and is_game_window_foreground:
-                        self.player_states.execute_behavior(action_states, target_info)
+                if action_oder is not None and is_game_window_foreground:
+                        self.action_handler.execute_behavior(action_oder, target_info)
 
                 #繪製BBOX,Text
-                self._render_cv2_view(mini_player_loc, action_states)
+                self._render_cv2_view(mini_player_loc, action_oder)
                 self._render_minimap_overlay(mini_player_loc)
 
 
