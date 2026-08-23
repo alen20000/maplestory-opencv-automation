@@ -73,7 +73,7 @@ class PlayerStates:
         # 判定"攀爬中"狀態
 
         elif self.current_state == "CLIMB" :
-            self.keyboard.stop_move()
+            # self.keyboard.stop_move()
             direction = self.current_info.get("direction")
             # distance = self.current_info.get("distance")
             if direction == "UP":

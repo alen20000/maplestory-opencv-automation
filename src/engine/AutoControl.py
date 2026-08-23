@@ -284,7 +284,7 @@ class AutoControl:
             offset = 3
             if current["action"] == "rope" and next_item["action"] == "rope":
 
-                top = min(current["loc"][1],next_item["loc"][1])  -offset
+                top = min(current["loc"][1],next_item["loc"][1]) 
                 bottom = max(next_item["loc"][1],current["loc"][1]) 
 
                 left = min(current["loc"][0], next_item["loc"][0]) - offset

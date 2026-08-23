@@ -269,8 +269,7 @@ class KeyBoard:
         interception.key_down(self.up_key)
 
     def climb_down(self):
-        self.enable_left(duration=0.5)
-        self.enable_jump(duration=0.5)
+        self.enable_down(duration=1)
 
     ''' 停止釋放'''
 
