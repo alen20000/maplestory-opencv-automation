@@ -109,7 +109,7 @@ pip install -r requirements.txt
 
 >[ISSUE -> FIX] 健康模組:把HP偵測範圍寫死，導致若畫面DPI縮放，偵測範圍會跑掉；修正後，改模板匹配初始化座標。 
 
->[TODO] 卡死走回: 還沒弄
+>[TODO - DONE] 卡死走回: 超出範圍，走回最近平台，不過Y值差距太大沒用
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 <p align="center">
@@ -117,6 +117,8 @@ pip install -r requirements.txt
   <br>
   <em>cv2畫出的BBOX與原版地圖不合(已修復))</em>
 </p>
+
+>[ISSUE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊。
 ---
 
 ## Tools
