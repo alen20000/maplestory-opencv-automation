@@ -59,7 +59,7 @@ auto_control_config:
   buffer: 8
 
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
-  verti_move_threshold : 3
+  verti_move_threshold : 10
 
 
 health_detector:
