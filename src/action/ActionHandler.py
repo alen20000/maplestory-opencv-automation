@@ -2,14 +2,10 @@ import src.action.KeyBoardController as kb
 import logging  
 from config.config_loader import config
 '''
-行為模式: ATTACK 、 APPROACH 、 IDLE
-ATTACK: 攻擊命令
-APPROACH: 追蹤命令，下達左右前進命令
-IDEL: 空狀態
-撿拾命命，先用外部腳本
+命令分派器
 
 '''
-class PlayerStates:
+class ActionHandler:
     def __init__(self):
 
         #State
@@ -116,6 +112,3 @@ class PlayerStates:
             self.keyboard.enable_pick_up()
 
 
-if __name__ == "__main__":
-    run = PlayerStates()
-    print(run.is_Night_Lord)
