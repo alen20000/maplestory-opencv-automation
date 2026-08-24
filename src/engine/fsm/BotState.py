@@ -12,7 +12,7 @@ class State(ABC):
 
 class PatrolState(State):
 
-    TIMEOUT = 10 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
+    TIMEOUT = 1 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
 
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
@@ -20,20 +20,21 @@ class PatrolState(State):
     def handle(self, context, state_data):
         print("狀態:平台巡邏...")
 
-        stuck_result = context.is_stuck()
-        print(f"目前 is_stuck 的值是: {stuck_result}")
-
-        # 如果有怪物，切換為戰鬥狀態
+        # 條件A:如果有怪物，切換為戰鬥狀態
         if state_data.mobs:
             context.change_state(CombatState())
             return None, None
         
-        # 條件:人物座標沒動,超過一定時間,切換為檢查狀態
+        # 條件B:人物座標沒動,超過一定時間,切換為檢查狀態
         elif context.is_stuck():
 
             context.change_state(StuckState())
             return None, None
 
+        # 條件C:超過一定時間,切換為尋路狀態(爬繩、跳躍點、etc..)
+        elif time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
+            context.change_state(PathfindState())
+            return None, None
         
         # 沒怪就繼續原本的巡邏動作
         return context._enable_player_patrol()
@@ -54,7 +55,7 @@ class CombatState(State):
             context.change_state(PatrolState())
             return None, None
         
-        return None, None
+
 
 class StuckState(State):
     STUCK_TIMEOUT = 3
@@ -63,13 +64,25 @@ class StuckState(State):
 
     def handle(self, context, state_data):
 
-        self._print_override("狀態:檢查角色是否卡頓...")
+        print("狀態:檢查角色是否卡頓...")
         if time.time() - self.stuck_timer > StuckState.STUCK_TIMEOUT:
             context.reset_state()
             return None, None
         return context._unstuck_player(state_data)   
 
+class PathfindState(State):
+    def __init__(self):
+        pass
+    def handle(self, context, state_data):
+        print("狀態:爬繩...")
 
+        rope_index = context._find_nearest_verti_passage() # < - 回傳通道index
+        if rope_index:
+            context._move_to_verti_passage(rope_index)
+            return context._verti_movement(rope_index)   
+        else:
+            print('狀態:結束跳轉至開頭...')
+            context.reset_state()
 
 class BotState():
     '''
@@ -111,6 +124,15 @@ class BotState():
     def is_stuck(self):
         return self.owner.is_stuck()
 
+    def _check_vertical_passage(self):
+        return self.owner._check_vertical_passage()
 
+    def _find_nearest_verti_passage(self):
+            return self.owner._find_nearest_verti_passage()
 
+    def  _move_to_verti_passage(self,index):
+            return self.owner._move_to_verti_passage(index)
+
+    def _verti_movement(self,index):
+            return self.owner._verti_movement(index)
     #====小工具

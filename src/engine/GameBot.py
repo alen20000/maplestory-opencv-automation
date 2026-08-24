@@ -384,13 +384,18 @@ class GameBot:
             else:
                 #進入ROI掃
                 fund_result = self._locate_player_locally()
-
+                        # ROI掃不到時，清空座標與ROI框，讓下一輪回到全局掃描重新定位
+                if not fund_result:
+                    self.player_center_loc = None
+                    self.roi_BBOX = None
+                    
             if self.player_center_loc is not None:
                 # 角色bbox座標  tuple[tuple[int,int],tuple[int,int]
                 self.role_BBOX = get_bbox_from_center(self.player_center_loc,self.my_character_template_size)
             else:
+                # 沒抓到則初始化
+                self.role_BBOX = None
                 pass
-
         except Exception as e:
             logging.error(e)
 

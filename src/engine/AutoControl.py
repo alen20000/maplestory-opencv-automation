@@ -196,28 +196,7 @@ class AutoControl:
 
         return None
     
-    def _check_vertical_passage(self) -> Optional[int]:
-        '''
-        功能:
-            根據玩家目前的座標
-            判斷玩家在哪個垂直通道內
-        returns: 
-            傳回垂直通道的index|None
-        '''
-        if not self.mini_player_loc or not self.vertical_passage:
-            return None
 
-        px, py = self.mini_player_loc 
-
-        for index, vert in enumerate(self.vertical_passage):
-            left, top = vert["t_l"]     
-            right, bottom = vert["b_r"] 
-
-            if left <= px <= right and top <= py <= bottom:
-
-                return index  
-
-        return None
 
 
     #=================
@@ -298,6 +277,7 @@ class AutoControl:
             else:
                 return self._pack_action("MOVE", direction="LEFT")
         return None
+    
     def _detect_move_stuck(self):
         ''' 
         檢測:
@@ -329,12 +309,16 @@ class AutoControl:
     # 邏輯塊: 垂直通道
     #=================
 
-    def _verti_movement(self):
+    def _verti_movement(self,index):
         """
-        垂直移動邏輯
+        功能:
+            垂直移動邏輯
+        行為:
+            1. 判斷往上/往下
+            2.偵測左走抓繩/右走抓繩
         """
-        verti_index = self.current_vertical_passage 
-        current_verti_passage = self.vertical_passage[verti_index]
+
+        current_verti_passage = self.vertical_passage[index]
 
         px, py = self.mini_player_loc
 
@@ -425,13 +409,15 @@ class AutoControl:
         self.battle_active = True
 
     #=================
-    # 邏輯塊: 人物移動
+    # 邏輯塊: 垂直移動相關
     #=================
 
     def _find_nearest_verti_passage(self) -> Optional[int]:
         """
-        功能:先找目前平台內最近的垂直通道
-        return: 平台引所對應的index 
+        功能:
+            先找目前平台內最近的垂直通道
+        return: 
+            平台引所對應的index 
         """
         if not self.mini_player_loc or not self.vertical_passage:
             return None
@@ -605,7 +591,7 @@ class AutoControl:
 
     def is_stuck(self):
         current_time = time.time()
-        print("人物位置變化")
+
         if self.last_player_loc is None:
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer = current_time
@@ -621,3 +607,26 @@ class AutoControl:
         if current_time - self.detect_move_stuck_timer > 1.5:
             return True
         return False
+
+    def _check_vertical_passage(self) -> Optional[int]:
+        '''
+        功能:
+            根據玩家目前的座標
+            判斷玩家在哪個垂直通道內
+        returns: 
+            傳回垂直通道的index|None
+        '''
+        if not self.mini_player_loc or not self.vertical_passage:
+            return None
+
+        px, py = self.mini_player_loc 
+
+        for index, vert in enumerate(self.vertical_passage):
+            left, top = vert["t_l"]     
+            right, bottom = vert["b_r"] 
+
+            if left <= px <= right and top <= py <= bottom:
+
+                return index  
+
+        return None
