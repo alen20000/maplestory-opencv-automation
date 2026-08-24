@@ -20,48 +20,40 @@ class PatrolState(State):
     def handle(self, context, state_data):
         print("狀態:平台巡邏...")
 
+        stuck_result = context.is_stuck()
+        print(f"目前 is_stuck 的值是: {stuck_result}")
+
         # 如果有怪物，切換為戰鬥狀態
         if state_data.mobs:
             context.change_state(CombatState())
             return None, None
+        
+        # 條件:人物座標沒動,超過一定時間,切換為檢查狀態
+        elif context.is_stuck():
 
-        # 巡邏超過預設時間
-        if time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
             context.change_state(StuckState())
             return None, None
+
         
         # 沒怪就繼續原本的巡邏動作
         return context._enable_player_patrol()
     
 class CombatState(State):
 
-    LOST_TARGET_TIMEOUT = 0.5 # <-- 找不到怪超過幾秒，才切回巡邏
+
     def __init__(self):
-        self.lost_target_timer = None # <-- 記錄「開始找不到怪」的時間戳
+        pass
 
     def handle(self, context, state_data):
         print("狀態:進入戰鬥...")
 
-        # 有怪，重置計時器，正常打怪
+        # 有怪，打怪
         if state_data.mobs:
-            self.lost_target_timer = None
             return context._fk_that_mob(state_data)
-        
-        # 第一次沒看到怪，記錄時間戳
-        if self.lost_target_timer is None:
-            self.lost_target_timer = time.time()
-            return None, None
-        
-        passed_time = time.time() - self.lost_target_timer
-        print(f"已經{passed_time:.1f} 秒沒有看到怪物了...")
-
-        #  超過預設時間，切回巡邏
-        if passed_time > self.LOST_TARGET_TIMEOUT:
-            print(f"已經{passed_time:.1f} 秒沒有看到怪物了，切回巡邏狀態")
+        else:
             context.change_state(PatrolState())
             return None, None
         
-        print(f"等待怪物出現中... ({int(passed_time)}秒")
         return None, None
 
 class StuckState(State):
@@ -70,12 +62,12 @@ class StuckState(State):
         self.stuck_timer = time.time()
 
     def handle(self, context, state_data):
-        print("狀態:檢查角色是否卡頓...")
+
+        self._print_override("狀態:檢查角色是否卡頓...")
         if time.time() - self.stuck_timer > StuckState.STUCK_TIMEOUT:
             context.reset_state()
             return None, None
         return context._unstuck_player(state_data)   
-
 
 
 
@@ -88,6 +80,7 @@ class BotState():
         self.initial_state_cls = PatrolState   # <-- 初始狀態的「類別」
 
         self.current_state = self.initial_state_cls()
+
     def change_state(self, new_state):
         print(f"[狀態切換] {self.current_state.__class__.__name__} -> {new_state.__class__.__name__}")
         self.current_state = new_state
@@ -95,6 +88,7 @@ class BotState():
     def reset_state(self):
         '''重製回預設初始狀「類別」'''
         self.change_state(self.initial_state_cls())
+
     #調用
     def handle(self, state_data):
         result = self.current_state.handle(self, state_data)
@@ -113,3 +107,10 @@ class BotState():
     
     def _unstuck_player(self, state_data):
         return self.owner._unstuck_player()
+    
+    def is_stuck(self):
+        return self.owner.is_stuck()
+
+
+
+    #====小工具

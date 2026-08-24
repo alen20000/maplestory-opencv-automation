@@ -1,0 +1,24 @@
+- action: walk
+  loc:
+  - 123
+  - 105
+- action: walk
+  loc:
+  - 63
+  - 105
+- action: rope
+  loc:
+  - 73
+  - 105
+- action: rope
+  loc:
+  - 73
+  - 84
+- action: rope
+  loc:
+  - 75
+  - 84
+- action: rope
+  loc:
+  - 76
+  - 68

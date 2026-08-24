@@ -160,6 +160,9 @@ class AutoControl:
 
         if self.current_platform is None:
             self.current_platform = self._check_current_platform() #判斷人在哪一個平台
+
+
+
         #===========
         # 管理模組: 健康模組
         #===========
@@ -321,7 +324,7 @@ class AutoControl:
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer  = current_time
             return self._pack_action("IDLE",command="STOP_MOVE")
-        
+
     #=================
     # 邏輯塊: 垂直通道
     #=================
@@ -421,18 +424,9 @@ class AutoControl:
         self.patrol_active = True
         self.battle_active = True
 
-
-
-
-
-
-
     #=================
     # 邏輯塊: 人物移動
     #=================
-
-
-
 
     def _find_nearest_verti_passage(self) -> Optional[int]:
         """
@@ -512,10 +506,6 @@ class AutoControl:
         else:
             return self._pack_action("MOVE", direction="LEFT")
 
-
-
-
-    
     #=================
     # 工具
     #=================
@@ -525,10 +515,6 @@ class AutoControl:
         """
         return action_type, kwargs
 
-
-
-
-
     def get_debug_geometry(self):
         '''
         給Gamebot的座標資料封包
@@ -537,7 +523,6 @@ class AutoControl:
             {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
             {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
         ]
-
 
     #=================
     # 分類: 已與狀態機掛勾執行函式
@@ -613,3 +598,26 @@ class AutoControl:
             return "ATTACK" , best_target
         print("沒有目標在攻擊範圍內")
         return None, None 
+
+    #=================
+    # 分類: 狀態機判斷
+    #=================
+
+    def is_stuck(self):
+        current_time = time.time()
+        print("人物位置變化")
+        if self.last_player_loc is None:
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
+            return False
+
+        if self.last_player_loc != self.mini_player_loc: #< -- 人物位置變化
+
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
+            return False 
+
+        # 時間間隔（Threshold）判定
+        if current_time - self.detect_move_stuck_timer > 1.5:
+            return True
+        return False
