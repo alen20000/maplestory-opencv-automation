@@ -42,10 +42,9 @@ class AutoControl:
         self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
 
-        #Timer
-        self.patrol_start_time = None #巡邏開始時間
+        #---[定時器]
+        self.detect_move_stuck_timer = 0 #<--移動卡住計時器
 
-        self.detect_move_stuck_timer = 0 #<--停留時間
         #States
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
@@ -166,7 +165,9 @@ class AutoControl:
         #===========
         self.health_manager.run(state.player_hp,state.player_mp,current_time)
 
+        # state 資料給狀態機，回傳值在拆解為 action ,params ，並回傳給Gamebot模組
         action, params = self.bot_state.handle(state)   
+
         return action, params 
 
     '''
@@ -216,20 +217,111 @@ class AutoControl:
         return None
 
 
+    #=================
+    # 邏輯塊: 脫困功能
+    #=================
 
-
-    def player_unstuck(self):
+    def _unstuck_player(self):
         '''
-        角色脫困
+        功能:
+            人物超出範圍、人物不動時、觸發防卡邏輯(這裡的移動是左右直走，還是有可能卡死)
         '''
+        # 更新一下目前在哪一個平台
+        self.current_platform = self._check_current_platform()
 
-        #去最近平台
-        result = self._find_nearest_platform()
-        if result is not None:
-            return self._move_to_platform(result)
-        else:
+        if self.current_platform is None:
+            #移動至最近平台
+            result = self._find_nearest_platform()
+            if result is not None:
+
+                result = self._move_to_platform(result)
+                print(f"移動至最近平台結果:{result}")
+                return result
+            else:
+                return None, None
+            
+    def _find_nearest_platform(self):
+        """
+        功能:
+            根據玩家目前的座標找最近的平台
+        return:
+            傳回最近平台的index 
+        """
+
+        px , py = self.mini_player_loc
+
+        nearest_platform_index = None
+        #跟找怪邏輯一樣，從無限距離開始判斷
+        nearest_distance = float('inf')
+
+        for index, plat in enumerate(self.platforms):
+
+            left, top = plat["t_l"]
+            right, bottom = plat["b_r"]
+
+            if left <= px <= right:
+                dx = 0
+            else:
+                dx = min(abs(px - left), abs(px - right))
+            dy = min(abs(py - top), abs(py - bottom))
+
+            distance = (dx ** 2 + dy ** 2) ** 0.5
+
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_platform_index  = index
+
+        return nearest_platform_index 
+    
+    def _move_to_platform(self, platform_index)-> tuple[Optional[str], Optional[dict]]:
+        '''
+        功能:控制人物移動到目標平台
+        arges: 
+            verti_passage_index: 垂直通道的index
+        return:
+            self._pack_action("MOVE", direction="RIGHT"or "LEFT")
+        '''
+        if self.mini_player_loc:
+            px , _ = self.mini_player_loc
+
+            # (1) 防卡監測
+            stuck_action =self._detect_move_stuck()
+            if stuck_action is not None:
+                return stuck_action
+
+            # (2) 主邏輯
+            if px < self.platforms[platform_index]["t_l"][0]:
+                return self._pack_action("MOVE", direction="RIGHT")
+            else:
+                return self._pack_action("MOVE", direction="LEFT")
+        return None
+    def _detect_move_stuck(self):
+        ''' 
+        檢測:
+            人物是否卡住沒有移動
+        效果:
+            若人物卡住，發一個"閒置停止"的指令，產生脈衝
+        '''
+        current_time = time.time()
+
+        # 記錄第一次"上次位置"，初始化卡住計時器
+        if self.last_player_loc is None:
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
             return None
-
+        
+        # 變動監測
+        if self.last_player_loc != self.mini_player_loc:
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer = current_time
+            return None 
+        
+        if current_time - self.detect_move_stuck_timer > 1.5:
+            print("人物位置沒有變化，重新觸發脈衝")
+            self.last_player_loc = self.mini_player_loc
+            self.detect_move_stuck_timer  = current_time
+            return self._pack_action("IDLE",command="STOP_MOVE")
+        
     #=================
     # 邏輯塊: 垂直通道
     #=================
@@ -340,39 +432,7 @@ class AutoControl:
     #=================
 
 
-    def _find_nearest_platform(self):
-        """
-        功能:找最近的平台
-        return: 平台引所對應的index 
-        """
-        if not self.mini_player_loc or not self.platforms:
-            return None
 
-        px , py = self.mini_player_loc
-
-        nearest_platform_index = None
-        #跟找怪邏輯一樣，從無限距離開始判斷
-        nearest_distance = float('inf')
-
-        for index, plat in enumerate(self.platforms):
-
-            left, top = plat["t_l"]
-            right, bottom = plat["b_r"]
-
-            if left <= px <= right:
-                dx = 0
-            else:
-                dx = min(abs(px - left), abs(px - right))
-            dy = min(abs(py - top), abs(py - bottom))
-
-            distance = (dx ** 2 + dy ** 2) ** 0.5
-
-            if distance < nearest_distance:
-                nearest_distance = distance
-                nearest_platform_index  = index
-
-        return nearest_platform_index 
-    
 
     def _find_nearest_verti_passage(self) -> Optional[int]:
         """
@@ -452,30 +512,7 @@ class AutoControl:
         else:
             return self._pack_action("MOVE", direction="LEFT")
 
-    def _move_to_platform(self, platform_index)-> tuple[Optional[str], Optional[dict]]:
-        '''
-        功能:控制人物移動到目標平台
-        arges: 
-            verti_passage_index: 垂直通道的index
-        return:
-            self._pack_action("MOVE", direction="RIGHT"or "LEFT")
-        '''
-        if self.mini_player_loc:
-            px , _ = self.mini_player_loc
 
-            print(f"\r走去{platform_index}平台",end="", flush=True)
-
-            # (1) 防卡監測
-            stuck_action =self._detect_move_stuck()
-            if stuck_action is not None:
-                return stuck_action
-
-            # (2) 主邏輯
-            if px < self.platforms[platform_index]["t_l"][0]:
-                return self._pack_action("MOVE", direction="RIGHT")
-            else:
-                return self._pack_action("MOVE", direction="LEFT")
-        return None
 
 
     
@@ -488,27 +525,7 @@ class AutoControl:
         """
         return action_type, kwargs
 
-    def _detect_move_stuck(self):
-        ''' 
-        監視，兩個 move指令之間的間隔，人物位置沒有變化，但表move無效，重新觸發脈衝
-        '''
-        current_time = time.time()
-        #初始化
-        if self.last_player_loc is None:
-            self.last_player_loc = self.mini_player_loc
-            self.detect_move_stuck_timer = current_time
-            return None
-        # 變動監測
-        if self.last_player_loc != self.mini_player_loc:
-            self.last_player_loc = self.mini_player_loc
-            self.detect_move_stuck_timer = current_time
-            return None 
-        
-        if current_time - self.detect_move_stuck_timer > 1.5:
-            print("人物位置沒有變化，重新觸發脈衝")
-            self.last_player_loc = self.mini_player_loc
-            self.detect_move_stuck_timer  = current_time
-            return self._pack_action("IDLE",command="STOP_MOVE")
+
 
 
 
@@ -568,7 +585,8 @@ class AutoControl:
         # 依賴檢查：無平台資訊就拋棄此幀
         if not state.player_center_loc:
             return None, None
-        
+        if state.roi_BBOX is None:
+            return None, None
         px, _ = state.player_center_loc
 
         # -- 計算最近的怪物

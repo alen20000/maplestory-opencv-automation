@@ -9,7 +9,7 @@ class ActionHandler:
     def __init__(self):
 
         #State
-        self.current_state = "IDLE"  
+        self.current_state = "PRESET"  
         self.current_info = None
         #Instance
         self.keyboard = kb.KeyBoard()

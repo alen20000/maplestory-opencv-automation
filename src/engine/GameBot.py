@@ -55,7 +55,7 @@ class GameBot:
         self.frame_bgr = None
         self.roi_crop_frame_gray = None
         self.frame_size:tuple[int, int] = None # (x,y)typle
-        self.dectect_False_count = 0
+
         #---掃描設定
         self.method = cv2.TM_CCOEFF_NORMED
         self.min_threshold = config.get("image_processing.role_min_threshold")
@@ -344,7 +344,8 @@ class GameBot:
 
                 #至少有 action_states 才傳輸給狀態機 且 本輪遊戲視窗在前景
                 if action_oder is not None and is_game_window_foreground:
-                        self.action_handler.execute_behavior(action_oder, target_info)
+
+                    self.action_handler.execute_behavior(action_oder, target_info)
 
                 #繪製BBOX,Text
                 self._render_cv2_view(mini_player_loc, action_oder)
@@ -380,18 +381,9 @@ class GameBot:
                     self.player_center_loc = cent_coord(player_loc,self.my_character_template_size)
                 else:
                     pass
-
-
             else:
                 #進入ROI掃
                 fund_result = self._locate_player_locally()
-
-                #用回傳的True/False，來做失敗紀錄，好像沒啥用，先放著
-                if not fund_result:
-                    self.dectect_False_count += 1
-                    if self.dectect_False_count > 10:
-                        self.player_center_loc = None
-                        self.dectect_False_count = 0
 
             if self.player_center_loc is not None:
                 # 角色bbox座標  tuple[tuple[int,int],tuple[int,int]
@@ -419,7 +411,7 @@ class GameBot:
                 return max_loc
             else:
                 logging.info(f"全圖模式:未匹配角色")
-                pass
+                
         except Exception as e:
             logging.error(e)
 
@@ -461,6 +453,8 @@ class GameBot:
             
             else:
                 logging.info('ROI掃描，未找到角色')
+                # 沒匹配reset
+
                 return False    
 
         except Exception as e:

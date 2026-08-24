@@ -12,7 +12,7 @@ class State(ABC):
 
 class PatrolState(State):
 
-    TIMEOUT = 3 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
+    TIMEOUT = 10 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
 
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
@@ -24,9 +24,12 @@ class PatrolState(State):
         if state_data.mobs:
             context.change_state(CombatState())
             return None, None
-        # if time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
-        #     context.change_state(CombatState())
-        #     return None, None
+
+        # 巡邏超過預設時間
+        if time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
+            context.change_state(StuckState())
+            return None, None
+        
         # 沒怪就繼續原本的巡邏動作
         return context._enable_player_patrol()
     
@@ -60,24 +63,43 @@ class CombatState(State):
         
         print(f"等待怪物出現中... ({int(passed_time)}秒")
         return None, None
-    
+
+class StuckState(State):
+    STUCK_TIMEOUT = 3
+    def __init__(self):
+        self.stuck_timer = time.time()
+
+    def handle(self, context, state_data):
+        print("狀態:檢查角色是否卡頓...")
+        if time.time() - self.stuck_timer > StuckState.STUCK_TIMEOUT:
+            context.reset_state()
+            return None, None
+        return context._unstuck_player(state_data)   
+
+
+
+
 class BotState():
     '''
     state manager    
     '''
     def __init__(self,owner):
         self.owner = owner
-        self.current_state = PatrolState() #<-- 初始狀態是巡邏
+        self.initial_state_cls = PatrolState   # <-- 初始狀態的「類別」
 
+        self.current_state = self.initial_state_cls()
     def change_state(self, new_state):
         print(f"[狀態切換] {self.current_state.__class__.__name__} -> {new_state.__class__.__name__}")
         self.current_state = new_state
 
+    def reset_state(self):
+        '''重製回預設初始狀「類別」'''
+        self.change_state(self.initial_state_cls())
     #調用
     def handle(self, state_data):
         result = self.current_state.handle(self, state_data)
 
-        # 統一防呆:少傳Noe 則多補None 
+        # 統一防呆:若缺一個None，就補一個None 
         if result is None:
             return None, None
         return result
@@ -88,3 +110,6 @@ class BotState():
 
     def _fk_that_mob(self, state_data):
         return self.owner._fk_that_mob(state_data)
+    
+    def _unstuck_player(self, state_data):
+        return self.owner._unstuck_player()
