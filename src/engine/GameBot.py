@@ -290,8 +290,8 @@ class GameBot:
                 
                 is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
                 if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
-                    self.player_states.keyboard.release_all()
-                    self.player_states.keyboard.stop_move()
+                    self.keyboard.release_all()
+                    self.keyboard.stop_move()
                 self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
 
                 #抓圖函式
@@ -334,9 +334,9 @@ class GameBot:
                 decide_operation ,execute_behavior  -> (str, dict{})
                 '''
                 try:
-                    action_oder, target_info = self.auto_control.select_operation(current_game_state)
+                    action_oder, target_info = self.auto_control.run(current_game_state)
                 except Exception as e:
-                    logging.error(f"auto_control.select_operation 發生例外錯誤: {e}", exc_info=True)
+                    logging.error(f"auto_control.run 發生例外錯誤: {e}", exc_info=True)
                     continue
 
                 # print(f"行為:{action_states} 目標:{target_info}")

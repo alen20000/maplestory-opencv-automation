@@ -3,18 +3,24 @@ import logging
 from config.config_loader import config
 from typing import Optional
 from src.engine.game_state import GameState
+from src.engine.HealthManager import HealthManager
 import time
 import random
 from pathlib import Path
 import yaml
 import time
+from enum import Enum, auto
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
+
+健康控制用插入
+狀態種類(互斥責為狀態): COMBAT、
 '''
 class AutoControl:
     def __init__(self):
-
+        #---[實例化]
+        self.health_manager = HealthManager()
         # Search Config & Constants
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
 
@@ -37,17 +43,13 @@ class AutoControl:
         self.hp_sorted_levels =[] #<-- 紅水等級排序
         #Timer
         self.patrol_start_time = None #巡邏開始時間
-        self.hp_cooldown = 5 #<--紅水冷卻時間
-        self.mp_cooldown = 5 #<--藍水冷卻時間
-        self.last_hp_time = None #<--上次喝紅時間
-        self.last_mp_time = None #<--上次喝藍時間
+
         self.detect_move_stuck_timer = 0 #<--停留時間
         #States
         self.is_climbing_state = False #在爬樓梯狀態
         self.is_finding_rope_state =False #找繩子狀態
         self.is_combat_state = True #戰鬥狀態
         # Loadding Config
-        self._load_health_config()
         self._load_map_data()
         # Parameters
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
@@ -60,56 +62,18 @@ class AutoControl:
     #=================
     # 載入設定
     #=================
-    def _load_health_config(self):
 
-        '''
-        喝水設定載入
-        '''
-
-        hp_raw = config.get("player_setting.health_setting") or {}
-        for level, setting in hp_raw.items():
-            key = setting.get("key")
-            value = setting.get("value")
-            if key == "None":
-                key = None
-
-            self.health_setting[level] = {
-                "value" : value,
-                "key" : key,
-            }
-        # mp_setting 結構範例: {"light": {"key": "delete", "value": 80}, ...}
-        self.hp_sorted_levels = sorted(
-            self.health_setting.items(),
-            key=lambda item: item[1]["value"]
-        )
-        mp_raw = config.get("player_setting.mp_setting") or {}
-        for level, setting in mp_raw.items():
-            key = setting.get("key")
-            value = setting.get("value")
-            if key == "None":           #<--沒設置的水線，會被拋棄
-                key = None
-
-            self.mp_setting[level] = {
-                "value" : value,
-                "key" : key,
-            }
-        # mp_setting 結構範例: {"light": {"key": "delete", "value": 80}, ...}
-        self.mp_sorted_levels = sorted(
-            self.mp_setting.items(),
-            key=lambda item: item[1]["value"]
-        )
     def _load_map_data(self):
         try:
             map_name = config.get("quickly_choice_map")
             self.mini_map = Path(config.get(f"mini_map.{map_name}"))
             folder_path = self.mini_map.parent
             yaml_path = folder_path / f"{map_name}.yaml"
+
             if yaml_path.exists():
                 with open(yaml_path, "r") as f:
                     self.recored_data = yaml.safe_load(f)
-                #====
-                # 找出、分類各動作點
-                #====
+
                 self.platforms = self._find_platform()
                 self.vertical_passage = self._find_vertical_passage()
 
@@ -121,26 +85,26 @@ class AutoControl:
     #=================
     # 主要邏輯
     #=================
-    def select_operation(self,state: GameState) -> tuple[Optional[str], Optional[dict]]:
+    def run(self,state: GameState) -> tuple[Optional[str], Optional[dict]]:
         '''
         Args:
             state (GameState): 包含當前角色位置、血量、ROI 範圍及怪物清單的資料容器。
         '''
-
-        #角色座標更新
-        if state.mini_player_loc:
+        #===========
+        # 每輪資訊更新
+        #===========
+        
+        if state.mini_player_loc:   #角色座標更新
             self.mini_player_loc = state.mini_player_loc
 
-        #時間標籤
-        current_time =time.time()
+        current_time =time.time()   #時間標籤
 
-        # 1. 檢查健康
-        level , heal_key = self._health_status_check(state.player_hp,current_time)
-        if level is not None:
-            return f"HEAL_{level.upper()}", {"key": heal_key}
-        level , mp_key = self._mp_status_check(state.player_mp, current_time)
-        if level is not None:
-            return f"HEAL_{level.upper()}", {"key": mp_key}
+        #===========
+        # 管理模組: 健康模組
+        #===========
+        self.health_manager.run(state.player_hp,state.player_mp,current_time)
+
+
 
         # 2. 執行戰鬥
         if self.battle_active :
@@ -466,76 +430,7 @@ class AutoControl:
 
         return None
 
-    #=================
-    # 邏輯塊: 健康狀態
-    #=================
-    def _health_status_check(self,player_hp,current_time): 
 
-        '''
-        血量情況判斷與行動分流
-        回傳: 血量分級、對應按鍵
-        '''
-
-        if player_hp is None:
-            return None, None  # 防呆:# player_hp 為 None 時提前擋下
-
-        if not (0 < player_hp <= 100):
-            logging.debug(f"血量取值異常: {player_hp} ")
-            return None, None
-
-        if not self.health_setting:
-            return None, None 
-
-
-
-        if self.last_hp_time is None:
-            self.last_hp_time = current_time
-        # 喝水冷卻時間
-        if (current_time - self.last_hp_time) < self.hp_cooldown:
-            return None, None
-
-        #主要判斷
-        for level, setting in self.hp_sorted_levels:
-            if player_hp < setting["value"]:
-                key = setting["key"]
-                if key is None:
-                    continue   # 這個等級沒設按鍵，跳過，往下一級檢查
-                self.last_hp_time = current_time
-                return level, key
-        return None, None
-
-    def _mp_status_check(self,player_mp,current_time): 
-
-
-        if player_mp is None:
-            return None, None  # 防呆:# player_mp 為 None 時提前擋下
-
-        if not (0 < player_mp <= 100):
-            logging.info(f"魔力取值異常: {player_mp} ")
-            return None, None
-
-
-        # 沒有設定喝水，直接回傳None
-        if not self.mp_setting:
-            return None, None 
-
-        if self.last_mp_time is None:
-            self.last_mp_time = current_time
-        # 喝水冷卻時間
-        if (current_time - self.last_mp_time) < self.mp_cooldown:
-            return None, None
-        
-        #主要判斷
-        for level, setting in self.mp_sorted_levels:
-            if player_mp < setting["value"]:
-                key = setting["key"]
-                if key is None:
-                    continue   # 這個等級沒設按鍵，跳過，往下一級檢查
-                self.last_mp_time = current_time
-                return level, key
-            
-        return None, None
-    
     #=================
     # 邏輯塊: 打怪物
     #=================
