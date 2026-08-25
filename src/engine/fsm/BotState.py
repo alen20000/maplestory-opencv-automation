@@ -13,10 +13,10 @@ class State(ABC):
 class PatrolState(State):
 
     TIMEOUT = 2 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
-
+    
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
-
+        self.SWITCH_PATROL_ACTION = False # <-- 是否切換巡邏動作
     def handle(self, context, state_data):
         # print("狀態:平台巡邏...")
 
@@ -37,7 +37,8 @@ class PatrolState(State):
             return None, None
         
         # 沒怪就繼續原本的巡邏動作
-        return context._enable_player_patrol()
+        if self.SWITCH_PATROL_ACTION :
+            return context._enable_player_patrol()
     
 class CombatState(State):
 
@@ -58,7 +59,7 @@ class CombatState(State):
 
 
 class StuckState(State):
-    STUCK_TIMEOUT = 3
+    STUCK_TIMEOUT = 1
     def __init__(self):
         self.stuck_timer = time.time()
 

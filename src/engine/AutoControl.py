@@ -31,6 +31,7 @@ class AutoControl:
 
         #---[內部參數&設定]
         self.search_direction = random.choice(["LEFT", "RIGHT"]) #<-- 巡邏方向;第一次初始化隨機方向
+        self.player_attack_range = config.get("player_setting.auto_control_config.attack_range") # <-- 玩家攻擊範圍
 
         #---[座標用容器]
         self.recored_data = []#<-- 所有行為點的容器
@@ -41,18 +42,14 @@ class AutoControl:
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
+        self.last_player_loc = None #<==defc last_player_loc 使用
 
         #---[定時器]
         self.detect_move_stuck_timer = 0 #<--移動卡住計時器
-
-        #States
-        self.is_climbing_state = False #在爬樓梯狀態
-        self.is_finding_rope_state =False #找繩子狀態
-        self.is_combat_state = True #戰鬥狀態
-        # Loadding Config
+        self._verti_movement_timer = None #<--垂直移動計時器
+        #---[載入設定]
         self._load_map_data()
-        # Parameters
-        self.player_attack_range = config.get("player_setting.auto_control_config.attack_range")
+
 
 
     #=================
@@ -123,7 +120,7 @@ class AutoControl:
 
             if current["action"] == "rope" and next_item["action"] == "rope":
 
-                top = min(current["loc"][1],next_item["loc"][1]) 
+                top = min(current["loc"][1],next_item["loc"][1]) - 2
                 bottom = max(next_item["loc"][1],current["loc"][1]) + 6
 
                 left = min(current["loc"][0], next_item["loc"][0]) - 4
@@ -207,24 +204,38 @@ class AutoControl:
     #=================
 
     def _unstuck_player(self):
+            '''
+            功能:
+                人物超出範圍、人物不動時、觸發防卡邏輯
+            '''
+            # 更新一下目前在哪一個平台
+            self.current_platform = self._check_current_platform()
+            
+            # 情況A:人物脫離平台
+            if self.current_platform is None:
+                # 移動至最近平台
+                result = self._find_nearest_platform()
+                if result is not None:
+                    result = self._move_to_platform(result)
+                    return result
+                else:
+                    return None, None
+            
+            # 情況B:人物在平台上
+            else:
+                return self._random_move()
+    
+    def _random_move(self):
         '''
         功能:
-            人物超出範圍、人物不動時、觸發防卡邏輯(這裡的移動是左右直走，還是有可能卡死)
+            用list拼出隨機移動
         '''
-        # 更新一下目前在哪一個平台
-        self.current_platform = self._check_current_platform()
-
-        if self.current_platform is None:
-            #移動至最近平台
-            result = self._find_nearest_platform()
-            if result is not None:
-
-                result = self._move_to_platform(result)
-
-                return result
-            else:
-                return None, None
-            
+        action_list = ["JUMP","MOVE"]
+        action_direction_list = ["RIGHT","LEFT"]
+        action = random.choice(action_list)
+        direction = random.choice(action_direction_list)
+        return self._pack_action(action, direction=direction)
+    
     def _find_nearest_platform(self):
         """
         功能:
@@ -270,7 +281,7 @@ class AutoControl:
             px , _ = self.mini_player_loc
 
             # (1) 防卡監測
-            stuck_action =self._detect_move_stuck()
+            stuck_action =self._give_pulse_to_stuck()
             if stuck_action is not None:
                 return stuck_action
 
@@ -281,10 +292,10 @@ class AutoControl:
                 return self._pack_action("MOVE", direction="LEFT")
         return None
     
-    def _detect_move_stuck(self):
+    def _give_pulse_to_stuck(self):
         ''' 
-        檢測:
-            人物是否卡住沒有移動
+        功能:
+            人物座標沒變化，則產生脈衝
         效果:
             若人物卡住，發一個"閒置停止"的指令，產生脈衝
         '''
@@ -307,7 +318,22 @@ class AutoControl:
             self.last_player_loc = self.mini_player_loc
             self.detect_move_stuck_timer  = current_time
             return self._pack_action("IDLE",command="STOP_MOVE")
+        
+    def _is_loc_change(self) -> bool:
+        '''
+        功能:
+            用上次的位置與現在的位置判斷是否移動
+        return 
+            True | False
+        '''
 
+        if self.last_player_loc is None:
+            self.last_player_loc = self.mini_player_loc
+            return True  
+
+        changed = self.last_player_loc != self.mini_player_loc
+        self.last_player_loc = self.mini_player_loc  
+        return changed
     #=================
     # 邏輯塊: 垂直通道
     #=================
@@ -320,6 +346,11 @@ class AutoControl:
             1. 判斷往上/往下
             2.偵測左走抓繩/右走抓繩
         """
+        # print(f"[verti] target={self.current_verti_target} py={py} timer_elapsed={current_time - self._verti_movement_timer:.2f} last_loc={self.last_player_loc} cur_loc={self.mini_player_loc}")
+        # -- 時間計算
+        if self._verti_movement_timer is None:
+            self._verti_movement_timer = time.time()
+        current_time = time.time()
         # -- 數據計算
         current_verti_passage = self.vertical_passage[index]
         px, py = self.mini_player_loc
@@ -337,17 +368,24 @@ class AutoControl:
             # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
         #容忍值
-        TOP_TOLERANCE = 3
-        BOTTOM_TOLERANCE = 3
+        TOP_TOLERANCE = 5
+        BOTTOM_TOLERANCE = 5
         # -- 決策邏輯
+        # -- 往上        
         if self.current_verti_target == "UP":
 
-            if  py <= top + TOP_TOLERANCE:
-                print("到達頂部，重置狀態")
-                return self._pack_action("IDLE", direction="RELEASE_ALL")
+            if  current_time - self._verti_movement_timer > 1:
+                '''超過X秒，判斷人物是否移動，沒移動代表在頂部'''
+                #到達底部，重置狀態
+                if not self._is_loc_change(): #< - 偵測是否移動
+                    print("到達底部")
+                    self.current_verti_target = None # < - 離開要重置
+                    self._verti_movement_timer = None
+                    self.last_player_loc = None
+                    return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             #行為:找方向跳抓繩子
-            if self.current_verti_target == "UP" and  bottom - TOP_TOLERANCE <= py <= bottom :
+            if bottom <= py <= bottom  - TOP_TOLERANCE  :
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
@@ -358,20 +396,26 @@ class AutoControl:
 
             print(f'方向:{self.current_verti_target}，爬繩子中。。。')
             return self._pack_action("CLIMB", direction=self.current_verti_target)
-
+        
+        # -- 往下
         if self.current_verti_target == "DOWN":
-            if  py >= bottom - BOTTOM_TOLERANCE:
+            if  current_time - self._verti_movement_timer > 1:
+                '''超過X秒，判斷人物是否移動，沒移動代表在底部'''
                 #到達底部，重置狀態
-                print("到達底部")
-                return self._pack_action("IDLE", direction="RELEASE_ALL")
+                if not self._is_loc_change(): #< - 偵測是否移動
+                    print("到達底部")
+                    self.current_verti_target = None # < - 離開要重置
+                    self._verti_movement_timer = None
+                    self.last_player_loc = None
+                    return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             if top <= py <= top + BOTTOM_TOLERANCE:
                 #狀態改變:找繩子
 
-                if px <= central_axis :
+                if px <= central_axis + 2 :
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="RIGHT_DOWN")
-                elif px >= central_axis :
+                elif px >= central_axis - 2 :
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="LEFT_DOWN")
 
@@ -476,7 +520,7 @@ class AutoControl:
         current = self._check_vertical_passage()
         print(f"current verti passage: {current}")
         # (1) 防卡監測
-        stuck_action =self._detect_move_stuck()
+        stuck_action =self._give_pulse_to_stuck()
         if stuck_action is not None:
             return stuck_action
         

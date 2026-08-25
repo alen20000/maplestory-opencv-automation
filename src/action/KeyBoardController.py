@@ -23,6 +23,8 @@ class KeyBoard:
         self._left_lock = threading.Lock()
         self._move_down_right_lock = threading.Lock()
         self._move_down_left_lock = threading.Lock()
+        self._jump_left_lock = threading.Lock()
+        self._jump_right_lock = threading.Lock()
 
         self._status_release_all = False
         self._status_attack = False
@@ -36,7 +38,8 @@ class KeyBoard:
         self._pick_up = False
         self._status_move_down_right = False
         self._status_move_down_left = False
-
+        self._status_jump_left = False
+        self._status_jump_right = False
 
         #key value
         self.attack_key = config.get("keyboard.attack")
@@ -264,6 +267,51 @@ class KeyBoard:
                 return
             self._status_move_down_left = True
         threading.Thread(target=self._move_down_left_command, args=(duration,), daemon=True).start()
+    def _jump_left_command(self, duration=0.1, delay=0.03):
+        '''向左跳'''
+        try:
+            interception.key_down(self.left_key)
+            time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
+            interception.key_down(self.jump_key)
+            time.sleep(duration)
+        except Exception as e:
+            logging.error(f"左跳動作發生錯誤:{e}")
+        finally:
+            interception.key_up(self.jump_key)
+            interception.key_up(self.left_key)
+            with self._jump_left_lock:
+                self._status_jump_left = False
+
+    def jump_left(self, duration=0.1, delay=0.03):
+        '''向左跳（複合動作：方向鍵 -> 微間隔 -> 跳躍鍵）'''
+        with self._jump_left_lock:
+            if self._status_jump_left:
+                return
+            self._status_jump_left = True
+        threading.Thread(target=self._jump_left_command, args=(duration, delay), daemon=True).start()
+
+    def _jump_right_command(self, duration=0.1, delay=0.03):
+        '''向右跳'''
+        try:
+            interception.key_down(self.right_key)
+            time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
+            interception.key_down(self.jump_key)
+            time.sleep(duration)
+        except Exception as e:
+            logging.error(f"右跳動作發生錯誤:{e}")
+        finally:
+            interception.key_up(self.jump_key)
+            interception.key_up(self.right_key)
+            with self._jump_right_lock:
+                self._status_jump_right = False
+
+    def jump_right(self, duration=0.1, delay=0.03):
+        '''向右跳（複合動作：方向鍵 -> 微間隔 -> 跳躍鍵）'''
+        with self._jump_right_lock:
+            if self._status_jump_right:
+                return
+            self._status_jump_right = True
+        threading.Thread(target=self._jump_right_command, args=(duration, delay), daemon=True).start()
 
     def climb_up(self):
         interception.key_down(self.up_key)

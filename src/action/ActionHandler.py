@@ -88,6 +88,14 @@ class ActionHandler:
                 self.keyboard.enable_move_right()
             self.keyboard.enable_pick_up()
             
+        elif self.current_state == "JUMP":
+            direction = self.current_info.get("direction")
+            if direction == "LEFT":
+                self.keyboard.jump_left()
+            elif direction == "RIGHT":
+                self.keyboard.jump_right()
+
+
         elif self.current_state == "IDLE" and self.current_info:
             command = self.current_info.get("command")
             if command == "STOP_MOVE":
