@@ -58,8 +58,8 @@ auto_control_config:
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 8
 
-  #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，則進行平台移動 
-  verti_move_threshold : 10
+  #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
+  find_mob_time_threshold : 1
 
 
 health_detector:

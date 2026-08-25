@@ -173,28 +173,7 @@ class AutoControl:
 
         return action, params 
 
-    '''
-    功能塊: 感知函式 
-    '''
-    def _check_current_platform(self):
-        """
-        功能:
-            根據玩家目前的座標
-            判斷人在哪一個平台內
-        """
-        if not self.mini_player_loc or not self.platforms:
-            return None
 
-        px, py = self.mini_player_loc 
-
-        for index, plat in enumerate(self.platforms):
-            left, top = plat["t_l"]     
-            right, bottom = plat["b_r"] 
-
-            if left <= px <= right and top <= py <= bottom:
-                return index  
-
-        return None
     
 
 
@@ -280,7 +259,7 @@ class AutoControl:
         if self.mini_player_loc:
             px , _ = self.mini_player_loc
 
-            # (1) 防卡監測
+            # (1) 防卡:防止被怪物攻擊而阻斷移動狀態，發一個"閒置停止"的指令，觸發脈衝
             stuck_action =self._give_pulse_to_stuck()
             if stuck_action is not None:
                 return stuck_action
@@ -369,7 +348,7 @@ class AutoControl:
 
         #容忍值
         TOP_TOLERANCE = 5
-        BOTTOM_TOLERANCE = 5
+        BOTTOM_TOLERANCE = 10
         # -- 決策邏輯
         # -- 往上        
         if self.current_verti_target == "UP":
@@ -385,7 +364,7 @@ class AutoControl:
                     return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             #行為:找方向跳抓繩子
-            if bottom <= py <= bottom  - TOP_TOLERANCE  :
+            if py < top :
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
@@ -409,13 +388,13 @@ class AutoControl:
                     self.last_player_loc = None
                     return self._pack_action("IDLE", direction="RELEASE_ALL")
             
-            if top <= py <= top + BOTTOM_TOLERANCE:
+            if  py > bottom:
                 #狀態改變:找繩子
 
-                if px <= central_axis + 2 :
+                if px <= central_axis  :
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="RIGHT_DOWN")
-                elif px >= central_axis - 2 :
+                elif px >= central_axis  :
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="LEFT_DOWN")
 
@@ -518,8 +497,7 @@ class AutoControl:
         '''
         px , _ = self.mini_player_loc
         current = self._check_vertical_passage()
-        print(f"current verti passage: {current}")
-        # (1) 防卡監測
+        # (1) 防卡:防止被怪物攻擊而阻斷移動狀態，發一個"閒置停止"的指令，觸發脈衝
         stuck_action =self._give_pulse_to_stuck()
         if stuck_action is not None:
             return stuck_action
@@ -667,6 +645,26 @@ class AutoControl:
 
             if left <= px <= right and top <= py <= bottom:
 
+                return index  
+
+        return None
+
+    def _check_current_platform(self):
+        """
+        功能:
+            根據玩家目前的座標
+            判斷人在哪一個平台內
+        """
+        if not self.mini_player_loc or not self.platforms:
+            return None
+
+        px, py = self.mini_player_loc 
+
+        for index, plat in enumerate(self.platforms):
+            left, top = plat["t_l"]     
+            right, bottom = plat["b_r"] 
+
+            if left <= px <= right and top <= py <= bottom:
                 return index  
 
         return None

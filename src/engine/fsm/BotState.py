@@ -12,7 +12,7 @@ class State(ABC):
 
 class PatrolState(State):
 
-    TIMEOUT = 2 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
+    TIMEOUT = config.get("auto_control_config.find_mob_time_threshold") # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
     
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
@@ -73,8 +73,16 @@ class StuckState(State):
 
 class PathfindState(State):
     '''
-    先把爬繩子弄好，再添加跳躍點、之類的其他命令
+    這裡分流移動的方法: 繩子、跳躍之類的
     '''
+    def __init__(self):
+        pass
+    def handle(self, context, state_data):
+        if context._check_current_platform() is not None:
+            print("偵測在平台內，轉到到爬繩狀態")
+            context.change_state(RopeState())
+            return None, None
+class RopeState(State):
     def __init__(self):
         pass
     def handle(self, context, state_data):
@@ -82,8 +90,10 @@ class PathfindState(State):
 
         # 先判斷人物現在是不是已經站在垂直通道範圍內
         current_passage_index = context._check_vertical_passage()
-        print(f"目前所在垂直通道: {current_passage_index}號通道")
-
+        if current_passage_index is not None:
+            print(f"目前所在垂直通道: {current_passage_index}號通道")
+        else:
+            print("目前不在垂直通道內，開始查找最近的垂直通道")
         
         if current_passage_index is not None: # <-若在垂直通道內
             action, params = context._verti_movement(current_passage_index)
@@ -93,13 +103,15 @@ class PathfindState(State):
             return action, params
         
         # 如果不在垂直通道內，去找最近的垂直通道
-        next_rope_index = context._find_nearest_verti_passage()
-        if next_rope_index is not None:  # <- 用 is not None，避免 index=0 被 if 判成 False
+        if current_passage_index is  None:  # <- 用 is not None，避免 index=0 被 if 判成 False
+            next_rope_index = context._find_nearest_verti_passage()
+            print(f"""找到最近的垂直通道:{next_rope_index}號通道""")
             return context._move_to_verti_passage(next_rope_index)
         else:
 
             context.change_state(PatrolState())
             return None, None
+
 
 class BotState():
     '''
@@ -152,4 +164,6 @@ class BotState():
 
     def _verti_movement(self,index):
             return self.owner._verti_movement(index)
+    def _check_current_platform(self):
+            return self.owner._check_current_platform()
     #====小工具
