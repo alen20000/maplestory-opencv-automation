@@ -36,7 +36,7 @@ class PatrolState(State):
 
         # 條件C:超過一定時間,切換為尋路狀態(爬繩、跳躍點、etc..)
         elif time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
-            context.change_state(RopeState())
+            context.change_state(PathfindState())
             return None, None
         
         # 沒怪就繼續原本的巡邏動作
@@ -81,10 +81,56 @@ class PathfindState(State):
     def __init__(self):
         pass
     def handle(self, context, state_data):
+
+        # 條件A:偵測到鄰近的跳躍點
+        nearest_jump_index = context._find_nearest_jump_point()
+        if nearest_jump_index is not None:
+            print(f"偵測到鄰近的{nearest_jump_index}號跳躍點，轉換到跳躍狀態")
+            context.change_state(JumpState(nearest_jump_index))
+            return None, None
+        # 條件B: 偵測平台內垂直通道
         if context._check_current_platform() is not None or context._check_vertical_passage() is not None:
             print("偵測在平台內，轉到到爬繩狀態")
             context.change_state(RopeState())
             return None, None
+        
+        # 其餘: 重置 
+        context.reset_state()
+        return None, None
+
+
+class JumpState(State):
+    '''
+    功能:
+        負責走到指定的單點跳躍座標(YAML中紀錄的 JumpLeft / JumpRight)，
+        抵達後依紀錄的方向執行單次跳躍。
+    '''
+    TIMEOUT = 3  # <-- 保險機制:太久走不到跳躍點就放棄，避免卡死在這個狀態
+
+    def __init__(self, jump_index):
+        self.jump_index = jump_index
+        self.start_time = time.time()
+
+    def handle(self, context, state_data):
+        print(f"狀態:前往{self.jump_index}號跳躍點...")
+
+        # 逾時保護:走太久還沒到，放棄本次跳躍，回到巡邏重新判斷
+        if time.time() - self.start_time > JumpState.TIMEOUT:
+            print("前往跳躍點逾時，放棄本次跳躍")
+            context.reset_state()
+            return None, None
+
+        current_jump_index = context._check_jump_point()
+
+        # 已經站在目標跳躍點上，執行跳躍動作
+        if current_jump_index == self.jump_index:
+            action, params = context._do_jump(self.jump_index)
+            context.reset_state()
+            return action, params
+
+        # 還沒抵達，繼續往跳躍點方向移動
+        return context._move_to_jump_point(self.jump_index)
+    
 class RopeState(State):
 
     def __init__(self):
@@ -108,6 +154,10 @@ class RopeState(State):
             #到達通到盡頭，觸發IDL，重置狀態
             if action == "IDLE":
                 context.reset_state()
+                nearest_jump_index = context._find_nearest_jump_point()
+                if nearest_jump_index is not None:
+                    context.change_state(PathfindState())
+                        
             return action, params
 
 
@@ -168,4 +218,19 @@ class BotState():
             return self.owner._check_current_platform()
     def _reset_state(self):
             return self.owner._reset_state()
-    #====小工具
+    
+    #====單點跳躍(JumpLeft/JumpRight)相關借殼
+
+    def _check_jump_point(self):
+            return self.owner._check_jump_point()
+
+    def _find_nearest_jump_point(self):
+            return self.owner._find_nearest_jump_point()
+
+    def _move_to_jump_point(self, jump_index):
+            return self.owner._move_to_jump_point(jump_index)
+
+    def _do_jump(self, jump_index):
+            return self.owner._do_jump(jump_index)
+    
+

@@ -43,6 +43,7 @@ class AutoControl:
         self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         self.last_player_y_loc = None #<==defc last_player_y_loc 使用
+        self.jump_points = [] #<-- 所有單點跳躍點(JumpLeft/JumpRight)
 
         #---[定時器]
         self.detect_move_stuck_timer = 0 #<--移動卡住計時器
@@ -73,8 +74,9 @@ class AutoControl:
                 # 解析平台和垂直通道
                 self.platforms = self._find_platform()
                 self.vertical_passage = self._find_vertical_passage()
-                logging.info(f"{map_name}地圖載入完成，平台數量:{len(self.platforms)},垂直通道數量:{len(self.vertical_passage)}")
-                print(f"{map_name}地圖載入完成\n平台數量:{len(self.platforms)}\n垂直通道數量:{len(self.vertical_passage)}")
+                self.jump_points = self._find_jump_points()
+                logging.info(f"{map_name}地圖載入完成，平台數量:{len(self.platforms)},垂直通道數量:{len(self.vertical_passage)},跳躍點數量:{len(self.jump_points)}")
+                print(f"{map_name}地圖載入完成\n平台數量:{len(self.platforms)}\n垂直通道數量:{len(self.vertical_passage)},跳躍點數量:{len(self.jump_points)}")
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
     #=================
@@ -93,7 +95,7 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                top = current["loc"][1]  -2  
+                top = current["loc"][1]  -5 
                 bottom = current["loc"][1]  + 6  #向下偏移:6
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0]) 
@@ -132,7 +134,27 @@ class AutoControl:
                 i += 1
 
         return passage
+    def _find_jump_points(self):
+        '''
+        功能:
+            解析路徑設定，拆出單點跳躍點(JumpLeft / JumpRight)。
 
+        '''
+        JUMP_ACTION_DIRECTION = {
+            "JumpLeft": "LEFT",
+            "JumpRight": "RIGHT",
+        }
+
+        jump_points = []
+        for item in self.recored_data:
+            direction = JUMP_ACTION_DIRECTION.get(item.get("action"))
+            if direction is None:
+                continue
+    
+            x, y = item["loc"]
+            jump_points.append({"loc": (x, y), "direction": direction})
+        print(f"跳躍點數量：{len(jump_points)}")
+        return jump_points
     #=================
     # 主要邏輯
     #=================
@@ -409,7 +431,103 @@ class AutoControl:
         else:
             print(f"玩家座標:{px}；走道座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="LEFT")
+    #=================
+    # 邏輯塊: 單點跳躍相關(JumpLeft/JumpRight)
+    #=================
 
+    def _check_jump_point(self) -> Optional[int]:
+        '''
+        功能:
+            判斷玩家目前座標是否已經落在某個跳躍點的抵達容忍範圍內
+        要求:
+            self.mini_player_loc
+            self.jump_points
+        return:
+            跳躍點的index | None
+        '''
+        if not self.mini_player_loc or not self.jump_points:
+            return None
+
+        px, py = self.mini_player_loc
+        threshold = 3
+
+        for index, point in enumerate(self.jump_points):
+            jx, jy = point["loc"]
+            if abs(px - jx) <= threshold and abs(py - jy) <= threshold:
+                return index
+
+        return None
+
+    def _find_nearest_jump_point(self) -> Optional[int]:
+        '''
+        功能:
+            在玩家目前座標附近，找出最近的單點跳躍點
+        要求:
+            self.mini_player_loc
+            self.jump_points
+        return:
+            最近跳躍點的index | None (超出搜尋範圍或沒有跳躍點時回傳None)
+        '''
+        if not self.mini_player_loc or not self.jump_points:
+            return None
+
+        px, py = self.mini_player_loc
+        nearest_index = None
+        nearest_distance = float('inf')
+
+        for index, point in enumerate(self.jump_points):
+            jx, jy = point["loc"]
+            distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
+
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_index = index
+
+        # 太遠的跳躍點不採用，避免人物跑去很遠的地方硬跳
+        if nearest_index is not None and nearest_distance <= 25:
+            return nearest_index
+
+        return None
+
+    def _move_to_jump_point(self, jump_index) -> tuple[Optional[str], Optional[dict]]:
+        '''
+        功能:控制人物移動到目標跳躍點座標
+        args:
+            jump_index: 跳躍點的index
+        return:
+            self._pack_action("MOVE", direction="RIGHT" or "LEFT")
+        '''
+        if not self.mini_player_loc:
+            return None, None
+
+        # (1) 防卡:防止被怪物攻擊而阻斷移動狀態，發一個"閒置停止"的指令，觸發脈衝
+        stuck_action = self._give_pulse_to_stuck()
+        if stuck_action is not None:
+            return stuck_action
+
+        # (2) 主邏輯
+        px, _ = self.mini_player_loc
+        jx, _ = self.jump_points[jump_index]["loc"]
+
+        if px < jx:
+            return self._pack_action("MOVE", direction="RIGHT")
+        else:
+            return self._pack_action("MOVE",  direction="LEFT")
+
+    def _do_jump(self, jump_index) -> tuple[Optional[str], Optional[dict]]:
+        '''
+        功能:
+            已抵達跳躍點時，依紀錄的方向執行單次跳躍
+        args:
+            jump_index: 跳躍點的index
+        return:
+            self._pack_action("JUMP", direction="RIGHT" or "LEFT")
+        '''
+        direction = self.jump_points[jump_index]["direction"]
+        print(f"到達{jump_index}號跳躍點，執行 {direction} 方向跳躍")
+        return self._pack_action("JUMP", direction=direction)
+
+    
     #=================
     # 工具
     #=================

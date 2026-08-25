@@ -291,6 +291,7 @@ class KeyBoard:
             time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
             self._key_down(self.jump_key)
             time.sleep(duration)
+            self._key_down(self.up_key)# 按著就不放了
         except Exception as e:
             logging.error(f"左跳動作發生錯誤:{e}")
         finally:
@@ -314,6 +315,7 @@ class KeyBoard:
             time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
             self._key_down(self.jump_key)
             time.sleep(duration)
+            self._key_down(self.up_key) # 按著就不放了
         except Exception as e:
             logging.error(f"右跳動作發生錯誤:{e}")
         finally:
