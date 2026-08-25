@@ -19,6 +19,7 @@ class PatrolState(State):
         self.TOGGLE_PATROL_ACTION = config.get("auto_control_config.TOGGLE_PATROL_ACTION") # <-- 是否切換巡邏動作
         self.TOGGLE_COMBAT_ACTION = config.get("auto_control_config.TOGGLE_COMBAT_ACTION") # <-- 是否切換戰鬥動作
         self.stuck_check_timer = time.time()
+
     def handle(self, context, state_data):
         # print("狀態:平台巡邏...")
 
@@ -75,7 +76,7 @@ class StuckState(State):
 
 class PathfindState(State):
     '''
-    ((預留))
+
     這裡分流移動的方法: 繩子、跳躍之類的
     '''
     def __init__(self):
@@ -125,12 +126,32 @@ class JumpState(State):
         # 已經站在目標跳躍點上，執行跳躍動作
         if current_jump_index == self.jump_index:
             action, params = context._do_jump(self.jump_index)
-            context.reset_state()
+
+            context.change_state(ClimbState())
             return action, params
 
         # 還沒抵達，繼續往跳躍點方向移動
         return context._move_to_jump_point(self.jump_index)
     
+class ClimbState(State):
+    '''
+    功能:
+        負責跳躍後爬繩
+    '''
+    def __init__(self):
+        pass
+
+    def handle(self, context, state_data):
+            print("狀態:跳躍後爬繩中...")
+            
+            
+            action, params = context._check_climbing_up()
+            
+            if action == "IDLE":
+                context.reset_state()
+                
+            return action, params
+                
 class RopeState(State):
 
     def __init__(self):
@@ -155,7 +176,7 @@ class RopeState(State):
             if action == "IDLE":
                 context.reset_state()
                 nearest_jump_index = context._find_nearest_jump_point()
-                if nearest_jump_index is not None:
+                if nearest_jump_index is not None: # < -  (測試)爬繩到盡頭，找到跳躍點
                     context.change_state(PathfindState())
                         
             return action, params
@@ -233,4 +254,7 @@ class BotState():
     def _do_jump(self, jump_index):
             return self.owner._do_jump(jump_index)
     
-
+    def _check_climbing_up(self):
+            return self.owner._check_climbing_up()
+    def _is_loc_y_change(self):
+            return self.owner._is_loc_y_change()

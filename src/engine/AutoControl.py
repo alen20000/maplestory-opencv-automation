@@ -325,6 +325,7 @@ class AutoControl:
         '''
         功能:
             用上次的Y軸位置與現在的Y軸位置判斷是否移動
+            
         return 
             True | False
         '''
@@ -527,7 +528,29 @@ class AutoControl:
         print(f"到達{jump_index}號跳躍點，執行 {direction} 方向跳躍")
         return self._pack_action("JUMP", direction=direction)
 
-    
+    def _check_climbing_up(self):
+        '''
+        功能:
+            檢查是否在攀爬向上的狀態
+        '''
+        # -- 時間計算
+        if self._verti_movement_timer is None:
+            self._verti_movement_timer = time.time()
+        current_time = time.time()
+        if self._is_loc_y_change(): # <= - 有變動則重置
+            self._verti_movement_timer = current_time
+        if  current_time - self._verti_movement_timer > 2:
+            '''
+            條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+            '''
+            #到達底部，重置狀態
+            if not self._is_loc_y_change(): #< - 偵測是否移動
+                self.current_verti_target = None # < - 離開要重置
+                self._verti_movement_timer = None
+                self.last_player_loc = None
+                print("到達頂部")
+                return self._pack_action("IDLE", command="RELEASE_ALL")
+        return self._pack_action("CLIMB", command="UP")
     #=================
     # 工具
     #=================
