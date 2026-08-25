@@ -16,11 +16,11 @@ class MobDetector:
     def __init__(self):
         #Config
         Map_Name = config.get("quickly_choice_map")
-        self.min_threshold = config.get("image_processing.mob_min_threshold")
+        self.min_threshold = 0.85  # 先寫死，之後再視需要改回從 config 讀取，或改成 per-mob 字典
         self.mobs_in_map =  config.get(f"map.{Map_Name}")
         self.nms_threshold = 0.7 # <- NMS 阈值
-        #放匹配模板字典
-        self.mobs_templates: dict[str, np.ndarray] = {}
+        #放匹配模板字典 key: mob名稱 ; value: (灰階圖, mask或None)
+        self.mobs_templates: dict[str, tuple[np.ndarray, np.ndarray | None]] = {}
         self._load_mob_templates()
 
         cv2.setNumThreads(1)
@@ -39,9 +39,23 @@ class MobDetector:
                 img_path = os.path.join(self.mobs_in_map, mobs)
                 mob_name = os.path.splitext(mobs)[0]
 
-                mob_img = cv2.imread(img_path,cv2.IMREAD_GRAYSCALE)
+                # 用 UNCHANGED 讀取，保留 alpha channel（若有透明背景）
+                raw_img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
+                if raw_img is None:
+                    continue
+
+                if raw_img.ndim == 3 and raw_img.shape[2] == 4:
+                    # 有 alpha channel：拆出 mask，並用 BGR 轉灰階
+                    b, g, r, a = cv2.split(raw_img)
+                    mob_img = cv2.cvtColor(cv2.merge([b, g, r]), cv2.COLOR_BGR2GRAY)
+                    mask = a
+                else:
+                    # 沒有 alpha channel：退回原本純灰階讀法，mask 為 None
+                    mob_img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+                    mask = None
+
                 if mob_img is not None:
-                    self.mobs_templates[mob_name] = mob_img
+                    self.mobs_templates[mob_name] = (mob_img, mask)
 
     def run(self):
         self._load_mob_templates()
@@ -55,13 +69,21 @@ class MobDetector:
 
         # 定義單一模板的處理函式（包含原圖與翻轉）
         def process_template(item):
-            mob_name, img = item
+            mob_name, (img, mask) = item
             h, w = img.shape[:2]
             flipped_img = cv2.flip(img, 1)
+            flipped_mask = cv2.flip(mask, 1) if mask is not None else None
             boxes = []
+
+
+            method = cv2.TM_CCORR_NORMED if mask is not None else cv2.TM_CCOEFF_NORMED
+
             # start = time.time()
             # [原圖樣版比對]
-            matches_normal = cv2.matchTemplate(crop_frame_gray, img, cv2.TM_CCOEFF_NORMED)
+            if mask is not None:
+                matches_normal = cv2.matchTemplate(crop_frame_gray, img, method, mask=mask)
+            else:
+                matches_normal = cv2.matchTemplate(crop_frame_gray, img, method)
             loc_n = np.where(matches_normal >= self.min_threshold)
             for y, x in zip(loc_n[0], loc_n[1]):
                 boxes.append({
@@ -73,8 +95,11 @@ class MobDetector:
                 })
 
             # print(f"{mob_name} 耗時: {time.time() - start:.3f}")
-            # [翻轉比對]
-            matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, cv2.TM_CCOEFF_NORMED)
+            # [翻轉比對] 放兩種，一種要模板，一種不用
+            if flipped_mask is not None:
+                matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, method, mask=flipped_mask)
+            else:
+                matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, method)
             loc_f = np.where(matches_flipped >= self.min_threshold)
             for y, x in zip(loc_f[0], loc_f[1]):
                 boxes.append({
@@ -186,6 +211,7 @@ class MobDetector:
                     # 如果重疊度大於阈值，則過濾出去
                     if iou >= self.nms_threshold:
                         keep = False
+
                         break
                 if keep:
                     matching_boxes.append(i)

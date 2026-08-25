@@ -38,7 +38,7 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，在這邊調整過濾程度
   
   #怪物匹配最小值
-  mob_min_threshold : 0.65
+  mob_min_threshold : 0.60
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -46,8 +46,8 @@ game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
   #參考: 近戰 100-200 遠程 300-500
-  roi_x_offset_l_width: 150
-  roi_x_offset_r_width: 150
+  roi_x_offset_l_width: 300
+  roi_x_offset_r_width: 300
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 40
 
@@ -58,7 +58,7 @@ auto_control_config:
   #打怪功能開關 True/False
   TOGGLE_COMBAT_ACTION: True
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
-  find_mob_time_threshold : 10
+  find_mob_time_threshold : 20
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 5
 
