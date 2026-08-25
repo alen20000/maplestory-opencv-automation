@@ -114,6 +114,11 @@ pip install -r requirements.txt
 >[TODO - DONE] 卡死走回: 超出範圍，走回最近平台，不過Y值差距太大沒用
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
+
+>[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉
+
+>[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類
+
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
   <br>
@@ -139,16 +144,15 @@ pip install -r requirements.txt
   * 結合 `ImageGrab` (mss/Pillow) 進行高效能的視窗截圖，並轉為 OpenCV 的 BGR 陣列格式。
 * **樣板匹配 (Template Matching)**：
   * **灰階與二值化預處理**：將畫面與模板轉為灰階，利用 `cv2.threshold` (OTSU 演算法) 消除雜訊、突顯輪廓。
-  * **切片匹配 (Splitted Template Matching)**：
-    * 將模板圖片進行寬度切片（`split_width`），分別與遊戲畫面進行比對。
-    * 支援使用遮罩（Mask）過濾背景干擾。
-  * **歸一化相關係數 / 平方差匹配 (`cv2.matchTemplate`)**：
-    * 選用 `cv2.minMaxLoc` 尋找最佳匹配點（最高相似度或最小差異值），並設定閾值（Threshold）過濾錯誤結果。
+  * `TM_CCORR_NORMED`:支援使用遮罩（Mask）過濾背景干擾。
+  * `TM_CCOEFF_NORMED` :基礎匹配方法。
   * **NMS（Non-Maximum Suppression**
     * 利用NMS清除重複匹配，減輕`draw_dectection_box`繪圖運算量，打怪功能前的重要步驟
+
 * **硬體操控**
-    * 選用 `interception`，硬體層下達底層指令
-    * 選用`keyboard`，實現綁定熟鍵
+    * 選用 `interception`: 硬體層下達底層指令，能繞過多遊戲的封鎖
+    * 選用`keyboard`: 最簡單、最直觀，也功能強大，但是是信息層命令，所以很多命令控制不太穩
+    * 使用`win32gui` : Windows API 底層是 原生的微軟 C+ 所以很好用，就是寫法不親民
 * **線程池**
     * 使用`concurrent.futures`內的`ThreadPoolExecutor`來分擔怪物模板匹配的工作
 ##
