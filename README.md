@@ -84,7 +84,7 @@ pip install -r requirements.txt
    * 路徑`
    ./img/mini_map/[對應的地圖]/[對應的地圖].yaml`
    * 要新增地圖模板到 `maplestory.wiki` 個網站抓
-   * 目前只有兩種移動點類型，`MOVE` 與 `ROPE`
+ 
 
 <table>
   <tr>
@@ -101,7 +101,8 @@ pip install -r requirements.txt
 
 * 路徑錄製方法
   * 放在跟目錄的腳本`OperationLogger.py`，能錄製路徑
-  * 但是目前只有`Walk`與`Rope`行為點有效果，其他點位沒效果
+  * 但是目前只完成`Walk`、`Rope`、`JumpRight`、`JumpLeft`行為點。
+
 
 | 熱鍵    | 功能說明 | 備註 |
 | :--- | :--- | :--- |
