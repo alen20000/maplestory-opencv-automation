@@ -84,13 +84,34 @@ pip install -r requirements.txt
    * 路徑`
    ./img/mini_map/[對應的地圖]/[對應的地圖].yaml`
    * 要新增地圖模板到 `maplestory.wiki` 個網站抓
-   * 目前只有兩種移動點類型，`MOVE` 與 `ROPE`，畫出水平平台與垂直移動的通道
+   * 目前只有兩種移動點類型，`MOVE` 與 `ROPE`
 
-<p align="center">
-  <img src="./assets/setting-3.png" width="300">
-  <br>
-  <em>移動點設定範例</em>
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="./assets/setting-4.png" width="300"><br>
+    <em>錄製腳本繪製的路線</em>
+    </td>
+    <td align="center">
+      <img src="./assets/setting-3.png" width="300"><br>
+      <em>路徑儲存的形式</em>
+    </td>
+  </tr>
+</table>
+
+* 路徑錄製方法
+  * 放在跟目錄的腳本`OperationLogger.py`，能錄製路徑
+  * 但是目前只有`Walk`與`Rope`行為點有效果，其他點位沒效果
+
+| 熱鍵    | 功能說明 | 備註 |
+| :--- | :--- | :--- |
+| &nbsp; **F1** | 儲存行為座標至 YAML | 將目前記錄的所有動作輸出為設定檔 |
+| &nbsp; **F2** | 離開程式 | 安全關閉並退出 |
+| &nbsp; **F4** | 紀錄點位：`Walk` | 記錄一般移動點 |
+| &nbsp; **F5** | 紀錄點位：`Rope` | 記錄垂直爬繩點 |
+| &nbsp; **F6** | 紀錄點位：`JumpRight` | 記錄向右跳躍點 |
+| &nbsp; **F7** | 紀錄點位：`JumpLeft` | 記錄向左跳躍點 |
+| &nbsp; **F8** | 紀錄點位：`JumpDown` | 記錄向下跳躍點 |
 
 ---
 
