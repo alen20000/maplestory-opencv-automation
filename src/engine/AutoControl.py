@@ -96,8 +96,8 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                top = current["loc"][1] - 5   #向上偏移:5
-                bottom = current["loc"][1]  + 5  #向下偏移:3
+                top = current["loc"][1]  -2  
+                bottom = current["loc"][1]  + 6  #向下偏移:6
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0]) 
 
@@ -110,25 +110,24 @@ class AutoControl:
     
     def _find_vertical_passage(self):
         '''
-        找出垂直通道(繩子)，並製作出垂直通道範圍
+        功能:
+            分析路徑設定，拆出垂直通道(繩子)，並製作出垂直通道範圍
 
-        若 x 為 0 ；  -3 ~3 之間 ，基礎素質能跳爬
+            垂直通道若 x 為 0 ；  -3 ~3 之間 ，人物基礎素質能跳爬
         '''
         passage = []
         i = 0
-        while i < len(self.recored_data)-1:
+        while i < len(self.recored_data) - 1:
             current = self.recored_data[i]
             next_item = self.recored_data[i + 1]
 
-            #垂直通道的offset，先寫死在這，有需要再抽離
-            offset = 3
             if current["action"] == "rope" and next_item["action"] == "rope":
 
                 top = min(current["loc"][1],next_item["loc"][1]) 
-                bottom = max(next_item["loc"][1],current["loc"][1]) 
+                bottom = max(next_item["loc"][1],current["loc"][1]) + 6
 
-                left = min(current["loc"][0], next_item["loc"][0]) - offset
-                right = max(current["loc"][0], next_item["loc"][0]) + offset
+                left = min(current["loc"][0], next_item["loc"][0]) - 4
+                right = max(current["loc"][0], next_item["loc"][0]) + 4
 
                 passage.append({"t_l":(left,top),"b_r":(right,bottom)})
                 i += 2
@@ -166,7 +165,11 @@ class AutoControl:
         #===========
         # 管理模組: 健康模組
         #===========
-        self.health_manager.run(state.player_hp,state.player_mp,current_time)
+        # 喝水不再狀態機處理，另外處理
+        health_action = self.health_manager.run(state.player_hp,state.player_mp,current_time)
+
+        if health_action is not None:
+            return health_action
 
         # state 資料給狀態機，回傳值在拆解為 action ,params ，並回傳給Gamebot模組
         action, params = self.bot_state.handle(state)   
@@ -332,23 +335,21 @@ class AutoControl:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
 
             #debug
-            print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
+            # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
 
         #容忍值
-        trigger_tolerance = 3
+        TOP_TOLERANCE = 3
+        BOTTOM_TOLERANCE = 3
 
         if self.current_verti_target == "UP":
 
-            if  py <= top :
+            if  py <= top + TOP_TOLERANCE:
                 print("到達頂部，重置狀態")
                 self._exit_verti()
                 return self._pack_action("IDL", direction="RELEASE_ALL")
             
             #行為:找方向跳抓繩子
-            if self.current_verti_target == "UP" and  bottom - trigger_tolerance <= py <= bottom :
-
-                #狀態改變:找繩子
-                self.is_finding_rope_state = True
+            if self.current_verti_target == "UP" and  bottom - TOP_TOLERANCE <= py <= bottom :
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
@@ -357,23 +358,18 @@ class AutoControl:
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="LEFT_UP")
 
-            # 其餘情況全部視為爬行中
-            if self.is_finding_rope_state:
-                self.is_finding_rope_state = False
-            self.is_climbing_state = True
             print(f'方向:{self.current_verti_target}，爬繩子中。。。')
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         if self.current_verti_target == "DOWN":
-            if self.current_verti_target == "DOWN" and py >= bottom:
+            if  py >= bottom - BOTTOM_TOLERANCE:
                 #到達底部，重置狀態
                 print("到達底部")
                 self._exit_verti()
                 return self._pack_action("IDL", direction="RELEASE_ALL")
             
-            if top <= py <= top + trigger_tolerance:
+            if top <= py <= top + BOTTOM_TOLERANCE:
                 #狀態改變:找繩子
-                self.is_finding_rope_state = True
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
@@ -382,10 +378,6 @@ class AutoControl:
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="LEFT_DOWN")
 
-            # 其餘情況全部視為爬行中
-            if self.is_finding_rope_state:
-                self.is_finding_rope_state = False
-            self.is_climbing_state = True
             print(f'方向:{self.current_verti_target}，爬繩子中。。。')
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 

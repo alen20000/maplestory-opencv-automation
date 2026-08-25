@@ -140,3 +140,5 @@ class HealthManager:
         level , mp_key = self._mp_status_check(current_player_mp, current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": mp_key}
+
+        return None
