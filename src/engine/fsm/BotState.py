@@ -16,12 +16,13 @@ class PatrolState(State):
     
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
-        self.SWITCH_PATROL_ACTION = False # <-- 是否切換巡邏動作
+        self.TOGGLE_PATROL_ACTION = False # <-- 是否切換巡邏動作
+        self.TOGGLE_COMBAT_ACTION = False # <-- 是否切換戰鬥動作
     def handle(self, context, state_data):
         # print("狀態:平台巡邏...")
 
         # 條件A:如果有怪物，切換為戰鬥狀態
-        if state_data.mobs:
+        if state_data.mobs and self.TOGGLE_COMBAT_ACTION:
             context.change_state(CombatState())
             return None, None
         
@@ -37,7 +38,7 @@ class PatrolState(State):
             return None, None
         
         # 沒怪就繼續原本的巡邏動作
-        if self.SWITCH_PATROL_ACTION :
+        if self.TOGGLE_PATROL_ACTION :
             return context._enable_player_patrol()
     
 class CombatState(State):
@@ -83,32 +84,33 @@ class PathfindState(State):
             context.change_state(RopeState())
             return None, None
 class RopeState(State):
+
     def __init__(self):
         pass
+
     def handle(self, context, state_data):
-        print("狀態:爬繩...")
 
         # 先判斷人物現在是不是已經站在垂直通道範圍內
         current_passage_index = context._check_vertical_passage()
-        if current_passage_index is not None:
-            print(f"目前所在垂直通道: {current_passage_index}號通道")
-        else:
-            print("目前不在垂直通道內，開始查找最近的垂直通道")
-        
-        if current_passage_index is not None: # <-若在垂直通道內
+        current_play_indx =context._check_current_platform()
+        print(f"目前所在平台: {current_play_indx}號平台;所在垂直通道: {current_passage_index}號通道")
+
+        # 如果不在垂直通道內，去找最近的垂直通道
+        if current_passage_index is  None:  # <- 用 is not None，避免 index=0 被 if 判成 False
+            next_rope_index = context._find_nearest_verti_passage()
+            if next_rope_index is not None:
+                print(f"""找到最近的垂直通道:{next_rope_index}號通道""")
+            if next_rope_index != current_passage_index:
+                return context._move_to_verti_passage(next_rope_index)
+            
+        elif current_passage_index is not None: # <-若在垂直通道內
             action, params = context._verti_movement(current_passage_index)
             #到達通到盡頭，觸發IDL，重置狀態
             if action == "IDLE":
                 context.change_state(PatrolState())
             return action, params
         
-        # 如果不在垂直通道內，去找最近的垂直通道
-        if current_passage_index is  None:  # <- 用 is not None，避免 index=0 被 if 判成 False
-            next_rope_index = context._find_nearest_verti_passage()
-            print(f"""找到最近的垂直通道:{next_rope_index}號通道""")
-            return context._move_to_verti_passage(next_rope_index)
         else:
-
             context.change_state(PatrolState())
             return None, None
 

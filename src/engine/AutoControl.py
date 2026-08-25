@@ -121,7 +121,7 @@ class AutoControl:
             if current["action"] == "rope" and next_item["action"] == "rope":
 
                 top = min(current["loc"][1],next_item["loc"][1]) - 2
-                bottom = max(next_item["loc"][1],current["loc"][1]) + 6
+                bottom = max(next_item["loc"][1],current["loc"][1]) + 3
 
                 left = min(current["loc"][0], next_item["loc"][0]) - 4
                 right = max(current["loc"][0], next_item["loc"][0]) + 4
@@ -433,18 +433,19 @@ class AutoControl:
             self.current_platform
         return: 
             平台引所對應的index 
+            
+        注意: 判定通道的頂部或底部，需要有任一端點落在平台的垂直範圍內
         """
         if not self.mini_player_loc or not self.vertical_passage:
             return None
-        #更新一下目前在哪一個平台，沒有平台就會進入全域找通道
+        # 先找目前平台
         self.current_platform = self._check_current_platform()
-
         px, py = self.mini_player_loc
 
         # 先試著找「跟目前平台 x 範圍有重疊」的通道，這些是人物可移動到的
         reachable_candidates = []
 
-        if self.current_platform:
+        if self.current_platform is not None:  # 一定藥用 not noe 因為 index 是0計數，0會被判別 false
 
             plat = self.platforms[self.current_platform]
 
@@ -456,13 +457,14 @@ class AutoControl:
                 verti_top, verti_bottom = passage["t_l"][1], passage["b_r"][1]
 
                 x_overlap = not (verti_right < plat_left or verti_left > plat_right)
-                y_touch = (plat_top <= verti_top <= plat_bottom) or (plat_top <= verti_bottom <= plat_bottom)
+                y_touch = (plat_top - 10 <= verti_top <= plat_bottom + 10) or (plat_top <= verti_bottom <= plat_bottom)
 
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)
 
         # 如果當前平台內沒有對應的垂直通道，直接回傳 None
         if not reachable_candidates:
+            print("找不到鄰近的垂直通道")
             return None
 
         nearest_verti_passage_index = None
@@ -496,18 +498,21 @@ class AutoControl:
             self._pack_action("MOVE", direction="RIGHT"or "LEFT")
         '''
         px , _ = self.mini_player_loc
-        current = self._check_vertical_passage()
+        my_verti_passage = self._check_vertical_passage()
         # (1) 防卡:防止被怪物攻擊而阻斷移動狀態，發一個"閒置停止"的指令，觸發脈衝
         stuck_action =self._give_pulse_to_stuck()
         if stuck_action is not None:
             return stuck_action
-        
+        print(f"目前垂直通道:{my_verti_passage}  目標垂直通道:{verti_passage_index}")
         # (2) 主邏輯
-        if current == verti_passage_index: #< - 若走道目標位置，則停止移動
+        if my_verti_passage == verti_passage_index: 
+
             return self._pack_action("IDLE",command="STOP_MOVE")
         if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
+            print(f"玩家座標:{px}；走道座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="RIGHT")
         else:
+            print(f"玩家座標:{px}；走道座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="LEFT")
 
     #=================
