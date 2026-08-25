@@ -106,7 +106,6 @@ class ActionHandler:
                 # 停止移動
                 self.keyboard.stop_move()
             if command == "RELEASE_ALL":
-
                 # 釋放所有熟鍵
                 self.keyboard.release_all()
 

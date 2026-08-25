@@ -18,6 +18,7 @@ class PatrolState(State):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
         self.TOGGLE_PATROL_ACTION = config.get("auto_control_config.TOGGLE_PATROL_ACTION") # <-- 是否切換巡邏動作
         self.TOGGLE_COMBAT_ACTION = config.get("auto_control_config.TOGGLE_COMBAT_ACTION") # <-- 是否切換戰鬥動作
+        self.stuck_check_timer = time.time()
     def handle(self, context, state_data):
         # print("狀態:平台巡邏...")
 
@@ -27,10 +28,11 @@ class PatrolState(State):
             return None, None
         
         # 條件B:人物座標沒動,超過一定時間,切換為檢查狀態
-        elif context.is_stuck():
-
-            context.change_state(StuckState())
-            return None, None
+        elif time.time() - self.stuck_check_timer >= 3:
+            self.stuck_check_timer = time.time()
+            if context.is_stuck():
+                context.change_state(StuckState())
+                return None, None
 
         # 條件C:超過一定時間,切換為尋路狀態(爬繩、跳躍點、etc..)
         elif time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
@@ -49,13 +51,12 @@ class CombatState(State):
 
     def handle(self, context, state_data):
         print("狀態:進入戰鬥...")
-
-        # 有怪，打怪
-        if state_data.mobs:
-            return context._fk_that_mob(state_data)
-        else:
+        if not state_data.mobs:
             context.change_state(PatrolState())
             return None, None
+        action, params = context._fk_that_mob(state_data)
+        
+        return action, params 
         
 
 
@@ -105,7 +106,7 @@ class RopeState(State):
             action, params = context._verti_movement(current_passage_index)
             #到達通到盡頭，觸發IDL，重置狀態
             if action == "IDLE":
-                context.change_state(PatrolState())
+                context.reset_state()
             return action, params
 
 

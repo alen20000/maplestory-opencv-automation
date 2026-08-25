@@ -147,11 +147,10 @@ class GameBot:
         '''
         logging.info("正在關閉應用程式...")
         self.bot_enabled = False
-
+        time.sleep(0.05)
         # 釋放所有熟鍵
         self.keyboard.release_all()
-        self.keyboard.stop_move()
-
+        time.sleep(0.05)
         # 銷毀所有 OpenCV 視窗
         cv2.destroyAllWindows()
         
@@ -335,6 +334,7 @@ class GameBot:
                 '''
                 try:
                     action_oder, target_info = self.auto_control.run(current_game_state)
+                    # print(f"行為:{action_oder} 目標:{target_info}")
                 except Exception as e:
                     logging.error(f"auto_control.run 發生例外錯誤: {e}", exc_info=True)
                     continue

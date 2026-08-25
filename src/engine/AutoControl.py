@@ -207,6 +207,7 @@ class AutoControl:
     def _random_move(self):
         '''
         功能:
+            給_unstuck_player 使用
             用list拼出隨機移動
         '''
         action_list = ["JUMP","MOVE"]
@@ -313,113 +314,6 @@ class AutoControl:
         changed = self.last_player_y_loc != self.mini_player_loc[1]
         self.last_player_y_loc = self.mini_player_loc[1]
         return changed
-    #=================
-    # 邏輯塊: 垂直通道
-    #=================
-
-    def _verti_movement(self,index):
-        """
-        功能:
-            垂直移動邏輯
-        行為:
-            1. 判斷往上/往下
-            2.偵測左走抓繩/右走抓繩
-        """
-
-        # -- 時間計算
-        if self._verti_movement_timer is None:
-            self._verti_movement_timer = time.time()
-        current_time = time.time()
-        # -- 數據計算
-        current_verti_passage = self.vertical_passage[index]
-        px, py = self.mini_player_loc
-
-        top = current_verti_passage["t_l"][1]
-        bottom = current_verti_passage["b_r"][1]
-        mid_y = (top + bottom) // 2
-        central_axis = current_verti_passage["t_l"][0] + (current_verti_passage["b_r"][0] - current_verti_passage["t_l"][0]) // 2
-
-        # -- 固定上下的方向
-        if self.current_verti_target is None:
-            self.current_verti_target = "UP" if py > mid_y else "DOWN"
-
-        #容忍值
-        TOP_TOLERANCE = 5
-        BOTTOM_TOLERANCE = 5
-        # -- 決策邏輯
-        # -- 往上        
-        if self.current_verti_target == "UP":
-
-            if  current_time - self._verti_movement_timer > 1:
-                '''
-                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
-                '''
-                #到達底部，重置狀態
-                if not self._is_loc_y_change(): #< - 偵測是否移動
-                    self.current_verti_target = None # < - 離開要重置
-                    self._verti_movement_timer = None
-                    self.last_player_loc = None
-                    print("到達底部")
-                    return self._pack_action("IDLE", direction="RELEASE_ALL")
-            
-            #行為:找方向跳抓繩子
-            if  bottom - BOTTOM_TOLERANCE <= py <= bottom :
-
-                if px <= central_axis :
-                    print(f'方向:{self.current_verti_target}，找繩子')
-                    return self._pack_action("ROPE", direction="RIGHT_UP")
-                elif px >= central_axis :
-                    print(f'方向:{self.current_verti_target}，找繩子')
-                    return self._pack_action("ROPE", direction="LEFT_UP")
-
-            print(f'方向:{self.current_verti_target}，攀爬中')
-            return self._pack_action("CLIMB", direction=self.current_verti_target)
-        
-        # -- 往下
-        if self.current_verti_target == "DOWN":
-            if  current_time - self._verti_movement_timer > 1:
-                '''
-                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
-                '''
-                #到達底部，重置狀態
-                if not self._is_loc_y_change(): #< - 偵測是否移動
-                    self.current_verti_target = None # < - 離開要重置
-                    self._verti_movement_timer = None
-                    self.last_player_loc = None
-                    print("到達底部")
-                    return self._pack_action("IDLE", direction="RELEASE_ALL")
-            
-            if  top <= py <= top + TOP_TOLERANCE:
-                #狀態改變:找繩子
-
-                if px <= central_axis   :
-                    print(f'向右，找往下繩子')
-                    return self._pack_action("ROPE", direction="RIGHT_DOWN")
-                elif px >= central_axis :
-                    print(f'向左，找往下繩子')
-                    return self._pack_action("ROPE", direction="LEFT_DOWN")
-
-            print(f'方向:{self.current_verti_target}，攀爬中')
-            return self._pack_action("CLIMB", direction=self.current_verti_target)
-
-        return None
-    # def _enter_verti(self):
-    #     '''
-    #     功能:進入通道前，狀態改變
-    #         關閉:巡邏、打怪
-    #     '''
-    #     self.patrol_active = False   
-    #     self.patrol_start_time = None
-    #     self.battle_active = False
-
-    # def _exit_verti(self):
-    #     '''
-    #     功能:離開通道時，狀態重置
-    #     '''
-    #     self.current_verti_target = None
-    #     self.is_climbing_state = False
-    #     self.patrol_active = True
-    #     self.battle_active = True
 
     #=================
     # 邏輯塊: 垂直移動相關
@@ -554,14 +448,14 @@ class AutoControl:
         # 依賴檢查：無平台資訊就拋棄此幀
         if self.current_platform is None :
             return None,None
-        print(f"狀態:巡邏中...平台:{self.current_platform+1}")
+
         px, _ = self.mini_player_loc
 
         plat_index = self.current_platform
         current_plat = self.platforms[plat_index]
         
-        left_bound = current_plat["t_l"][0]   # 平台的左極限 X
-        right_bound = current_plat["b_r"][0]  # 平台的右極限 X
+        left_bound = current_plat["t_l"][0] + self.buffer  # 平台的左極限 X
+        right_bound = current_plat["b_r"][0] - self.buffer  # 平台的右極限 X
 
         if px <= left_bound + self.buffer:
             self.search_direction = "RIGHT"   # 走到底右轉
@@ -611,8 +505,100 @@ class AutoControl:
             # print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
         print("沒有目標在攻擊範圍內")
-        return None, None 
+        return self._pack_action("MOVE", direction=best_target['direction']) 
 
+    def _verti_movement(self,index):
+        """
+        功能:
+            垂直移動邏輯
+        行為:
+            1. 判斷往上/往下
+            2.偵測左走抓繩/右走抓繩
+        """
+
+        # -- 時間計算
+        if self._verti_movement_timer is None:
+            self._verti_movement_timer = time.time()
+        current_time = time.time()
+        # -- 數據計算
+        current_verti_passage = self.vertical_passage[index]
+        px, py = self.mini_player_loc
+
+        top = current_verti_passage["t_l"][1]
+        bottom = current_verti_passage["b_r"][1]
+        mid_y = (top + bottom) // 2
+        central_axis = current_verti_passage["t_l"][0] + (current_verti_passage["b_r"][0] - current_verti_passage["t_l"][0]) // 2
+
+        # -- 固定上下的方向
+        if self.current_verti_target is None:
+            self.current_verti_target = "UP" if py > mid_y else "DOWN"
+
+        #容忍值
+        TOP_TOLERANCE = 5
+        BOTTOM_TOLERANCE = 5
+        # -- 決策邏輯
+        # -- 往上        
+        if self.current_verti_target == "UP":
+            # 下面兩個if，目的為判斷有沒有成功到頂(底)部
+            if self._is_loc_y_change(): # <= - 有變動則重置
+                self._verti_movement_timer = current_time
+            if  current_time - self._verti_movement_timer > 2:
+                '''
+                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                '''
+                #到達底部，重置狀態
+                if not self._is_loc_y_change(): #< - 偵測是否移動
+                    self.current_verti_target = None # < - 離開要重置
+                    self._verti_movement_timer = None
+                    self.last_player_loc = None
+                    print("到達底部")
+                    return self._pack_action("IDLE", command="RELEASE_ALL")
+            
+            #行為:找方向跳抓繩子
+            if  bottom - BOTTOM_TOLERANCE <= py <= bottom :
+
+                if px <= central_axis :
+                    print(f'方向:{self.current_verti_target}，找繩子')
+                    return self._pack_action("ROPE", direction="RIGHT_UP")
+                elif px >= central_axis :
+                    print(f'方向:{self.current_verti_target}，找繩子')
+                    return self._pack_action("ROPE", direction="LEFT_UP")
+
+            print(f'方向:{self.current_verti_target}，攀爬中')
+            return self._pack_action("CLIMB", direction=self.current_verti_target)
+        
+        # -- 往下
+        if self.current_verti_target == "DOWN":
+            if  current_time - self._verti_movement_timer > 2:
+                '''
+                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                    '''
+                # 下面兩個if，目的為判斷有沒有成功到頂(底)部
+                if self._is_loc_y_change(): # <= - 有變動則重置
+                    self._verti_movement_timer = current_time
+
+                #到達底部，重置狀態
+                if  current_time - self._verti_movement_timer > 2:
+                    self.current_verti_target = None # < - 離開要重置
+                    self._verti_movement_timer = None
+                    self.last_player_loc = None
+                    print("到達底部")
+                    return self._pack_action("IDLE", command="RELEASE_ALL")
+            
+            if  top <= py <= top + TOP_TOLERANCE:
+                #狀態改變:找繩子
+
+                if px <= central_axis   :
+                    print(f'向右，找往下繩子')
+                    return self._pack_action("ROPE", direction="RIGHT_DOWN")
+                elif px >= central_axis :
+                    print(f'向左，找往下繩子')
+                    return self._pack_action("ROPE", direction="LEFT_DOWN")
+
+            print(f'方向:{self.current_verti_target}，攀爬中')
+            return self._pack_action("CLIMB", direction=self.current_verti_target)
+
+        return None
     #=================
     # 分類: 狀態機判斷
     #=================
