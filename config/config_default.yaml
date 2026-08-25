@@ -54,11 +54,11 @@ game_bot:
 auto_control_config:
 
   #尋怪功能開關 True/False
-  TOGGLE_PATROL_ACTION: False
+  TOGGLE_PATROL_ACTION: True
   #打怪功能開關 True/False
-  TOGGLE_COMBAT_ACTION: False
+  TOGGLE_COMBAT_ACTION: True
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
-  find_mob_time_threshold : 5
+  find_mob_time_threshold : 10
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
   buffer: 5
 

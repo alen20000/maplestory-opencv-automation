@@ -36,7 +36,7 @@ class PatrolState(State):
 
         # 條件C:超過一定時間,切換為尋路狀態(爬繩、跳躍點、etc..)
         elif time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
-            context.change_state(PathfindState())
+            context.change_state(RopeState())
             return None, None
         
         # 沒怪就繼續原本的巡邏動作
@@ -75,6 +75,7 @@ class StuckState(State):
 
 class PathfindState(State):
     '''
+    ((預留))
     這裡分流移動的方法: 繩子、跳躍之類的
     '''
     def __init__(self):
