@@ -220,7 +220,7 @@ class AutoControl:
             if result is not None:
 
                 result = self._move_to_platform(result)
-                print(f"移動至最近平台結果:{result}")
+
                 return result
             else:
                 return None, None
@@ -320,9 +320,8 @@ class AutoControl:
             1. 判斷往上/往下
             2.偵測左走抓繩/右走抓繩
         """
-
+        # -- 數據計算
         current_verti_passage = self.vertical_passage[index]
-
         px, py = self.mini_player_loc
 
         top = current_verti_passage["t_l"][1]
@@ -330,7 +329,7 @@ class AutoControl:
         mid_y = (top + bottom) // 2
         central_axis = current_verti_passage["t_l"][0] + (current_verti_passage["b_r"][0] - current_verti_passage["t_l"][0]) // 2
 
-        # 固定上下的方向
+        # -- 固定上下的方向
         if self.current_verti_target is None:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
 
@@ -340,13 +339,12 @@ class AutoControl:
         #容忍值
         TOP_TOLERANCE = 3
         BOTTOM_TOLERANCE = 3
-
+        # -- 決策邏輯
         if self.current_verti_target == "UP":
 
             if  py <= top + TOP_TOLERANCE:
                 print("到達頂部，重置狀態")
-                self._exit_verti()
-                return self._pack_action("IDL", direction="RELEASE_ALL")
+                return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             #行為:找方向跳抓繩子
             if self.current_verti_target == "UP" and  bottom - TOP_TOLERANCE <= py <= bottom :
@@ -365,8 +363,7 @@ class AutoControl:
             if  py >= bottom - BOTTOM_TOLERANCE:
                 #到達底部，重置狀態
                 print("到達底部")
-                self._exit_verti()
-                return self._pack_action("IDL", direction="RELEASE_ALL")
+                return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             if top <= py <= top + BOTTOM_TOLERANCE:
                 #狀態改變:找繩子
@@ -382,23 +379,23 @@ class AutoControl:
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         return None
-    def _enter_verti(self):
-        '''
-        功能:進入通道前，狀態改變
-            關閉:巡邏、打怪
-        '''
-        self.patrol_active = False   
-        self.patrol_start_time = None
-        self.battle_active = False
+    # def _enter_verti(self):
+    #     '''
+    #     功能:進入通道前，狀態改變
+    #         關閉:巡邏、打怪
+    #     '''
+    #     self.patrol_active = False   
+    #     self.patrol_start_time = None
+    #     self.battle_active = False
 
-    def _exit_verti(self):
-        '''
-        功能:離開通道時，狀態重置
-        '''
-        self.current_verti_target = None
-        self.is_climbing_state = False
-        self.patrol_active = True
-        self.battle_active = True
+    # def _exit_verti(self):
+    #     '''
+    #     功能:離開通道時，狀態重置
+    #     '''
+    #     self.current_verti_target = None
+    #     self.is_climbing_state = False
+    #     self.patrol_active = True
+    #     self.battle_active = True
 
     #=================
     # 邏輯塊: 垂直移動相關
@@ -408,6 +405,9 @@ class AutoControl:
         """
         功能:
             先找目前平台內最近的垂直通道
+        要求:
+            self.mini_player_loc
+            self.current_platform
         return: 
             平台引所對應的index 
         """
@@ -424,27 +424,28 @@ class AutoControl:
         if self.current_platform:
 
             plat = self.platforms[self.current_platform]
-            #取出 plat 的 t_l b_r點
+
             plat_left, plat_right = plat["t_l"][0], plat["b_r"][0]
             plat_top, plat_bottom = plat["t_l"][1], plat["b_r"][1] 
 
             for index, passage in enumerate(self.vertical_passage):
-                p_left, p_right = passage["t_l"][0], passage["b_r"][0]
-                p_top, p_bottom = passage["t_l"][1], passage["b_r"][1]
+                verti_left, verti_right = passage["t_l"][0], passage["b_r"][0]
+                verti_top, verti_bottom = passage["t_l"][1], passage["b_r"][1]
 
-                x_overlap = not (p_right < plat_left or p_left > plat_right)
-                y_touch = (plat_top <= p_top <= plat_bottom) or (plat_top <= p_bottom <= plat_bottom)
+                x_overlap = not (verti_right < plat_left or verti_left > plat_right)
+                y_touch = (plat_top <= verti_top <= plat_bottom) or (plat_top <= verti_bottom <= plat_bottom)
 
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)
 
-        # 如果有找到能走到的候選，只在這些裡面挑最近的，沒有的話才找全部
-        search_pool = reachable_candidates if reachable_candidates else range(len(self.vertical_passage))
+        # 如果當前平台內沒有對應的垂直通道，直接回傳 None
+        if not reachable_candidates:
+            return None
 
         nearest_verti_passage_index = None
         nearest_distance = float('inf')
 
-        for index in search_pool:
+        for index in reachable_candidates:
             plat = self.vertical_passage[index]
             left, top = plat["t_l"]
             right, bottom = plat["b_r"]
@@ -465,20 +466,23 @@ class AutoControl:
 
     def _move_to_verti_passage(self, verti_passage_index)-> tuple[Optional[str], Optional[dict]]:
         '''
-        功能:控制人物移動到目標垂直通道
+        功能:控制人物移動到目標垂直通道範圍內
         arges: 
             verti_passage_index: 垂直通道的index
         return:
             self._pack_action("MOVE", direction="RIGHT"or "LEFT")
         '''
         px , _ = self.mini_player_loc
-
+        current = self._check_vertical_passage()
+        print(f"current verti passage: {current}")
         # (1) 防卡監測
         stuck_action =self._detect_move_stuck()
         if stuck_action is not None:
             return stuck_action
         
         # (2) 主邏輯
+        if current == verti_passage_index: #< - 若走道目標位置，則停止移動
+            return self._pack_action("IDLE",command="STOP_MOVE")
         if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
             return self._pack_action("MOVE", direction="RIGHT")
         else:

@@ -12,13 +12,13 @@ class State(ABC):
 
 class PatrolState(State):
 
-    TIMEOUT = 5 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
+    TIMEOUT = 2 # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
 
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
 
     def handle(self, context, state_data):
-        print("狀態:平台巡邏...")
+        # print("狀態:平台巡邏...")
 
         # 條件A:如果有怪物，切換為戰鬥狀態
         if state_data.mobs:
@@ -71,6 +71,9 @@ class StuckState(State):
         return context._unstuck_player(state_data)   
 
 class PathfindState(State):
+    '''
+    先把爬繩子弄好，再添加跳躍點、之類的其他命令
+    '''
     def __init__(self):
         pass
     def handle(self, context, state_data):
@@ -78,19 +81,22 @@ class PathfindState(State):
 
         # 先判斷人物現在是不是已經站在垂直通道範圍內
         current_passage_index = context._check_vertical_passage()
-        print(f"current_passage_index: {current_passage_index}")
-        if current_passage_index is not None:
+        print(f"目前所在垂直通道: {current_passage_index}號通道")
+
+        
+        if current_passage_index is not None: # <-若在垂直通道內
             action, params = context._verti_movement(current_passage_index)
-            if action == "IDL":
+            #到達通到盡頭，觸發IDL，重置狀態
+            if action == "IDLE":
                 context.change_state(PatrolState())
             return action, params
-
-
-        rope_index = context._find_nearest_verti_passage()
-        if rope_index is not None:  # <- 用 is not None，避免 index=0 被 if 判成 False
-            return context._move_to_verti_passage(rope_index)
+        
+        # 如果不在垂直通道內，去找最近的垂直通道
+        next_rope_index = context._find_nearest_verti_passage()
+        if next_rope_index is not None:  # <- 用 is not None，避免 index=0 被 if 判成 False
+            return context._move_to_verti_passage(next_rope_index)
         else:
-            print('狀態:結束跳轉至開頭...')
+
             context.change_state(PatrolState())
             return None, None
 
