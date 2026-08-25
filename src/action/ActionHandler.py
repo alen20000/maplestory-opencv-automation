@@ -39,10 +39,13 @@ class ActionHandler:
             else:
                 self.keyboard.enable_attack(direction)
 
-        # 判定"去爬繩"狀態
+        # ====
+        # "爬繩"狀態命令
+        # ====
         elif self.current_state == "ROPE" and self.current_info:
             self.keyboard.stop_move()
             direction = self.current_info.get("direction")
+
             if direction == "LEFT_UP":
                 # self.keyboard.release_all()
                 self.keyboard.grab_rope_to_left()
@@ -50,10 +53,10 @@ class ActionHandler:
                 # self.keyboard.release_all()
                 self.keyboard.grab_rope_to_right()
             elif direction == "LEFT_DOWN":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.move_down_left()
             elif direction == "RIGHT_DOWN":
-                self.keyboard.release_all()
+                # self.keyboard.release_all()
                 self.keyboard.move_down_right()  
 
             elif direction =="UP":
@@ -99,11 +102,11 @@ class ActionHandler:
         elif self.current_state == "IDLE" and self.current_info:
             command = self.current_info.get("command")
             if command == "STOP_MOVE":
-                print("停止移動")
+
                 # 停止移動
                 self.keyboard.stop_move()
             if command == "RELEASE_ALL":
-                print("釋放所有熟鍵")
+
                 # 釋放所有熟鍵
                 self.keyboard.release_all()
 

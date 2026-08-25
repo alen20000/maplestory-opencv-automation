@@ -8,6 +8,11 @@ class KeyBoard:
     def __init__(self):
         #捕捉與綁定滑鼠
         interception.auto_capture_devices(keyboard=True, mouse=True)
+
+        # 追蹤目前「實際按著」的按鍵，release_all 靠這個集合來釋放，不再寫死固定清單
+        self._pressed_keys = set()
+        self._pressed_keys_lock = threading.Lock()
+
         #states
         self._release_all_lock = threading.Lock()
         self._attack_lock = threading.Lock()
@@ -52,19 +57,31 @@ class KeyBoard:
         #action logging
         self._current_move = None # <- 紀錄目前移動指令
 
+    ''' 底層按鍵包裝：所有 key_down / key_up 都經過這裡，統一追蹤按下狀態 '''
+
+    def _key_down(self, key):
+        interception.key_down(key)
+        with self._pressed_keys_lock:
+            self._pressed_keys.add(key)
+
+    def _key_up(self, key):
+        interception.key_up(key)
+        with self._pressed_keys_lock:
+            self._pressed_keys.discard(key)
+
     ''' 攻擊行為 '''
     def _attack_command(self, direction):
         try: 
             key = self.right_key if direction == "RIGHT" else self.left_key
-            interception.key_down(key)
-            interception.key_up(key)
-            interception.key_down(self.attack_key)
+            self._key_down(key)
+            self._key_up(key)
+            self._key_down(self.attack_key)
             time.sleep(0.3)
         except Exception as e:
             logging.error(f"攻擊行為發生錯誤:{e}")
             
         finally:
-            interception.key_up(self.attack_key)
+            self._key_up(self.attack_key)
             with self._attack_lock:
                 self._status_attack = False
 
@@ -80,20 +97,20 @@ class KeyBoard:
     def _night_lord_att_command(self, direction):
         try: 
             key = self.right_key if direction == "RIGHT" else self.left_key
-            interception.key_down(key)
-            interception.key_up(key)
+            self._key_down(key)
+            self._key_up(key)
 
             time.sleep(0.1)
 
-            interception.key_down(self.jump_key)
-            interception.key_down(self.attack_key)
+            self._key_down(self.jump_key)
+            self._key_down(self.attack_key)
             time.sleep(0.3)
         except Exception as e:
             logging.error(f"攻擊行為發生錯誤:{e}")
             
         finally:
-            interception.key_up(self.attack_key)
-            interception.key_up(self.jump_key)
+            self._key_up(self.attack_key)
+            self._key_up(self.jump_key)
             with self._attack_lock:
                 self._status_night_lord_attack = False
 
@@ -112,9 +129,9 @@ class KeyBoard:
             if self._current_move == "RIGHT": #重複指令拋棄
                 return
             if self._current_move == "LEFT":
-                interception.key_up(self.left_key)
+                self._key_up(self.left_key)
 
-            interception.key_down(self.right_key)
+            self._key_down(self.right_key)
             self._current_move = "RIGHT"
 
     def enable_move_left(self):
@@ -122,17 +139,17 @@ class KeyBoard:
             if self._current_move == "LEFT":    #重複指令拋棄
                 return
             if self._current_move == "RIGHT":
-                interception.key_up(self.right_key)
+                self._key_up(self.right_key)
 
-            interception.key_down(self.left_key)
+            self._key_down(self.left_key)
             self._current_move = "LEFT"
 
     def _jump_command(self,duration):
         try:
-            interception.key_down(self.jump_key)
+            self._key_down(self.jump_key)
             time.sleep(duration)
         finally:
-            interception.key_up(self.jump_key)
+            self._key_up(self.jump_key)
             if self._status_jump:
                 self._status_jump = False
 
@@ -145,10 +162,10 @@ class KeyBoard:
 
     def _down_command(self,duration):
         try:
-            interception.key_down(self.down_key)
+            self._key_down(self.down_key)
             time.sleep(duration)
         finally:
-            interception.key_up(self.down_key)
+            self._key_up(self.down_key)
             if self._status_down:
                 self._status_down = False
 
@@ -161,10 +178,10 @@ class KeyBoard:
 
     def _up_command(self,duration):
         try:
-            interception.key_down(self.up_key)
+            self._key_down(self.up_key)
             time.sleep(duration)
         finally:
-            interception.key_up(self.up_key)
+            self._key_up(self.up_key)
             if self._status_up:
                 self._status_up = False
 
@@ -177,10 +194,10 @@ class KeyBoard:
 
     def _right_command(self,duration):
         try:
-            interception.key_down(self.right_key)
+            self._key_down(self.right_key)
             time.sleep(duration)
         finally:
-            interception.key_up(self.right_key)
+            self._key_up(self.right_key)
             if self.right_key:
                 self._status_right = False
 
@@ -193,10 +210,10 @@ class KeyBoard:
 
     def _left_command(self,duration):
         try:
-            interception.key_down(self.left_key)
+            self._key_down(self.left_key)
             time.sleep(duration)
         finally:
-            interception.key_up(self.left_key)
+            self._key_up(self.left_key)
             if self.left_key:
                 self._status_left = False
 
@@ -224,21 +241,21 @@ class KeyBoard:
         self.enable_jump()
         self.enable_up(duration=0.5)
 
-    def _move_down_right_command(self, duration=0.3):
+    def _move_down_right_command(self, duration):
         try:
-            interception.key_down(self.right_key)
+            self._key_down(self.right_key)
             time.sleep(0.03)              # 先給右鍵一點時間讓角色轉向/移動一小步
-            interception.key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
+            self._key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
             time.sleep(duration)
         except Exception as e:
             logging.error(f"下滑動作發生錯誤:{e}")
         finally:
-            interception.key_up(self.right_key)
-            interception.key_up(self.down_key)
+            self._key_up(self.right_key)
+            self._key_up(self.down_key)
             with self._move_down_right_lock:
                 self._status_move_down_right = False
 
-    def move_down_right(self, duration=0.3):
+    def move_down_right(self, duration=0.5):
         '''向右下移動'''
         with self._move_down_right_lock:
             if self._status_move_down_right:
@@ -246,21 +263,21 @@ class KeyBoard:
             self._status_move_down_right = True
         threading.Thread(target=self._move_down_right_command, args=(duration,), daemon=True).start()
 
-    def _move_down_left_command(self, duration=0.3):
+    def _move_down_left_command(self, duration):
         try:
-            interception.key_down(self.left_key)
+            self._key_down(self.left_key)
             time.sleep(0.03)              # 先給左鍵一點時間讓角色轉向/移動一小步
-            interception.key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
+            self._key_down(self.down_key)   # 再按下「下」，觸發下滑抓繩
             time.sleep(duration)
         except Exception as e:
             logging.error(f"下滑動作發生錯誤:{e}")
         finally:
-            interception.key_up(self.left_key)
-            interception.key_up(self.down_key)
+            self._key_up(self.left_key)
+            self._key_up(self.down_key)
             with self._move_down_left_lock:
                 self._status_move_down_left = False
 
-    def move_down_left(self, duration=0.3):
+    def move_down_left(self, duration=0.5):
         '''向左下移動'''
         with self._move_down_left_lock:
             if self._status_move_down_left:
@@ -270,15 +287,15 @@ class KeyBoard:
     def _jump_left_command(self, duration=0.1, delay=0.03):
         '''向左跳'''
         try:
-            interception.key_down(self.left_key)
+            self._key_down(self.left_key)
             time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
-            interception.key_down(self.jump_key)
+            self._key_down(self.jump_key)
             time.sleep(duration)
         except Exception as e:
             logging.error(f"左跳動作發生錯誤:{e}")
         finally:
-            interception.key_up(self.jump_key)
-            interception.key_up(self.left_key)
+            self._key_up(self.jump_key)
+            self._key_up(self.left_key)
             with self._jump_left_lock:
                 self._status_jump_left = False
 
@@ -293,15 +310,15 @@ class KeyBoard:
     def _jump_right_command(self, duration=0.1, delay=0.03):
         '''向右跳'''
         try:
-            interception.key_down(self.right_key)
+            self._key_down(self.right_key)
             time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
-            interception.key_down(self.jump_key)
+            self._key_down(self.jump_key)
             time.sleep(duration)
         except Exception as e:
             logging.error(f"右跳動作發生錯誤:{e}")
         finally:
-            interception.key_up(self.jump_key)
-            interception.key_up(self.right_key)
+            self._key_up(self.jump_key)
+            self._key_up(self.right_key)
             with self._jump_right_lock:
                 self._status_jump_right = False
 
@@ -314,7 +331,7 @@ class KeyBoard:
         threading.Thread(target=self._jump_right_command, args=(duration, delay), daemon=True).start()
 
     def climb_up(self):
-        interception.key_down(self.up_key)
+        self._key_down(self.up_key)
 
     def climb_down(self):
         self.enable_down(duration=1)
@@ -322,13 +339,14 @@ class KeyBoard:
     ''' 停止釋放'''
 
     def _release_all(self):
-        time.sleep(0.1)
-        interception.key_up(self.up_key)
-        interception.key_up(self.down_key)
-        interception.key_up(self.left_key)
-        interception.key_up(self.right_key)
-        interception.key_up(self.jump_key)
-        interception.key_up(self.attack_key)
+        # 釋放「目前實際追蹤到有按著」的所有鍵 
+        # 這樣新增按鍵(如未來的補血鍵、道具鍵)時不用回來改這裡，也不會漏鍵
+        with self._pressed_keys_lock:
+            keys_to_release = list(self._pressed_keys)
+
+        for key in keys_to_release:
+            self._key_up(key)
+            time.sleep(0.01)  # 給驅動/遊戲一點時間確實處理事件
         
     def release_all(self):
         #釋放常用、高機率卡住的按鍵
@@ -339,8 +357,8 @@ class KeyBoard:
             #如果正在移動，左右鍵彈起
             if self._current_move is not None:
                 try:
-                    interception.key_up(self.left_key)
-                    interception.key_up(self.right_key)
+                    self._key_up(self.left_key)
+                    self._key_up(self.right_key)
                 except Exception as e:
                     logging.error(f"釋放移動發生錯誤:{e}")
                 finally:
@@ -350,12 +368,12 @@ class KeyBoard:
 
     def _item_command(self, key):
         try:
-            interception.key_down(key)
+            self._key_down(key)
             time.sleep(3)
         except Exception as e:
             logging.error(f"使用物品發生錯誤:{e}")
         finally:
-            interception.key_up(key)
+            self._key_up(key)
             with self._item_lock:
                 self._status_item = False
 
@@ -372,12 +390,12 @@ class KeyBoard:
     ''' 撿拾行為 '''
     def _pick_up_command(self, key):
         try:
-            interception.key_down(key)
+            self._key_down(key)
             time.sleep(0.1)
         except Exception as e:
             logging.error(f"撿拾命令發生錯誤:{e}")
         finally:
-            interception.key_up(key)
+            self._key_up(key)
             self._pick_up = False
 
     def enable_pick_up(self):

@@ -16,8 +16,8 @@ class PatrolState(State):
     
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
-        self.TOGGLE_PATROL_ACTION = False # <-- 是否切換巡邏動作
-        self.TOGGLE_COMBAT_ACTION = False # <-- 是否切換戰鬥動作
+        self.TOGGLE_PATROL_ACTION = config.get("auto_control_config.TOGGLE_PATROL_ACTION") # <-- 是否切換巡邏動作
+        self.TOGGLE_COMBAT_ACTION = config.get("auto_control_config.TOGGLE_COMBAT_ACTION") # <-- 是否切換戰鬥動作
     def handle(self, context, state_data):
         # print("狀態:平台巡邏...")
 
@@ -79,7 +79,7 @@ class PathfindState(State):
     def __init__(self):
         pass
     def handle(self, context, state_data):
-        if context._check_current_platform() is not None:
+        if context._check_current_platform() is not None or context._check_vertical_passage() is not None:
             print("偵測在平台內，轉到到爬繩狀態")
             context.change_state(RopeState())
             return None, None
@@ -96,10 +96,8 @@ class RopeState(State):
         print(f"目前所在平台: {current_play_indx}號平台;所在垂直通道: {current_passage_index}號通道")
 
         # 如果不在垂直通道內，去找最近的垂直通道
-        if current_passage_index is  None:  # <- 用 is not None，避免 index=0 被 if 判成 False
+        if current_passage_index is None:  
             next_rope_index = context._find_nearest_verti_passage()
-            if next_rope_index is not None:
-                print(f"""找到最近的垂直通道:{next_rope_index}號通道""")
             if next_rope_index != current_passage_index:
                 return context._move_to_verti_passage(next_rope_index)
             
@@ -109,10 +107,7 @@ class RopeState(State):
             if action == "IDLE":
                 context.change_state(PatrolState())
             return action, params
-        
-        else:
-            context.change_state(PatrolState())
-            return None, None
+
 
 
 class BotState():
@@ -131,8 +126,9 @@ class BotState():
 
     def reset_state(self):
         '''重製回預設初始狀「類別」'''
-        self.change_state(self.initial_state_cls())
 
+        self.change_state(self.initial_state_cls())
+        return self._reset_state()
     #調用
     def handle(self, state_data):
         result = self.current_state.handle(self, state_data)
@@ -168,4 +164,6 @@ class BotState():
             return self.owner._verti_movement(index)
     def _check_current_platform(self):
             return self.owner._check_current_platform()
+    def _reset_state(self):
+            return self.owner._reset_state()
     #====小工具

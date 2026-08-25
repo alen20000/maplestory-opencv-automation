@@ -42,7 +42,7 @@ class AutoControl:
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
-        self.last_player_loc = None #<==defc last_player_loc 使用
+        self.last_player_y_loc = None #<==defc last_player_y_loc 使用
 
         #---[定時器]
         self.detect_move_stuck_timer = 0 #<--移動卡住計時器
@@ -123,8 +123,8 @@ class AutoControl:
                 top = min(current["loc"][1],next_item["loc"][1]) - 2
                 bottom = max(next_item["loc"][1],current["loc"][1]) + 3
 
-                left = min(current["loc"][0], next_item["loc"][0]) - 4
-                right = max(current["loc"][0], next_item["loc"][0]) + 4
+                left = min(current["loc"][0], next_item["loc"][0]) - 3
+                right = max(current["loc"][0], next_item["loc"][0]) + 3
 
                 passage.append({"t_l":(left,top),"b_r":(right,bottom)})
                 i += 2
@@ -298,20 +298,20 @@ class AutoControl:
             self.detect_move_stuck_timer  = current_time
             return self._pack_action("IDLE",command="STOP_MOVE")
         
-    def _is_loc_change(self) -> bool:
+    def _is_loc_y_change(self) -> bool:
         '''
         功能:
-            用上次的位置與現在的位置判斷是否移動
+            用上次的Y軸位置與現在的Y軸位置判斷是否移動
         return 
             True | False
         '''
 
-        if self.last_player_loc is None:
-            self.last_player_loc = self.mini_player_loc
+        if self.last_player_y_loc is None:
+            self.last_player_y_loc = self.mini_player_loc[1]
             return True  
 
-        changed = self.last_player_loc != self.mini_player_loc
-        self.last_player_loc = self.mini_player_loc  
+        changed = self.last_player_y_loc != self.mini_player_loc[1]
+        self.last_player_y_loc = self.mini_player_loc[1]
         return changed
     #=================
     # 邏輯塊: 垂直通道
@@ -325,7 +325,7 @@ class AutoControl:
             1. 判斷往上/往下
             2.偵測左走抓繩/右走抓繩
         """
-        # print(f"[verti] target={self.current_verti_target} py={py} timer_elapsed={current_time - self._verti_movement_timer:.2f} last_loc={self.last_player_loc} cur_loc={self.mini_player_loc}")
+
         # -- 時間計算
         if self._verti_movement_timer is None:
             self._verti_movement_timer = time.time()
@@ -343,28 +343,27 @@ class AutoControl:
         if self.current_verti_target is None:
             self.current_verti_target = "UP" if py > mid_y else "DOWN"
 
-            #debug
-            # print(f"進入通道，鎖定目標方向:{self.current_verti_target}")
-
         #容忍值
         TOP_TOLERANCE = 5
-        BOTTOM_TOLERANCE = 10
+        BOTTOM_TOLERANCE = 5
         # -- 決策邏輯
         # -- 往上        
         if self.current_verti_target == "UP":
 
             if  current_time - self._verti_movement_timer > 1:
-                '''超過X秒，判斷人物是否移動，沒移動代表在頂部'''
+                '''
+                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                '''
                 #到達底部，重置狀態
-                if not self._is_loc_change(): #< - 偵測是否移動
-                    print("到達底部")
+                if not self._is_loc_y_change(): #< - 偵測是否移動
                     self.current_verti_target = None # < - 離開要重置
                     self._verti_movement_timer = None
                     self.last_player_loc = None
+                    print("到達底部")
                     return self._pack_action("IDLE", direction="RELEASE_ALL")
             
             #行為:找方向跳抓繩子
-            if py < top :
+            if  bottom - BOTTOM_TOLERANCE <= py <= bottom :
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
@@ -373,32 +372,34 @@ class AutoControl:
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="LEFT_UP")
 
-            print(f'方向:{self.current_verti_target}，爬繩子中。。。')
+            print(f'方向:{self.current_verti_target}，攀爬中')
             return self._pack_action("CLIMB", direction=self.current_verti_target)
         
         # -- 往下
         if self.current_verti_target == "DOWN":
             if  current_time - self._verti_movement_timer > 1:
-                '''超過X秒，判斷人物是否移動，沒移動代表在底部'''
+                '''
+                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                '''
                 #到達底部，重置狀態
-                if not self._is_loc_change(): #< - 偵測是否移動
-                    print("到達底部")
+                if not self._is_loc_y_change(): #< - 偵測是否移動
                     self.current_verti_target = None # < - 離開要重置
                     self._verti_movement_timer = None
                     self.last_player_loc = None
+                    print("到達底部")
                     return self._pack_action("IDLE", direction="RELEASE_ALL")
             
-            if  py > bottom:
+            if  top <= py <= top + TOP_TOLERANCE:
                 #狀態改變:找繩子
 
-                if px <= central_axis  :
-                    print(f'方向:{self.current_verti_target}，找繩子')
+                if px <= central_axis   :
+                    print(f'向右，找往下繩子')
                     return self._pack_action("ROPE", direction="RIGHT_DOWN")
-                elif px >= central_axis  :
-                    print(f'方向:{self.current_verti_target}，找繩子')
+                elif px >= central_axis :
+                    print(f'向左，找往下繩子')
                     return self._pack_action("ROPE", direction="LEFT_DOWN")
 
-            print(f'方向:{self.current_verti_target}，爬繩子中。。。')
+            print(f'方向:{self.current_verti_target}，攀爬中')
             return self._pack_action("CLIMB", direction=self.current_verti_target)
 
         return None
@@ -457,7 +458,7 @@ class AutoControl:
                 verti_top, verti_bottom = passage["t_l"][1], passage["b_r"][1]
 
                 x_overlap = not (verti_right < plat_left or verti_left > plat_right)
-                y_touch = (plat_top - 10 <= verti_top <= plat_bottom + 10) or (plat_top <= verti_bottom <= plat_bottom)
+                y_touch = (plat_top - 4 <= verti_top <= plat_bottom +4 ) or (plat_top <= verti_bottom <= plat_bottom)
 
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)
@@ -532,7 +533,11 @@ class AutoControl:
             {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
             {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
         ]
-
+    def _reset_state(self):
+        '''
+        從狀態機發出的重置按鍵指令
+        '''
+        return self._pack_action("IDLE",command="RELEASE_ALL")
     #=================
     # 分類: 已與狀態機掛勾執行函式
     #=================
