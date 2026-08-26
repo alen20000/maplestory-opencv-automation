@@ -53,7 +53,7 @@ class CombatState(State):
     def handle(self, context, state_data):
         print("狀態:進入戰鬥...")
         if not state_data.mobs:
-            context.change_state(PatrolState())
+            context.reset_state()
             return None, None
         action, params = context._fk_that_mob(state_data)
         
@@ -154,8 +154,10 @@ class ClimbState(State):
                 
 class RopeState(State):
 
+    TIMEOUT = 10  # <-- 保險機制:太久走不到跳躍點就放棄，避免卡死在這個狀態
+
     def __init__(self):
-        pass
+        self.start_time = time.time()
 
     def handle(self, context, state_data):
 
@@ -164,6 +166,12 @@ class RopeState(State):
         current_play_indx =context._check_current_platform()
         print(f"目前所在平台: {current_play_indx}號平台;所在垂直通道: {current_passage_index}號通道")
 
+        # 逾時保護:走太久還沒到，放棄本次爬繩，回到巡邏重新判斷
+        if time.time() - self.start_time > RopeState.TIMEOUT:
+            print("前往爬繩逾時，放棄本次爬繩")
+            context.reset_state()
+            return None, None
+        
         # 如果不在垂直通道內，去找最近的垂直通道
         if current_passage_index is None:  
             next_rope_index = context._find_nearest_verti_passage()
