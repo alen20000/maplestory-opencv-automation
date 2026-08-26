@@ -237,9 +237,13 @@ class GameBot:
             return
         overlay = self.minimap_detector.crop_frame_bgr.copy()
         # dx , dy = 8,0
-        for layer in self.auto_control.get_debug_geometry():
-            for top_left, bottom_right in layer["boxes"]:
-                cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1)
+        for layer in self.auto_control.get_debug_geometry(): # < -  用函式回傳資料封包 + 迴圈unpack巢狀資料
+            if "boxes" in layer:
+                for top_left, bottom_right in layer["boxes"]:
+                    cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1) # < - 直接畫圖
+            if "circle" in layer:
+                for center in layer["circle"]:
+                    cv2.circle(overlay, center, 3, layer["color"], 1)
 
         cv2.circle(overlay, (mini_player_loc[0] , mini_player_loc[1]), 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)

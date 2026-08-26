@@ -551,6 +551,7 @@ class AutoControl:
         return [
             {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
             {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
+            {"label": "jump", "color": (3,193,69), "circle": [j["loc"] for j in self.jump_points]}
         ]
     def _reset_state(self):
         '''
