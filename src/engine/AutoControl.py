@@ -84,9 +84,11 @@ class AutoControl:
                 print(f"{map_name}地圖載入完成\n平台數量:{len(self.platforms)}\n垂直通道數量:{len(self.vertical_passage)},跳躍點數量:{len(self.jump_points)}")
         except Exception as e:
             logging.error(f"載入地圖失敗{e}")
+
     #=================
-    # 功能:地圖解析
+    # 功能:地圖感測
     #=================
+
     def _find_platform(self):
         """
         功能:
@@ -139,6 +141,7 @@ class AutoControl:
                 i += 1
 
         return passage
+    
     def _find_jump_points(self):
         '''
         功能:
@@ -216,8 +219,13 @@ class AutoControl:
             '''
             # 更新一下目前在哪一個平台
             self.current_platform = self._check_current_platform()
-            
-            # 情況A:人物脫離平台
+            is_in_vertical_passage = self._check_vertical_passage()
+
+            # 情況A : 人物在垂直通道卡住
+            if is_in_vertical_passage is None:
+                return self._random_move()
+
+            # 情況B: 人物在平台卡住
             if self.current_platform is None:
                 # 移動至最近平台
                 result = self._find_nearest_platform()
@@ -227,7 +235,7 @@ class AutoControl:
                 else:
                     return None, None
             
-            # 情況B:人物在平台上
+            # 情況C: 其他
             else:
                 return self._random_move()
     
@@ -431,12 +439,12 @@ class AutoControl:
         # (2) 主邏輯
         if my_verti_passage == verti_passage_index: 
 
-            return self._pack_action("IDLE",command="STOP_MOVE")
+            return self._pack_action("IDLE",command="RELEASE_ALL")
         if px < self.vertical_passage[verti_passage_index]["t_l"][0]:
-            print(f"玩家座標:{px}；走道座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
+            print(f"玩家座標:{px}；走至座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="RIGHT")
         else:
-            print(f"玩家座標:{px}；走道座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
+            print(f"玩家座標:{px}；走至座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="LEFT")
     #=================
     # 邏輯塊: 單點跳躍相關(JumpLeft/JumpRight)
@@ -528,36 +536,13 @@ class AutoControl:
         args:
             jump_index: 跳躍點的index
         return:
-            self._pack_action("JUMP", direction="RIGHT" or "LEFT")
+            self._pack_action("JUMP_GRAB", direction="RIGHT" or "LEFT")
         '''
         direction = self.jump_points[jump_index]["direction"]
         print(f"到達{jump_index}號跳躍點，執行 {direction} 方向跳躍")
-        return self._pack_action("JUMP", direction=direction)
+        return self._pack_action("JUMP_GRAB", direction=direction)
 
 
-    #=================
-    # 工具
-    #=================
-    def _pack_action(self, action_type, **kwargs):
-        """
-        將行為打包成字典
-        """
-        return action_type, kwargs
-
-    def get_debug_geometry(self):
-        '''
-        給Gamebot的座標資料封包
-        '''
-        return [
-            {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
-            {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
-            {"label": "jump", "color": (3,193,69), "circle": [j["loc"] for j in self.jump_points]}
-        ]
-    def _reset_state(self):
-        '''
-        從狀態機發出的重置按鍵指令
-        '''
-        return self._pack_action("IDLE",command="RELEASE_ALL")
     #=================
     # 分類: 已與狀態機掛勾執行函式
     #=================
@@ -813,3 +798,27 @@ class AutoControl:
                 return self._pack_action("IDLE", command="RELEASE_ALL")
         return self._pack_action("CLIMB", command="UP")
 
+
+    #=================
+    # 工具
+    #=================
+    def _pack_action(self, action_type, **kwargs):
+        """
+        將行為打包成字典
+        """
+        return action_type, kwargs
+
+    def get_debug_geometry(self):
+        '''
+        給Gamebot的座標資料封包
+        '''
+        return [
+            {"label": "platform", "color": (193,255,193),   "boxes": [(p["t_l"], p["b_r"]) for p in self.platforms]},
+            {"label": "vertical_passage", "color": (0,100,0), "boxes": [(v["t_l"], v["b_r"]) for v in self.vertical_passage]},
+            {"label": "jump", "color": (3,193,69), "circle": [j["loc"] for j in self.jump_points]}
+        ]
+    def _reset_state(self):
+        '''
+        從狀態機發出的重置按鍵指令
+        '''
+        return self._pack_action("IDLE",command="RELEASE_ALL")

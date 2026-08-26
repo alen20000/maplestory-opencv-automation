@@ -94,9 +94,18 @@ class ActionHandler:
         elif self.current_state == "JUMP":
             direction = self.current_info.get("direction")
             if direction == "LEFT":
+
                 self.keyboard.jump_left()
             elif direction == "RIGHT":
+
                 self.keyboard.jump_right()
+
+        elif self.current_state == "JUMP_GRAB":
+            direction = self.current_info.get("direction")
+            if direction == "LEFT":
+                self.keyboard.jump_left_grab()
+            elif direction == "RIGHT":
+                self.keyboard.jump_right_grab()
 
 
         elif self.current_state == "IDLE" and self.current_info:
