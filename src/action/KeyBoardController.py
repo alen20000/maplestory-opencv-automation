@@ -443,6 +443,8 @@ class KeyBoard:
         with self._pressed_keys_lock:
             keys_to_release = list(self._pressed_keys)
 
+        self._key_up(self.up_key) #因為一直沒辦法彈起UP，所以直接寫在這裡
+
         for key in keys_to_release:
             self._key_up(key)
             time.sleep(0.01)  # 給驅動/遊戲一點時間確實處理事件

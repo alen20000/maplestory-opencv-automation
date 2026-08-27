@@ -32,7 +32,7 @@
   - 69
 - action: walk
   loc:
-  - 70
+  - 80
   - 67
 - action: JumpLeft
   loc:
