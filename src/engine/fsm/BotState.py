@@ -25,6 +25,7 @@ class PatrolState(State):
 
         # 條件A:如果有怪物，切換為戰鬥狀態
         if state_data.mobs and self.TOGGLE_COMBAT_ACTION:
+            print("狀態:進入戰鬥...")
             context.change_state(CombatState())
             return None, None
         
@@ -45,16 +46,24 @@ class PatrolState(State):
             return context._enable_player_patrol()
     
 class CombatState(State):
-
+    STUCK_CHECK_INTERVAL = 3
 
     def __init__(self):
-        pass
+        self.stuck_check_timer = time.time()
 
     def handle(self, context, state_data):
-        print("狀態:進入戰鬥...")
+
         if not state_data.mobs:
             context.reset_state()
             return None, None
+
+        # 檢查角色是否卡頓
+        if time.time() - self.stuck_check_timer >= self.STUCK_CHECK_INTERVAL: 
+            self.stuck_check_timer = time.time()
+            if context.is_stuck():
+                context.change_state(StuckState())
+                return None, None
+            
         action, params = context._fk_that_mob(state_data)
         
         return action, params 
