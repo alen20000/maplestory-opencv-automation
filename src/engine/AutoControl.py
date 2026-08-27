@@ -38,17 +38,19 @@ class AutoControl:
         self.search_direction = random.choice(["LEFT", "RIGHT"]) #<-- 巡邏方向;第一次初始化隨機方向
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range") # <-- 玩家攻擊範圍
 
-        #---[座標用容器]
+        #---[地圖用容器]
         self.recored_data = []#<-- 所有行為點的容器
         self.platforms = [] #<-- 所有平台
         self.vertical_passage = [] #<-- 所有垂直通道
+        self.jump_points = [] #<-- 所有單點跳躍點(JumpLeft/JumpRight)
+
+        #---[座標用容器]
         self.current_platform = None #<-- 當前人物所在的平台
         self.current_vertical_passage = None #<-- 當前人物所在的垂直通道
         self.mini_player_loc = None #<-- 當前人物位置(小地圖)
         self.last_player_loc = None #<-- 上次人物位置(小地圖)
         self.current_verti_target = None #<-- 當前垂直通道目標方向
         self.last_player_y_loc = None #<==defc last_player_y_loc 使用
-        self.jump_points = [] #<-- 所有單點跳躍點(JumpLeft/JumpRight)
 
         #---[定時器]
         self.detect_move_stuck_timer = 0 #<--移動卡住計時器
@@ -499,7 +501,7 @@ class AutoControl:
                 nearest_index = index
 
         # 太遠的跳躍點不採用，避免人物跑去很遠的地方硬跳
-        if nearest_index is not None and nearest_distance <= 25:
+        if nearest_index is not None and nearest_distance <= 10:
             return nearest_index
 
         return None
@@ -664,8 +666,8 @@ class AutoControl:
                     print("到達底部")
                     return self._pack_action("IDLE", command="RELEASE_ALL")
             
-            #行為:找方向跳抓繩子
-            if  bottom - BOTTOM_TOLERANCE <= py <= bottom :
+            #條件 : 人物處於下層區與 且 y軸沒變動
+            if  bottom - BOTTOM_TOLERANCE <= py <= bottom and not self._is_loc_y_change():
 
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
