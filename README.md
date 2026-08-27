@@ -50,7 +50,7 @@ pip install -r requirements.txt
 #### III. 錄製移動路徑:
 * 先到路徑`./config/config_data`
    設定`quickly_choice_map`的對應地圖。
-* 進入遊戲，開啟`OperationLogger.py`，錄製`平台點`與`垂直移動的通道`
+* 進入遊戲，調整視窗大小為`1366*768`開啟`OperationLogger.py`，錄製`平台點`與`垂直移動的通道`
 <p align="center">
   <img src="./assets/OperationLogger_demo.png" width="200"><br>
   <em >小地圖可以看見所畫的通道</em>
@@ -137,15 +137,16 @@ pip install -r requirements.txt
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 
->[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉
-
->[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類
-
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
   <br>
   <em>cv2畫出的BBOX與原版地圖不合(已修復))</em>
 </p>
+
+>[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉
+
+>[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類
+
 
 >[ISSUE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊。
 ---
