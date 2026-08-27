@@ -127,7 +127,7 @@ pip install -r requirements.txt
 
 >[TODO -> DONE ] 尋怪邏輯:改以minimap獲得的人物座標做計算，效果比原本的隨機找怪邏輯更好，不用浪費大量運算做人物座標抓取了。
 
->[TODO -> WIP] X,Y軸移動:Y軸移動還需要優化
+>[TODO -> DONE X,Y軸移動:Y軸移動還需要優化；更細節的行為操作，全都綁定迷你地圖X、Y，包括使用單軸[Y]來做爬繩的狀態監測。
 
 >[ISSUE -> FIX] 健康監測:畫面不匹配，導致抓不到像素，原本的防呆功能好像沒有用處，尤其是畫面切換時，會一直觸發喝水行為;觀察原因，健康條會閃爍，閃爍時抓取的數值為0，導致觸發喝水；修正方式:更改異常判定、加血魔冷卻計算。
 
@@ -137,18 +137,19 @@ pip install -r requirements.txt
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 
+>[ISSUE] 垂直爬繩卡鍵: rope垂直上下一直有卡UP鍵問題，目前也只解決上爬的卡鍵問題，但是下爬後的卡鍵問題，我仍然找不到
+
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
   <br>
   <em>cv2畫出的BBOX與原版地圖不合(已修復))</em>
 </p>
 
->[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉
+>[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉；目前只把怪物匹配替換，人物名牌的匹配還沒換。
 
->[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類
+>[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類；新增左跳、右跳，但只能做單跳，還沒想到方法能做連續跳躍的判定。
 
-
->[ISSUE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊。
+>[ISSUE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊；重構翻新整個狀態機。
 ---
 
 ## Tools
