@@ -175,9 +175,13 @@ class RopeState(State):
         # 如果不在垂直通道內，去找最近的垂直通道
         if current_passage_index is None:  
             next_rope_index = context._find_nearest_verti_passage()
+
+            if next_rope_index is None: # <-找不到就reset
+                return context.reset_state()
+            
             if next_rope_index != current_passage_index:
                 return context._move_to_verti_passage(next_rope_index)
-            
+
         elif current_passage_index is not None: # <-若在垂直通道內
             action, params = context._verti_movement(current_passage_index)
             #到達通到盡頭，觸發IDL，重置狀態
@@ -264,5 +268,6 @@ class BotState():
     
     def _check_climbing_up(self):
             return self.owner._check_climbing_up()
+    
     def _is_loc_y_change(self):
             return self.owner._is_loc_y_change()

@@ -31,7 +31,7 @@ player_setting:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
     is_Night_Lord: False
     #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500
-    attack_range: 140
+    attack_range: 130
 
 
 image_processing:
@@ -60,7 +60,7 @@ auto_control_config:
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
   find_mob_time_threshold : 10
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 5
+  buffer: 0
 
 
 
