@@ -135,7 +135,7 @@ class JumpState(State):
         # 已經站在目標跳躍點上，執行跳躍動作
         if current_jump_index == self.jump_index:
             action, params = context._do_jump(self.jump_index)
-
+    
             context.change_state(ClimbState())
             return action, params
 

@@ -466,7 +466,7 @@ class AutoControl:
             return None
 
         px, py = self.mini_player_loc
-        threshold = 3
+        threshold = 2  # <== 容忍範圍，還要抓合適的參數
 
         for index, point in enumerate(self.jump_points):
             jx, jy = point["loc"]
@@ -501,7 +501,7 @@ class AutoControl:
                 nearest_index = index
 
         # 太遠的跳躍點不採用，避免人物跑去很遠的地方硬跳
-        if nearest_index is not None and nearest_distance <= 10:
+        if nearest_index is not None and nearest_distance <= 15:
             return nearest_index
 
         return None

@@ -30,7 +30,8 @@ player_setting:
   auto_control_config:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
     is_Night_Lord: False
-    #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500
+    #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500 
+    #因找怪是給巡邏去接近怪物，而不主動攻擊。所以roi_x_offset_r_width與roi_x_offset_l_width 應與攻擊範圍一致 ， 也降低匹配效能消耗。
     attack_range: 130
 
 
@@ -45,9 +46,9 @@ image_processing:
 game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
-  #參考: 近戰 100-200 遠程 300-500
-  roi_x_offset_l_width: 300
-  roi_x_offset_r_width: 300
+  #參考: 近戰 100-200 遠程 300-500  
+  roi_x_offset_l_width: 130
+  roi_x_offset_r_width: 130
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 40
 
@@ -60,7 +61,7 @@ auto_control_config:
   #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
   find_mob_time_threshold : 10
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 0
+  buffer: 5
 
 
 
