@@ -12,12 +12,13 @@ class State(ABC):
 
 class PatrolState(State):
 
-    TIMEOUT = config.get("auto_control_config.find_mob_time_threshold") # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
-    
+    PATROL_TIMEOUT = config.get("auto_control_config.find_mob_time_threshold") # <-- 平台巡邏超過幾秒，結束巡邏，進入下一個狀態
+    STUCK_CHECK_TIMEOUT = config.get("auto_control_config.stuck_check_time_threshold")
     def __init__(self):
         self.patrolling_timer = time.time() # <-- 記錄「巡邏時間」的時間戳
         self.TOGGLE_PATROL_ACTION = config.get("auto_control_config.TOGGLE_PATROL_ACTION") # <-- 是否切換巡邏動作
         self.TOGGLE_COMBAT_ACTION = config.get("auto_control_config.TOGGLE_COMBAT_ACTION") # <-- 是否切換戰鬥動作
+        self.TOGGLE_Stuck_ACTION = config.get("auto_control_config.TOGGLE_Stuck_ACTION")
         self.stuck_check_timer = time.time()
 
     def handle(self, context, state_data):
@@ -30,14 +31,14 @@ class PatrolState(State):
             return None, None
         
         # 條件B:人物座標沒動,超過一定時間,切換為檢查狀態
-        elif time.time() - self.stuck_check_timer >= 3:
+        elif time.time() - self.stuck_check_timer >= PatrolState.STUCK_CHECK_TIMEOUT:
             self.stuck_check_timer = time.time()
             if context.is_stuck():
                 context.change_state(StuckState())
                 return None, None
 
         # 條件C:超過一定時間,切換為尋路狀態(爬繩、跳躍點、etc..)
-        elif time.time() - self.patrolling_timer > PatrolState.TIMEOUT:
+        elif time.time() - self.patrolling_timer > PatrolState.PATROL_TIMEOUT:
             context.change_state(PathfindState())
             return None, None
         

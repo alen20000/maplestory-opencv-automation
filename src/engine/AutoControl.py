@@ -153,6 +153,7 @@ class AutoControl:
         JUMP_ACTION_DIRECTION = {
             "JumpLeft": "LEFT",
             "JumpRight": "RIGHT",
+            "JumpDown":"DOWN",
         }
 
         jump_points = []
@@ -509,7 +510,7 @@ class AutoControl:
         if nearest_index is not None:
             jx, jy = self.jump_points[nearest_index]["loc"]
             actual_distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
-            if actual_distance <= 30:
+            if actual_distance <= 15:
                 return nearest_index
 
         return None
