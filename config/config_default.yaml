@@ -58,10 +58,12 @@ auto_control_config:
   TOGGLE_PATROL_ACTION: True
   #打怪功能開關 True/False
   TOGGLE_COMBAT_ACTION: True
-  #允許進行平台移動的時間閾值:單位:秒 ； 若間隔時間內沒有怪物，進入移動狀態
+  #允許進行平台移動的時間閾值:單位(秒) ； 若間隔時間內沒有怪物，進入移動狀態
   find_mob_time_threshold : 10
+  #人物卡住檢查間隔時間:單位(秒); 巡邏狀態中，超過這個時間，觸發防卡頓動作
+  stuck_check_time_threshold : 3
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 5
+  buffer: 8
 
 
 
