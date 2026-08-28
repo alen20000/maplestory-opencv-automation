@@ -466,7 +466,7 @@ class AutoControl:
             return None
 
         px, py = self.mini_player_loc
-        threshold = 2  # <== 容忍範圍，還要抓合適的參數
+        threshold = 3  # <== 容忍範圍，還要抓合適的參數
 
         for index, point in enumerate(self.jump_points):
             jx, jy = point["loc"]
@@ -490,19 +490,27 @@ class AutoControl:
 
         px, py = self.mini_player_loc
         nearest_index = None
-        nearest_distance = float('inf')
+        nearest_score = float('inf')
 
         for index, point in enumerate(self.jump_points):
             jx, jy = point["loc"]
-            distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
 
-            if distance < nearest_distance:
-                nearest_distance = distance
+            dx = px  - jx
+            dy = py - jy
+
+            y_weight = 5
+            score = (dx ** 2 + (dy * y_weight) ** 2) ** 0.5
+
+            if score < nearest_score:
+                nearest_score = score
                 nearest_index = index
 
         # 太遠的跳躍點不採用，避免人物跑去很遠的地方硬跳
-        if nearest_index is not None and nearest_distance <= 15:
-            return nearest_index
+        if nearest_index is not None:
+            jx, jy = self.jump_points[nearest_index]["loc"]
+            actual_distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
+            if actual_distance <= 30:
+                return nearest_index
 
         return None
 
@@ -526,10 +534,12 @@ class AutoControl:
         px, _ = self.mini_player_loc
         jx, _ = self.jump_points[jump_index]["loc"]
 
-        if px < jx:
+        if px < jx :
             return self._pack_action("MOVE", direction="RIGHT")
-        else:
+        else: 
             return self._pack_action("MOVE",  direction="LEFT")
+
+        
 
     def _do_jump(self, jump_index) -> tuple[Optional[str], Optional[dict]]:
         '''

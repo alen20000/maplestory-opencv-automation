@@ -115,12 +115,12 @@ class JumpState(State):
         負責走到指定的單點跳躍座標(YAML中紀錄的 JumpLeft / JumpRight)，
         抵達後依紀錄的方向執行單次跳躍。
     '''
-    TIMEOUT = 3  # <-- 保險機制:太久走不到跳躍點就放棄，避免卡死在這個狀態
+    TIMEOUT = 5  # <-- 保險機制:太久走不到跳躍點就放棄，避免卡死在這個狀態
 
     def __init__(self, jump_index):
         self.jump_index = jump_index
         self.start_time = time.time()
-
+        self.has_jumped = False
     def handle(self, context, state_data):
         print(f"狀態:前往{self.jump_index}號跳躍點...")
 
@@ -132,16 +132,39 @@ class JumpState(State):
 
         current_jump_index = context._check_jump_point()
 
-        # 已經站在目標跳躍點上，執行跳躍動作
+        # 情況 A：已經跳過了，檢查落下點是否還是為跳躍點】
+        if self.has_jumped:
+            
+            if time.time() - self.jump_start_time > 1: # <- 放了一秒，因為角色跳在空中
+                # 直接檢查現在腳下是不是跳躍點
+                new_jump_index = context._check_jump_point()
+                
+                if new_jump_index is not None:
+                    print(f"順利落到下一個跳躍點: {new_jump_index}，繼續留在 JumpState！")
+                    # 更新目標為當前腳下的新跳躍點，重設狀態繼續下一跳
+                    self.jump_index = new_jump_index
+                    self.start_time = time.time()
+                    self.has_jumped = False
+                    return None, None
+                else:
+                    print("落地後不在跳躍點上，連續跳躍結束，離開 JumpState")
+                    context.reset_state()
+                    return None, None
+            
+            return None, None 
+            
+        # 情況 B：已經走到目標跳躍點上，執行跳躍】
         if current_jump_index == self.jump_index:
+            print(f"到達 {self.jump_index} 號點，執行跳躍！")
             action, params = context._do_jump(self.jump_index)
-    
-            context.change_state(ClimbState())
+            
+            self.has_jumped = True
+            self.jump_start_time = time.time()  # 記錄起跳時間
             return action, params
-
-        # 還沒抵達，繼續往跳躍點方向移動
+        
+        # 情況C :還沒抵達，繼續往跳躍點方向移動
         return context._move_to_jump_point(self.jump_index)
-    
+
 class ClimbState(State):
     '''
     功能:
