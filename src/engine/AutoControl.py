@@ -20,7 +20,7 @@ from enum import Enum, auto
 '''
 #===全域常數===
 VERTI_MOVE_STAY_TIMEOUT = 0.8 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
-JUMP_DISTANCE_THRESHOLD = 30 #< - 跳躍距離閾值，太遠容易抓到很遠的套遠點，太近又容易偵測不到
+
 #======
 class AutoControl:
 
@@ -33,7 +33,7 @@ class AutoControl:
         #---[外部參數&設定]
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
-
+        self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10)
         #---[內部參數&設定]
         self.search_direction = random.choice(["LEFT", "RIGHT"]) #<-- 巡邏方向;第一次初始化隨機方向
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range") # <-- 玩家攻擊範圍
@@ -511,7 +511,7 @@ class AutoControl:
         if nearest_index is not None:
             jx, jy = self.jump_points[nearest_index]["loc"]
             actual_distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
-            if actual_distance <= JUMP_DISTANCE_THRESHOLD:
+            if actual_distance <= self.JUMP_DISTANCE_THRESHOLD:
                 return nearest_index
 
         return None
