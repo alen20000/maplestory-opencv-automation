@@ -154,6 +154,7 @@ class AutoControl:
             "JumpLeft": "LEFT",
             "JumpRight": "RIGHT",
             "JumpDown":"DOWN",
+            "JumpUp":"UP"
         }
 
         jump_points = []
@@ -467,7 +468,7 @@ class AutoControl:
             return None
 
         px, py = self.mini_player_loc
-        threshold = 3  # <== 容忍範圍，還要抓合適的參數
+        threshold = 1  # <== 容忍範圍，還要抓合適的參數
 
         for index, point in enumerate(self.jump_points):
             jx, jy = point["loc"]
