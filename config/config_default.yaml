@@ -39,7 +39,7 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，在這邊調整過濾程度
   
   #怪物匹配最小值
-  mob_min_threshold : 0.60
+  mob_min_threshold : 0.9
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -63,7 +63,7 @@ auto_control_config:
   #人物卡住檢查間隔時間:單位(秒); 巡邏狀態中，超過這個時間，觸發防卡頓動作
   stuck_check_time_threshold : 3
   #邊界距離緩衝//確保人物不會時常觸發返回平台 單位:像素 (最少為1)
-  buffer: 8
+  buffer: 1
 
 
 
