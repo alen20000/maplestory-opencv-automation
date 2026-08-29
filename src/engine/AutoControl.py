@@ -536,14 +536,11 @@ class AutoControl:
         px, _ = self.mini_player_loc
         jx, _ = self.jump_points[jump_index]["loc"]
 
-        if px < jx -1 :
+        if px < jx  :
             return self._pack_action("MOVE", direction="RIGHT")
-        elif px > jx + 1: 
-            return self._pack_action("MOVE",  direction="LEFT")
         else:
-            return self._pack_action("IDLE", command="STOP_MOVE")
-
-        
+            return self._pack_action("MOVE",  direction="LEFT")
+ 
 
     def _do_jump(self, jump_index) -> tuple[Optional[str], Optional[dict]]:
         '''
