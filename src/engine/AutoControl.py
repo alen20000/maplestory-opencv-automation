@@ -20,7 +20,7 @@ from enum import Enum, auto
 '''
 #===全域常數===
 VERTI_MOVE_STAY_TIMEOUT = 0.8 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
-
+JUMP_DISTANCE_THRESHOLD = 30 #< - 跳躍距離閾值，太遠容易抓到很遠的套遠點，太近又容易偵測不到
 #======
 class AutoControl:
 
@@ -511,7 +511,7 @@ class AutoControl:
         if nearest_index is not None:
             jx, jy = self.jump_points[nearest_index]["loc"]
             actual_distance = ((px - jx) ** 2 + (py - jy) ** 2) ** 0.5
-            if actual_distance <= 15:
+            if actual_distance <= JUMP_DISTANCE_THRESHOLD:
                 return nearest_index
 
         return None
@@ -536,10 +536,12 @@ class AutoControl:
         px, _ = self.mini_player_loc
         jx, _ = self.jump_points[jump_index]["loc"]
 
-        if px < jx :
+        if px < jx -1 :
             return self._pack_action("MOVE", direction="RIGHT")
-        else: 
+        elif px > jx + 1: 
             return self._pack_action("MOVE",  direction="LEFT")
+        else:
+            return self._pack_action("IDLE", command="STOP_MOVE")
 
         
 

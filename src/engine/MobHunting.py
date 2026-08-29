@@ -16,7 +16,7 @@ class MobDetector:
     def __init__(self):
         #Config
         Map_Name = config.get("quickly_choice_map")
-        self.min_threshold = 0.85  # 先寫死，之後再視需要改回從 config 讀取，或改成 per-mob 字典
+        self.min_threshold = config.get("image_processing.mob_min_threshold")
         self.mobs_in_map =  config.get(f"map.{Map_Name}")
         self.nms_threshold = 0.7 # <- NMS 阈值
         #放匹配模板字典 key: mob名稱 ; value: (灰階圖, mask或None)

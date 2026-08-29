@@ -90,8 +90,9 @@ class ActionHandler:
             elif direction == "RIGHT":
                 self.keyboard.enable_move_right()
             self.keyboard.enable_pick_up()
-            
-        elif self.current_state == "JUMP":
+
+        # 這個好像沒用了，因為都換成跳抓了
+        elif self.current_state == "JUMP":   
             direction = self.current_info.get("direction")
             if direction == "LEFT":
 
@@ -108,7 +109,8 @@ class ActionHandler:
                 self.keyboard.jump_right_grab()
             elif direction == "DOWN":
                 self.keyboard.jump_down()
-
+            elif direction == "UP":
+                self.keyboard.jump_up_grab()
 
         elif self.current_state == "IDLE" and self.current_info:
             command = self.current_info.get("command")

@@ -13,7 +13,7 @@ class KeyBoard:
         self._pressed_keys = set()
         self._pressed_keys_lock = threading.Lock()
 
-        #states
+        #states and lock
         self._release_all_lock = threading.Lock()
         self._attack_lock = threading.Lock()
         self._night_lord_attack_lock = threading.Lock()
@@ -33,6 +33,7 @@ class KeyBoard:
         self._jump_left_grab_lock = threading.Lock()
         self._jump_right_grab_lock =threading.Lock()
         self._jump_down_lock = threading.Lock()
+        self._jump_up_grab_lock = threading.Lock()
 
         self._status_release_all = False
         self._status_attack = False
@@ -50,6 +51,7 @@ class KeyBoard:
         self._status_jump_right = False
         self._status_jump_left_grab = False 
         self._status_jump_right_grab = False
+        self._status_jump_up_grab = False
         self._status_jump_down = False
 
         #key value
@@ -352,10 +354,36 @@ class KeyBoard:
             self._status_jump_right_grab = True
         threading.Thread(target=self.jump_right_grab_command, args=(duration, delay), daemon=True).start()
 
+    def _jump_up_grab_command(self, duration=0.1, delay=0.03):
+        '''向上跳（複合動作：先按住上 -> 微間隔 -> 按下跳躍）'''
+        try:
+            self._key_down(self.up_key)
+            time.sleep(delay)          # 微小間隔，讓上鍵先生效，才能觸發向上跳躍的判定
+            self._key_down(self.jump_key)
+            time.sleep(duration)
+        except Exception as e:
+            logging.error(f"向上跳動作發生錯誤:{e}")
+        finally:
+            self._key_up(self.jump_key)
+
+
+            with self._jump_up_grab_lock:
+                self._status_jump_up_grab = False
+
+    def jump_up_grab(self, duration=0.1, delay=0.03):
+        '''向上跳對外接口'''
+        with self._jump_up_grab_lock:
+            self.stop_move()  #<== 停止移動
+            time.sleep(0.1)
+            if self._status_jump_up_grab:
+                return
+            self._status_jump_up_grab = True
+        threading.Thread(target=self._jump_up_grab_command, args=(duration, delay), daemon=True).start()
 
     #======
     # 單點跳
     #=====
+
 
     def _jump_down_command(self, duration=0.1, delay=0.03):
         '''向下跳（複合動作：先按住下 -> 微間隔 -> 按下跳躍）'''
@@ -407,23 +435,7 @@ class KeyBoard:
                 return
             self._status_jump_left = True
         threading.Thread(target=self._jump_left_command, args=(duration, delay), daemon=True).start()
-    def jump_left_grab_command(self, duration=0.1, delay=0.03):
-        '''向左跳'''
-        try:
-            self._key_down(self.left_key)
-            time.sleep(delay)          # 微小間隔，讓方向鍵先生效，才能觸發跳躍轉向
-            self._key_down(self.jump_key)
-            time.sleep(duration)
-            self._key_down(self.up_key)
-        except Exception as e:
-            logging.error(f"左跳動作發生錯誤:{e}")
-        finally:
-            self._key_up(self.jump_key)
-            self._key_up(self.left_key)
-            time.sleep(0.2)             # 等待跳躍動作結束 
-            self._key_down(self.up_key)
-            with self._jump_left_grab_lock:
-                self._status_jump_left_grab = False
+
 
 
     def _jump_right_command(self, duration=0.1, delay=0.03):
