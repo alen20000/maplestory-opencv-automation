@@ -116,6 +116,7 @@ class OperationLogger:
             win32con.VK_F6: self._jump_to_right_point,
             win32con.VK_F7: self._jump_to_left_point,
             win32con.VK_F8: self._jump_down_point,
+            win32con.VK_F9: self._jump_up_point,
         }
         
         for vk, func in key_mappings.items():
@@ -312,6 +313,15 @@ class OperationLogger:
         '''
 
         self.recored_data.append({"loc": list(self.player_loc), "action": "JumpDown"})
+        self._show_last_item()
+        self._show_recorded_data()
+
+    def _jump_up_point(self):
+        '''
+        跳下點
+        '''
+
+        self.recored_data.append({"loc": list(self.player_loc), "action": "JumpUp"})
         self._show_last_item()
         self._show_recorded_data()
 
