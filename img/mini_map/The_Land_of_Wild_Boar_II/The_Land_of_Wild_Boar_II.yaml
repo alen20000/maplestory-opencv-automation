@@ -4,25 +4,49 @@
   - 72
 - action: walk
   loc:
-  - 90
+  - 89
   - 72
 - action: JumpUp
   loc:
-  - 80
+  - 46
   - 72
 - action: JumpLeft
   loc:
-  - 80
-  - 68
-- action: JumpLeft
-  loc:
-  - 76
-  - 65
-- action: JumpLeft
-  loc:
-  - 74
-  - 61
-- action: JumpLeft
-  loc:
-  - 70
+  - 40
   - 57
+- action: JumpLeft
+  loc:
+  - 35
+  - 57
+- action: JumpUp
+  loc:
+  - 30
+  - 57
+- action: walk
+  loc:
+  - 24
+  - 42
+- action: walk
+  loc:
+  - 61
+  - 42
+- action: JumpRight
+  loc:
+  - 39
+  - 42
+- action: walk
+  loc:
+  - 23
+  - 23
+- action: walk
+  loc:
+  - 72
+  - 23
+- action: JumpDown
+  loc:
+  - 50
+  - 23
+- action: JumpDown
+  loc:
+  - 51
+  - 42
