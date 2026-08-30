@@ -90,6 +90,7 @@ class ActionHandler:
             elif direction == "RIGHT":
                 self.keyboard.enable_move_right()
             self.keyboard.enable_pick_up()
+            # elif direction == "SMALL_LEFT":
 
         # 這個好像沒用了，因為都換成跳抓了
         elif self.current_state == "JUMP":   
