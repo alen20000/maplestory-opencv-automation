@@ -355,6 +355,8 @@ class OperationLogger:
         print(" [F6] 紀錄點位：JumpRight(向右跳)")
         print(" [F7] 紀錄點位：JumpLeft(向左跳)")
         print(" [F8] 紀錄點位：JumpDow(向下跳)")
+        print(" [F9] 紀錄點位：JumpUp(向上跳)")
+        print("=" * 45)
 
 
     def _show_last_item(self):

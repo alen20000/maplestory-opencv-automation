@@ -113,6 +113,7 @@ pip install -r requirements.txt
 | &nbsp; **F6** | 紀錄點位：`JumpRight` | 記錄向右跳躍點 |
 | &nbsp; **F7** | 紀錄點位：`JumpLeft` | 記錄向左跳躍點 |
 | &nbsp; **F8** | 紀錄點位：`JumpDown` | 記錄向下跳躍點 |
+| &nbsp; **F9** | 紀錄點位：`JumpUp` | 記錄向上跳躍點 |
 
 ---
 
@@ -137,7 +138,7 @@ pip install -r requirements.txt
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 
->[ISSUE] 垂直爬繩卡鍵: rope垂直上下一直有卡UP鍵問題，目前也只解決上爬的卡鍵問題，但是下爬後的卡鍵問題，我仍然找不到
+>[ISSUE] 垂直爬繩卡鍵: rope垂直上下一直有卡UP鍵問題，目前也只解決上爬的卡鍵問題，但是下爬後的卡鍵問題，仍然找不到
 
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
@@ -147,9 +148,9 @@ pip install -r requirements.txt
 
 >[TODO] 模板匹配優化:用支援MASK遮罩的匹配法，把目前的匹配方法換掉；目前只把怪物匹配替換，人物名牌的匹配還沒換。
 
->[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類；新增左跳、右跳，但只能做單跳，還沒想到方法能做連續跳躍的判定。
+>[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類；新增左跳、右跳，但只能做單跳，還沒想到方法能做連續跳躍的判定；完成上下左右跳躍點，但缺少測試與追蹤
 
->[ISSUE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊；重構翻新整個狀態機。
+>[TODO -> DONN] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊；重構翻新整個狀態機。；重構AutoControl與狀態機，原本的狀態機分類為指令分配器。
 ---
 
 ## Tools
