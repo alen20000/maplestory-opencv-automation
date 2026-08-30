@@ -34,6 +34,7 @@ class AutoControl:
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
         self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10)
+        self.ACTION_POINT_RANGE = config.get("auto_control_config.ACTION_POINT_RANGE", 1)
         #---[內部參數&設定]
         self.search_direction = random.choice(["LEFT", "RIGHT"]) #<-- 巡邏方向;第一次初始化隨機方向
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range") # <-- 玩家攻擊範圍
@@ -468,7 +469,7 @@ class AutoControl:
             return None
 
         px, py = self.mini_player_loc
-        threshold = 1  # <== 容忍範圍，還要抓合適的參數
+        threshold = self.ACTION_POINT_RANGE  # <== 容忍範圍，還要抓合適的參數
 
         for index, point in enumerate(self.jump_points):
             jx, jy = point["loc"]

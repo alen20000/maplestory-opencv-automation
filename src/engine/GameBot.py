@@ -43,6 +43,8 @@ class GameBot:
         self.roi_right_offset = config.get("game_bot.roi_x_offset_r_width")
         self.roi_top_offset = config.get("game_bot.roi_y_offset_t_high")
         self.roi_bottom_offset = config.get("game_bot.roi_y_offset_b_high")
+        #-- 繪圖參數
+        self.ACTION_POINT_RANGE = config.get("auto_control_config.ACTION_POINT_RANGE", 1)
 
         #---角色屬性
         self.my_character_template_path = 'img/nametag/MyRoleNameTag.png'
@@ -243,7 +245,7 @@ class GameBot:
                     cv2.rectangle(overlay, top_left, bottom_right, layer["color"], 1) # < - 直接畫圖
             if "circle" in layer:
                 for center in layer["circle"]:
-                    cv2.circle(overlay, center, 3, layer["color"], 1)
+                    cv2.circle(overlay, center, self.ACTION_POINT_RANGE, layer["color"], 1)
 
         cv2.circle(overlay, (mini_player_loc[0] , mini_player_loc[1]), 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)
