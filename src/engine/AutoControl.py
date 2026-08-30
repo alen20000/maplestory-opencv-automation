@@ -581,6 +581,9 @@ class AutoControl:
         left_bound = current_plat["t_l"][0] + self.buffer  # 平台的左極限 X
         right_bound = current_plat["b_r"][0] - self.buffer  # 平台的右極限 X
 
+        #=====
+        #   平台內人物的四種情況
+        #=====
         if px <= left_bound + self.buffer:
             self.search_direction = "RIGHT"   # 走到底右轉
 
@@ -591,9 +594,17 @@ class AutoControl:
 
             return self._pack_action("MOVE", direction="LEFT")
         #這句不能改，否則人物會罰站
-        else:
-            return self._pack_action("MOVE", direction=self.search_direction)
+        elif left_bound <= px <=  left_bound + self.buffer:  
+            self.search_direction = "RIGHT"
+            return self._pack_action("MOVE", direction="RIGHT")
 
+        elif right_bound - self.buffer <= px <= right_bound:  
+
+            self.search_direction = "LEFT"    # 走到底左轉
+            return self._pack_action("MOVE", direction="LEFT")
+        else:
+            return self._pack_action("MOVE", direction=self.search_direction )
+        
     def _fk_that_mob(self,state):
         '''
         功能:
