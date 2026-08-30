@@ -104,8 +104,8 @@ class AutoControl:
 
             if current["action"] =='walk' and next_item["action"] == 'walk':
 
-                top = current["loc"][1]  -5 
-                bottom = current["loc"][1]  + 6  #向下偏移:6
+                top = min(current["loc"][1], next_item["loc"][1])  - 2
+                bottom = max(current["loc"][1], next_item["loc"][1]) + 6
                 left = min(current["loc"][0], next_item["loc"][0])
                 right = max(current["loc"][0], next_item["loc"][0]) 
 
