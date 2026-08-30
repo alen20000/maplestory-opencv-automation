@@ -150,7 +150,7 @@ class JumpState(State):
                 # 逾時保護:二次跳躍後的逾時保護
                 if self.next_start_jump_time is not None and (now - self.next_start_jump_time > JumpState.NEXT_TIMEOUT):
                     print("前往跳躍點逾時，放棄本次跳躍")
-                    context.reset_state()
+                    context.change_state(ClimbState())
                     return None, None
                 
                 if new_jump_index is not None and self.last_jump_index != new_jump_index:
@@ -166,7 +166,7 @@ class JumpState(State):
                     return None, None
                 else:
                     print("落地後不在跳躍點上，連續跳躍結束，離開 JumpState")
-                    context.reset_state()
+                    context.change_state(ClimbState())
                     return None, None
             
             return None, None 
@@ -187,6 +187,7 @@ class JumpState(State):
 class ClimbState(State):
     '''
     功能:
+        會偵測Y軸變動狀態，重製按鍵
         負責跳躍後爬繩
     '''
     def __init__(self):

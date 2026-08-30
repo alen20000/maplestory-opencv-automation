@@ -302,7 +302,7 @@ class KeyBoard:
     # 跳抓
     #=====
 
-    def jump_left_grab_command(self, duration=0.1, delay=0.03):
+    def jump_left_grab_command(self, duration, delay):
 
         try:
             self._key_down(self.left_key)
@@ -320,7 +320,7 @@ class KeyBoard:
             with self._jump_left_grab_lock:
                 self._status_jump_left_grab = False
 
-    def jump_left_grab(self, duration=0.1, delay=0.03):
+    def jump_left_grab(self, duration=0.02, delay=0.02)):
 
         with self._jump_left_grab_lock:
             self.stop_move()  #<== 停止移動
@@ -329,7 +329,7 @@ class KeyBoard:
             self._status_jump_left_grab = True
         threading.Thread(target=self.jump_left_grab_command, args=(duration, delay), daemon=True).start()
 
-    def jump_right_grab_command(self, duration=0.1, delay=0.03):
+    def jump_right_grab_command(self, duration, delay):
 
         try:
             self._key_down(self.right_key)
@@ -347,7 +347,7 @@ class KeyBoard:
             with self._jump_right_grab_lock:
                 self._status_jump_right_grab = False
 
-    def jump_right_grab(self, duration=0.1, delay=0.03):
+    def jump_right_grab(self, duration=0.02, delay=0.02):
 
         with self._jump_right_grab_lock:
             if self._status_jump_right_grab:
@@ -355,7 +355,7 @@ class KeyBoard:
             self._status_jump_right_grab = True
         threading.Thread(target=self.jump_right_grab_command, args=(duration, delay), daemon=True).start()
 
-    def _jump_up_grab_command(self, duration=0.1, delay=0.03):
+    def _jump_up_grab_command(self, duration, delay):
         '''向上跳（複合動作：先按住上 -> 微間隔 -> 按下跳躍）'''
         try:
             self._key_down(self.up_key)
@@ -371,7 +371,7 @@ class KeyBoard:
             with self._jump_up_grab_lock:
                 self._status_jump_up_grab = False
 
-    def jump_up_grab(self, duration=0.1, delay=0.03):
+    def jump_up_grab(self, duration=0.02, delay=0.02):
         '''向上跳對外接口'''
         with self._jump_up_grab_lock:
             self.stop_move()  #<== 停止移動

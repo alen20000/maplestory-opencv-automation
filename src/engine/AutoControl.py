@@ -19,7 +19,7 @@ from enum import Enum, auto
 狀態種類(互斥責為狀態): COMBAT、
 '''
 #===全域常數===
-VERTI_MOVE_STAY_TIMEOUT = 0.8 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
+VERTI_MOVE_STAY_TIMEOUT = 0.6 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
 
 #======
 class AutoControl:
