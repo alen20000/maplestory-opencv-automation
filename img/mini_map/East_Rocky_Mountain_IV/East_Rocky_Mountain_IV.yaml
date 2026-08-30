@@ -13,7 +13,7 @@
 - action: rope
   loc:
   - 28
-  - 83
+  - 81
 - action: JumpRight
   loc:
   - 28
