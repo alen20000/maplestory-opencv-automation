@@ -640,8 +640,8 @@ class AutoControl:
             return "ATTACK" , best_target
         print("沒有目標在攻擊範圍內")
 
-        # 這裡本來用回傳Move 可是不可控，還是改成None，而且Move的移動效果也不好，還是會撞怪
-        return None, None
+
+        return self._pack_action("MOVE", direction=best_target['direction']) 
 
     def _verti_movement(self,index):
         """
