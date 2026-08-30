@@ -393,7 +393,7 @@ class AutoControl:
                 verti_top, verti_bottom = passage["t_l"][1], passage["b_r"][1]
 
                 x_overlap = not (verti_right < plat_left or verti_left > plat_right)
-                y_touch = (plat_top - 4 <= verti_top <= plat_bottom +4 ) or (plat_top <= verti_bottom <= plat_bottom)
+                y_touch = (plat_top  <= verti_top <= plat_bottom  ) or (plat_top <= verti_bottom <= plat_bottom)
 
                 if x_overlap and y_touch:
                     reachable_candidates.append(index)

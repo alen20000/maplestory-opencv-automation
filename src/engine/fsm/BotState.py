@@ -228,7 +228,7 @@ class ClimbState(State):
                 
 class RopeState(State):
 
-    TIMEOUT = 60  # <-- 保險機制:1分鐘沒動，判斷卡死狀態
+    TIMEOUT = 20  # <-- 保險機制:20秒沒動，判斷卡死狀態
 
     def __init__(self):
         self.start_time = time.time()
