@@ -641,7 +641,10 @@ class AutoControl:
             return "ATTACK" , best_target
         print("沒有目標在攻擊範圍內")
 
+        if self.current_platform is None: # <- 人物不在平台範圍，就終止移動
+            return self._pack_action("IDLE",command="STOP_MOVE")
 
+        # -- 移動到最近的怪物
         return self._pack_action("MOVE", direction=best_target['direction']) 
 
     def _verti_movement(self,index):

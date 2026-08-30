@@ -257,7 +257,7 @@ class RopeState(State):
                 return context._move_to_verti_passage(next_rope_index)
 
         elif current_passage_index is not None: # <-若在垂直通道內
-            action, params = context._verti_movement(current_passage_index)
+            action, params = context._verti_movement(current_passage_index) # 垂直移動
             #到達通到盡頭，觸發IDL，重置狀態
             if action == "IDLE":
                 context.reset_state()
