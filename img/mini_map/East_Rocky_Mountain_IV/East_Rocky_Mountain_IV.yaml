@@ -79,12 +79,12 @@
   loc:
   - 73
   - 84
-- action: JumpLeft
+- action: JumpUp
   loc:
   - 76
   - 68
 
-- action: JumpLeft
+- action: JumpUp
   loc:
   - 78
   - 68
