@@ -187,22 +187,44 @@ class JumpState(State):
 class ClimbState(State):
     '''
     功能:
-        會偵測Y軸變動狀態，重製按鍵
-        負責跳躍後爬繩
+        會偵測Y軸變動狀態，重製按鍵。
+        負責跳躍後爬繩，爬上去後若偵測到跳躍點則再次執行跳躍。
     '''
+    TIMEOUT = 5  # 爬繩階段的逾時保護（避免卡在繩子上）
+
     def __init__(self):
-        pass
+        self.start_time = time.time()
+        self.has_reached_rope = False
 
     def handle(self, context, state_data):
-            print("狀態:跳躍後爬繩中...")
+        now = time.time()
+        
+        # 1. 逾時保護：爬太久沒反應就放棄，重置狀態
+        if now - self.start_time > ClimbState.TIMEOUT:
+            print("爬繩/攀爬階段逾時，放棄並重置狀態")
+            context.reset_state()
+            return None, None
+
+        print("狀態:跳躍後爬繩中...")
+        
+        # 2. 核心檢查：爬繩動作與狀態
+        action, params = context._check_climbing_up()
+        
+        # 3. 檢查是否已經碰到/到達新的跳躍點
+        new_jump_index = context._check_jump_point()
+        
+        if new_jump_index is not None:
+            print(f"偵測到新跳躍點 ({new_jump_index})！切換回 JumpState 進行連續跳躍")
+            # 切換狀態到 JumpState，並帶入新的 jump_index
+            context.change_state(JumpState(new_jump_index))
+            return None, None
+
+        # 4. 判斷 IDLE 結束重置
+        if action == "IDLE":
+            print("攀爬結束，未發現新跳躍點，重置狀態")
+            context.reset_state()
             
-            
-            action, params = context._check_climbing_up()
-            
-            if action == "IDLE":
-                context.reset_state()
-                
-            return action, params
+        return action, params
                 
 class RopeState(State):
 

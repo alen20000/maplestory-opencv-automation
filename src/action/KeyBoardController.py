@@ -320,7 +320,7 @@ class KeyBoard:
             with self._jump_left_grab_lock:
                 self._status_jump_left_grab = False
 
-    def jump_left_grab(self, duration=0.02, delay=0.02)):
+    def jump_left_grab(self, duration=0.02, delay=0.02):
 
         with self._jump_left_grab_lock:
             self.stop_move()  #<== 停止移動
