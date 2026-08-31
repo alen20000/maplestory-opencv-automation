@@ -20,7 +20,7 @@ from src.utils.common import get_window_handle_and_rect_by,bring_to_front_and_ce
 import win32gui
 from PIL import ImageGrab
 import numpy as np
-import time
+
 '''
 WIP
 打可可果實腳本
@@ -43,19 +43,19 @@ class MaibBot:
         self.frame_bgr = None
         self.frame_size = None
         #模組實例容器
-        self.minimap_detector = None
+        self.map_detector = None
     def _instantiation(self):
         '''
         模組實例化
         '''
-        self.minimap_detector = MapDectector()
-
+        self.map_detector = MapDectector()
+        self.minimap_detector = MinimapDetector()
     def _load_res(self):
         '''
         載入資源
         '''
 
-        self.minimap = self.minimap_detector.load_map()
+        self.minimap = self.map_detector.load_map()
     def _setting_windows(self):
         '''
         功能:
@@ -63,7 +63,7 @@ class MaibBot:
         取得:
             遊戲窗柄
         '''
-        self.hwnd = self.minimap_detector.connect_window()
+        self.hwnd = self.map_detector.connect_window()
         
 
     def run(self):
@@ -82,16 +82,19 @@ class MaibBot:
             while True:
 
                 #資料蒐集
-                self.frame_bgr = self.minimap_detector.scan_full_screen()
+                self.frame_bgr = self.map_detector.scan_full_screen()
                 self._get_window_rect()
+                mini_player_loc = self.MinimapDetector() 
                 # print(self.frame_size)
                 #圖片繪製
                 self._render_cv2_view()
-
+                self._render_minimap_overlay(mini_player_loc)
         except Exception as e:
             logging.error(f"視窗更新發生錯誤: {e}", exc_info=True)
         finally:
             cv2.destroyAllWindows()
+
+    #渲染圖片
 
     def _render_cv2_view(self):
         '''
@@ -104,7 +107,20 @@ class MaibBot:
         except Exception as e:
             print(f"渲染畫面發生錯誤: {e}")
             logging.error(f"渲染畫面發生錯誤: {e}", exc_info=True)
-        
+
+    def _render_minimap_overlay(self,mini_player_loc):
+        '''
+        小地圖渲染
+        '''
+        #防呆:沒資料會導致CTD的，直接攔截
+        if self.minimap_detector.crop_frame_bgr is None or mini_player_loc is None:
+            return
+        overlay = self.minimap_detector.crop_frame_bgr.copy()
+        # dx , dy = 8,0
+
+        cv2.circle(overlay, (mini_player_loc[0] , mini_player_loc[1]), 3, [255,255,0], 1)
+        cv2.imshow("Minimap Debug", overlay)
+
     #========
     # 功能函式
     #========
@@ -113,11 +129,25 @@ class MaibBot:
         '''
         功能:
             若沒有畫面尺寸，則偵測畫面尺寸並記錄
+        得到:
+            self.frame_size
         '''
         if self.frame_bgr is not None and self.frame_size is None:
             y, x = self.frame_bgr.shape[:2]  # (height, width)
             self.frame_size = (x ,y)
 
+    #=================
+    # 偵測器:小地圖
+    #=================
+    def MinimapDetector(self)-> tuple[int,int]:
+        '''
+        WIP
+        與小圖偵測模組進行互動：傳送當前BGR圖
+        return : 人物位置(x,y)
+        '''
+        mini_player_loc = self.minimap_detector.run(self.frame_bgr)
+        return mini_player_loc
+    
 class MapDectector:
     '''
     處理圖像相關
@@ -197,7 +227,83 @@ class MapDectector:
 
         return frame_bgr
 
+class MinimapDetector:
+    def __init__(self):
 
+        self.current_frame_bgr =None
+        self.crop_frame_bgr = None
+
+        #load config
+        self._load_minimap_config()
+
+    def _load_minimap_config(self):
+        '''
+        地圖載入
+        '''
+        try:
+            #load map img
+
+            map_name_is = "Florina_Beach_Lorang's_Sandy_Beach"
+            minimap_folder = "img/mini_map"
+            current_dir = Path.cwd()
+
+            map= current_dir / minimap_folder / map_name_is / f"{map_name_is}.png"
+
+            self.minimap_template = cv2.imread(map,cv2.IMREAD_COLOR)
+        except Exception as e:
+            logging.error(f"載入地圖失敗{e}")
+
+
+    def _crop_minimap(self,frame_bgr):
+        '''
+        輸入: 全圖彩色
+        動作: 裁切小地圖範圍，並存入 self.crop_frame_bgr
+        '''
+        h,w = self.minimap_template.shape[:2]
+        x1 , y1 = 6 , 72 #<-- 這邊寫死
+        return frame_bgr[y1 : y1 + h, x1 : x1 + w]
+
+    def run(self,frame_bgr):
+
+        self.crop_frame_bgr = self._crop_minimap(frame_bgr)
+
+        #防呆:沒畫面就不偵測
+        if self.crop_frame_bgr is None:
+            return
+        
+        # 取得人物座標
+        player_loc = self._detect_player_loc(self.crop_frame_bgr)
+
+        return player_loc
+
+    def _detect_player_loc(self,frame):
+        '''
+        在frame偵測範圍內找人物座標像素
+        '''
+
+        frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        lower_player_color = np.array([25, 100, 180])
+        upper_player_color = np.array([35, 255, 255])
+
+        mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
+
+
+        #抓住符合顏色最大那塊。 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓最大輪廓
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return None
+
+        # 只取面積最大的色塊，視為玩家
+        largest = max(contours, key=cv2.contourArea)
+
+        M = cv2.moments(largest)
+        if M["m00"] == 0:
+            return None
+
+        player_x = int(M["m10"] / M["m00"])
+        player_y = int(M["m01"] / M["m00"])
+
+        return (player_x, player_y)
     
 class State:
     def __init__(self):
