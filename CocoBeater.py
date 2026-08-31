@@ -42,6 +42,7 @@ class MaibBot:
         #畫面資訊
         self.frame_bgr = None
         self.frame_size = None
+        self.mini_player_loc = None # <- 人物座標
         #模組實例容器
         self.map_detector = None
     def _instantiation(self):
@@ -84,11 +85,12 @@ class MaibBot:
                 #資料蒐集
                 self.frame_bgr = self.map_detector.scan_full_screen()
                 self._get_window_rect()
-                mini_player_loc = self.MinimapDetector() 
+                self.mini_player_loc = self.MinimapDetector() 
+                print(self.mini_player_loc)
                 # print(self.frame_size)
                 #圖片繪製
                 self._render_cv2_view()
-                self._render_minimap_overlay(mini_player_loc)
+                self._render_minimap_overlay(self.mini_player_loc)
         except Exception as e:
             logging.error(f"視窗更新發生錯誤: {e}", exc_info=True)
         finally:
@@ -102,6 +104,9 @@ class MaibBot:
             統一渲染畫面
         '''
         try:
+            if self.mini_player_loc is  None:
+                return
+            self._show_player_loc(self.mini_player_loc)
             cv2.imshow("CoCoBeater", self.frame_bgr)
             cv2.waitKey(1)
         except Exception as e:
@@ -120,7 +125,14 @@ class MaibBot:
 
         cv2.circle(overlay, (mini_player_loc[0] , mini_player_loc[1]), 3, [255,255,0], 1)
         cv2.imshow("Minimap Debug", overlay)
+    #=================
+    # 繪製函式
+    #=================
 
+    def _show_player_loc(self,player_loc):
+        
+        cv2.putText(self.frame_bgr, f"人物座標: {player_loc}", org=(10, 300),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 40, 0), thickness=2)
     #========
     # 功能函式
     #========
@@ -276,34 +288,48 @@ class MinimapDetector:
 
         return player_loc
 
-    def _detect_player_loc(self,frame):
-        '''
-        在frame偵測範圍內找人物座標像素
-        '''
-
-        frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+    # 
+    def _detect_player_loc(self, frame):
+        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         lower_player_color = np.array([25, 100, 180])
         upper_player_color = np.array([35, 255, 255])
+        mask = cv2.inRange(frame_hsv, lower_player_color, upper_player_color)
 
-        mask = cv2.inRange(frame_hsv,lower_player_color,upper_player_color)
-
-
-        #抓住符合顏色最大那塊。 cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 抓最大輪廓
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return None
 
-        # 只取面積最大的色塊，視為玩家
-        largest = max(contours, key=cv2.contourArea)
+        # 過濾玩家色塊範圍
+        MIN_AREA, MAX_AREA = 2, 15
 
-        M = cv2.moments(largest)
-        if M["m00"] == 0:
+        candidates = []
+        for c in contours:
+            area = cv2.contourArea(c)
+            if not (MIN_AREA <= area <= MAX_AREA):
+                continue
+
+
+            perimeter = cv2.arcLength(c, True)
+            if perimeter == 0:
+                continue
+            circularity = 4 * np.pi * area / (perimeter ** 2)  # 1.0 = 完美圆形
+            if circularity < 0.5: 
+                continue
+
+            M = cv2.moments(c)
+            if M["m00"] == 0:
+                continue
+            cx = int(M["m10"] / M["m00"])
+            cy = int(M["m01"] / M["m00"])
+            candidates.append((cx, cy, area))
+
+        if not candidates:
             return None
 
-        player_x = int(M["m10"] / M["m00"])
-        player_y = int(M["m01"] / M["m00"])
-
-        return (player_x, player_y)
+        # 若有多個色塊範圍 選取離玩家設定最接近的
+        EXPECTED_AREA = 8
+        best = min(candidates, key=lambda p: abs(p[2] - EXPECTED_AREA))
+        return (best[0], best[1])
     
 class State:
     def __init__(self):
