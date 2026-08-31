@@ -10,7 +10,6 @@ except:
 from src.engine.GameBot import GameBot
 import src.utils.logger as logger
 import logging
-
 import cv2
 import logging
 from pathlib import Path
@@ -21,7 +20,7 @@ from PIL import ImageGrab
 import numpy as np
 from pynput.keyboard import Controller, Key
 import time
-
+import win32gui 
 '''
 WIP
 打可可果實腳本
@@ -51,6 +50,8 @@ class MaibBot:
         self.mini_player_loc = None # <- 人物座標
         #模組實例容器
         self.map_detector = None
+
+
     def _instantiation(self):
         '''
         模組實例化
@@ -64,6 +65,11 @@ class MaibBot:
         '''
 
         self.minimap = self.map_detector.load_map()
+
+    #=================
+    # 窗口處理
+    #=================
+
     def _setting_windows(self):
         '''
         功能:
@@ -73,7 +79,26 @@ class MaibBot:
         '''
         self.hwnd = self.map_detector.connect_window()
         
+    def _is_window_valid(self):
+        if not win32gui.IsWindow(self.hwnd):
+            logging.info("沒有偵測到窗口")
+            return False
+        if win32gui.IsIconic(self.hwnd):
+            logging.info("沒有偵測到窗口")
+            return False
+        rect = win32gui.GetClientRect(self.hwnd)
+        if rect[2] < 100 or rect[3] < 100:
+            return False
+        return True
 
+    def _is_game_window_foreground(self):
+        '''
+        檢查遊戲視窗目前是否為前景視窗
+        '''
+        return win32gui.GetForegroundWindow() == self.hwnd
+    
+
+    
     def run(self):
 
         #預處理
@@ -89,14 +114,28 @@ class MaibBot:
         try:
             while True:
 
+                #窗口防呆
+
+                #若窗口縮小，等待窗口還原
+                if not self._is_window_valid():
+                    time.sleep(1)
+                    continue
+
+                # is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
+                # if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
+                #     self.keyboard.release_all()
+                #     self.keyboard.stop_move()
+                # self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
+
+                #===================
                 #資料蒐集
                 self.frame_bgr = self.map_detector.scan_full_screen()
                 self._get_window_rect()
                 self.mini_player_loc = self.MinimapDetector() 
                 self.coco_task_manager.process(self.mini_player_loc)
                 #圖片繪製
-                self._render_cv2_view()
-                self._render_minimap_overlay(self.mini_player_loc)
+                # self._render_cv2_view()
+                # self._render_minimap_overlay(self.mini_player_loc)
         except Exception as e:
             logging.error(f"視窗更新發生錯誤: {e}", exc_info=True)
         finally:
@@ -339,18 +378,39 @@ class MinimapDetector:
     
 
 
+
+
 class ActionController:
     def __init__(self):
         self.keyboard = Controller()
+        self.game_title = "新楓之谷：經典版"  # 遊戲標題
+        self.is_holding_z = False
+
+    def _is_game_active(self):
+        """防呆：自己去抓當前前景視窗的標題，看是不是遊戲"""
+        try:
+            hwnd = win32gui.GetForegroundWindow()
+            title = win32gui.GetWindowText(hwnd)
+            # 如果當前前景視窗標題包含你的遊戲名稱，才允許動作
+            return self.game_title in title
+        except Exception:
+            return False
 
     def press_key(self, key, duration=0.1):
-        """按下並放開按鍵"""
+        """按下並放開按鍵（自帶防呆）"""
+        if not self._is_game_active():
+            print("防呆攔截：當前視窗不是遊戲，已略過按鍵")
+            return
+            
         self.keyboard.press(key)
         time.sleep(duration)
         self.keyboard.release(key)
 
     def jump_attack(self):
-        """跳打：同時或極短間隔內按 下跳躍與攻擊"""
+        """跳打"""
+        if not self._is_game_active():
+            return
+            
         self.keyboard.press(Key.alt)
         time.sleep(0.2)
         self.keyboard.press(Key.ctrl) 
@@ -359,8 +419,34 @@ class ActionController:
         self.keyboard.release(Key.ctrl)
 
     def normal_attack(self):
-        """平打"""
+        """平打）"""
         self.press_key(Key.ctrl, 0.05)  
+
+    def start_hold_z(self):
+        """啟動背景執行緒，持續按著 Z 鍵"""
+        if self.is_holding_z:
+            return
+        
+        self.is_holding_z = True
+        
+        def _hold():
+            while self.is_holding_z:
+                if self._is_game_active():
+                    self.keyboard.press('z')
+                    time.sleep(0.1)
+                else:
+                    # 如果切出去聊天或看網頁，自動放開 Z 鍵，避免卡鍵
+                    self.keyboard.release('z')
+                    time.sleep(0.5)
+            self.keyboard.release('z')
+
+        import threading
+        self.z_thread = threading.Thread(target=_hold, daemon=True)
+        self.z_thread.start()
+    def stop_hold_z(self):
+        """關閉背景的 Z 鍵持續按下"""
+        self.is_holding_z = False
+
 
 class CocoTaskManager:
     '''
@@ -368,29 +454,29 @@ class CocoTaskManager:
     '''
     def __init__(self):
         self.action = ActionController()
-        # 定義三個果實的任務目標 (x, y, 動作類型)
-        self.targets = [
-            {"pos": (146, 51), "type": "jump", "done": False},
-            {"pos": (152, 58), "type": "normal", "done": False},
-            {"pos": (176, 54), "type": "normal", "done": False},
-        ]
-        self.current_target_index = 0
-
+        self.channel_count = 0
+        #flat 
+        self.coco_beater_flag = False  #< - 開始打果實
+        self.change_flag = False #< - 切換頻道
     def process(self, player_loc):
         '''
         控制中樞
         '''
         if not player_loc:
             return
-        #
-        if self.current_target_index >= len(self.targets):
-            print("所有可可果實已擊打完畢！")
-            return
 
-        # 人物在原點
-        if self._start_position(player_loc):
+
+        # 人物在原點 -> 開始腳本行動
+        if self._start_position(player_loc) and not self.coco_beater_flag:
+            self.coco_beater_flag = True
             self._auto_action(player_loc)
 
+        time.sleep(3)
+        # 人物在終點 -> 準備切換頻道
+
+        if self._end_position(player_loc) and not self.change_flag:
+            self.change_flag = True
+            self._change_channel()
 
     def _start_position(self, player_loc, tolerance=2):
         """
@@ -412,33 +498,87 @@ class CocoTaskManager:
 
     def _auto_action(self,player_loc):
         '''
+        只是打個果實而已，就寫腳本就好了，有需要再系統化
         錄製的腳本
         '''
+
+        count = 7  # 攻擊次數
+        self.action.start_hold_z()
         #第一個果實 146, 51
-        for i in range(6):
+        for i in range(count):
             time.sleep(0.5)
             self.action.normal_attack()
             time.sleep(0.5)
-        # 向右邊走
+
+        time.sleep(1) # 等待果實掉下來
+
         #第二個果實 152, 58
         self.action.press_key(Key.right,1.7)
         self.action.press_key(Key.left,0.1)
-        for i in range(5):
+        for i in range(count):
             time.sleep(0.5)
             self.action.normal_attack()
             time.sleep(0.5)
+
         # 第三顆果實 176, 54
         self.action.press_key(Key.right,0.7)
-        for i in range(5):
+        for i in range(count):
             time.sleep(0.5)
             self.action.normal_attack()
             time.sleep(0.5)
-        # 第三顆果實 178, 54
+
+        # 第四顆果實 178, 54
         self.action.press_key(Key.right,0.3)
         for i in range(5):
             time.sleep(0.5)
             self.action.normal_attack()
             time.sleep(0.5)
+
+        self.action.stop_hold_z()
+
+        self.coco_beater_flag = False
+
+    def _end_position(self, player_loc, tolerance=2):
+        """
+        檢查人物是否在結束點附近
+        tolerance: 容許的誤差像素值（預設為 2）
+        """
+        if not player_loc:
+            return False
+            
+        target_x, target_y = 160, 58
+        player_x, player_y = player_loc
+
+        # 檢查 X 軸與 Y 軸的距離是否都在誤差範圍內
+        if abs(player_x - target_x) <= tolerance and abs(player_y - target_y) <= tolerance:
+            print(f"初始化原點 (當前座標: {player_loc})")
+            return True
+        else:
+            return False
+
+    def _change_channel(self):
+        '''
+        1-60頻道都能用右鍵切換，但是到底之後就沒辦法了
+        所以預設從1頻開始運行，同時開始 count 到60頻道後重置
+        '''
+        self.channel_count += 1
+        print(f"切換頻道次數: {self.channel_count}")
+
+        # 按出頻道選單
+        self.action.press_key(Key.esc,0.03)
+        time.sleep(0.2)
+        self.action.press_key(Key.enter,0.03)
+        # 選擇頻道
+
+        self.action.press_key(Key.right,0.03)
+
+        # 切換
+        self.action.press_key(Key.enter,0.03)
+
+        time.sleep(2) # 等待換頻道時間
+        # 切換FLAG
+        self.change_flag = False
+
 if __name__ == "__main__":
 
     # I. 日誌仔入
