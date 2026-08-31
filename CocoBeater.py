@@ -10,8 +10,7 @@ except:
 from src.engine.GameBot import GameBot
 import src.utils.logger as logger
 import logging
-import os
-import sys
+
 import cv2
 import logging
 from pathlib import Path
@@ -20,11 +19,18 @@ from src.utils.common import get_window_handle_and_rect_by,bring_to_front_and_ce
 import win32gui
 from PIL import ImageGrab
 import numpy as np
+from pynput.keyboard import Controller, Key
+import time
 
 '''
 WIP
 打可可果實腳本
 
+起始點 142,51 
+第一顆果實  142,51 平打
+第二顆果實  152,58 平打
+第三顆果實  161,58 平打
+第三顆果實  176,54 平打
 
 '''
 class MaibBot:
@@ -51,6 +57,7 @@ class MaibBot:
         '''
         self.map_detector = MapDectector()
         self.minimap_detector = MinimapDetector()
+        self.coco_task_manager = CocoTaskManager()
     def _load_res(self):
         '''
         載入資源
@@ -86,8 +93,7 @@ class MaibBot:
                 self.frame_bgr = self.map_detector.scan_full_screen()
                 self._get_window_rect()
                 self.mini_player_loc = self.MinimapDetector() 
-                print(self.mini_player_loc)
-                # print(self.frame_size)
+                self.coco_task_manager.process(self.mini_player_loc)
                 #圖片繪製
                 self._render_cv2_view()
                 self._render_minimap_overlay(self.mini_player_loc)
@@ -331,10 +337,108 @@ class MinimapDetector:
         best = min(candidates, key=lambda p: abs(p[2] - EXPECTED_AREA))
         return (best[0], best[1])
     
-class State:
-    def __init__(self):
-        pass
 
+
+class ActionController:
+    def __init__(self):
+        self.keyboard = Controller()
+
+    def press_key(self, key, duration=0.1):
+        """按下並放開按鍵"""
+        self.keyboard.press(key)
+        time.sleep(duration)
+        self.keyboard.release(key)
+
+    def jump_attack(self):
+        """跳打：同時或極短間隔內按 下跳躍與攻擊"""
+        self.keyboard.press(Key.alt)
+        time.sleep(0.2)
+        self.keyboard.press(Key.ctrl) 
+        time.sleep(0.05)
+        self.keyboard.release(Key.alt)
+        self.keyboard.release(Key.ctrl)
+
+    def normal_attack(self):
+        """平打"""
+        self.press_key(Key.ctrl, 0.05)  
+
+class CocoTaskManager:
+    '''
+    負責計算與果實的距離與發出動作
+    '''
+    def __init__(self):
+        self.action = ActionController()
+        # 定義三個果實的任務目標 (x, y, 動作類型)
+        self.targets = [
+            {"pos": (146, 51), "type": "jump", "done": False},
+            {"pos": (152, 58), "type": "normal", "done": False},
+            {"pos": (176, 54), "type": "normal", "done": False},
+        ]
+        self.current_target_index = 0
+
+    def process(self, player_loc):
+        '''
+        控制中樞
+        '''
+        if not player_loc:
+            return
+        #
+        if self.current_target_index >= len(self.targets):
+            print("所有可可果實已擊打完畢！")
+            return
+
+        # 人物在原點
+        if self._start_position(player_loc):
+            self._auto_action(player_loc)
+
+
+    def _start_position(self, player_loc, tolerance=2):
+        """
+        檢查人物是否在初始原點附近
+        tolerance: 容許的誤差像素值（預設為 2）
+        """
+        if not player_loc:
+            return False
+            
+        target_x, target_y = 142, 51
+        player_x, player_y = player_loc
+
+        # 檢查 X 軸與 Y 軸的距離是否都在誤差範圍內
+        if abs(player_x - target_x) <= tolerance and abs(player_y - target_y) <= tolerance:
+            print(f"初始化原點 (當前座標: {player_loc})")
+            return True
+        else:
+            return False
+
+    def _auto_action(self,player_loc):
+        '''
+        錄製的腳本
+        '''
+        #第一個果實 146, 51
+        for i in range(6):
+            time.sleep(0.5)
+            self.action.normal_attack()
+            time.sleep(0.5)
+        # 向右邊走
+        #第二個果實 152, 58
+        self.action.press_key(Key.right,1.7)
+        self.action.press_key(Key.left,0.1)
+        for i in range(5):
+            time.sleep(0.5)
+            self.action.normal_attack()
+            time.sleep(0.5)
+        # 第三顆果實 176, 54
+        self.action.press_key(Key.right,0.7)
+        for i in range(5):
+            time.sleep(0.5)
+            self.action.normal_attack()
+            time.sleep(0.5)
+        # 第三顆果實 178, 54
+        self.action.press_key(Key.right,0.3)
+        for i in range(5):
+            time.sleep(0.5)
+            self.action.normal_attack()
+            time.sleep(0.5)
 if __name__ == "__main__":
 
     # I. 日誌仔入
