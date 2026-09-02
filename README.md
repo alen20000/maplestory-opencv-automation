@@ -115,6 +115,7 @@ pip install -r requirements.txt
 | &nbsp; **F8** | 紀錄點位：`JumpDown` | 記錄向下跳躍點 |
 | &nbsp; **F9** | 紀錄點位：`JumpUp` | 記錄向上跳躍點 |
 
+
 ---
 
 ## Dev Notes 
@@ -138,7 +139,7 @@ pip install -r requirements.txt
 
 >[ISSUE -> FIX] 小地圖偏位:openCV做的小地圖，與實際地圖沒辦法對齊，模組都排查了，但還是想不出為什麼會這樣，希望不要是DPI影響的問題；找出問題原因，MinimapDetector模組中，cv2.findNonZero找出所有顏色座標後，被取平均，導致座標點異常，改以cv2.findContours搭配cv2.RETR_EXTERNAL與cv2.CHAIN_APPROX_SIMPLE 只抓單一最大輪廓。
 
->[ISSUE] 垂直爬繩卡鍵: rope垂直上下一直有卡UP鍵問題，目前也只解決上爬的卡鍵問題，但是下爬後的卡鍵問題，仍然找不到
+>[ISSUE -> FIX] 垂直爬繩卡鍵: rope垂直上下一直有卡UP鍵問題，目前也只解決上爬的卡鍵問題，但是下爬後的卡鍵問題，仍然找不到;應該好多了，大概問題解決
 
 <p align="center">
   <img src="./assets/issue-minimap.png" width="300">
@@ -150,7 +151,7 @@ pip install -r requirements.txt
 
 >[TODO] 行為點:增加更多種行為點，右邊跳躍、左邊跳躍、下跳之類的，放在預設的狀態機"PathfindState"類；新增左跳、右跳，但只能做單跳，還沒想到方法能做連續跳躍的判定；完成上下左右跳躍點，但缺少測試與追蹤
 
->[TODO -> DONN] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊；重構翻新整個狀態機。；重構AutoControl與狀態機，原本的狀態機分類為指令分配器。
+>[TODO -> DONE] AutoControl臃腫: 用了大量的Flag、IF判斷去控制邏輯，方向不大對，非常難維護。應該要在想個方法重構這塊；重構翻新整個狀態機。；重構AutoControl與狀態機，原本的狀態機分類為指令分配器。
 ---
 
 ## Tools
@@ -160,6 +161,7 @@ pip install -r requirements.txt
 | `GetNameTag.py` | 擷取人物名牌 |  要先用這個抓自己人物名牌，才可以更準的定位。啟動後找到乾淨的背景按下"Z"鍵，提取人物名牌。 |
 | `CaptureScreen.py` | 顯示座標與截圖 |  計算螢幕座標與視窗內座標  |
 |`OperationLogger.py`|錄製小地圖的行動點|沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.yaml`設定`quickly_choice_map`|
+| `CocoBeater.py` | 蒐集可可果實腳本 |  一個簡單掛機賺錢的小腳本，換頻道功能沒寫完，換到第60頻道後沒有返回功能，所以最多換60頻道  |
 
 ---
 ## Tech Stack
