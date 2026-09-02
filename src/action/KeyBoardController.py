@@ -543,6 +543,8 @@ class KeyBoard:
         with self._pick_up_lock:
             if not self.pick_up_key:
                 return
+            if self._pick_up: 
+                return
             self._pick_up = True
         threading.Thread(target=self._pick_up_command, args=(self.pick_up_key,), daemon=True).start()
 
