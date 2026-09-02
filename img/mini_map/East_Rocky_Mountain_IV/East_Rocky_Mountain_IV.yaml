@@ -25,13 +25,13 @@
   - 69
 - action: walk
   loc:
-  - 85
+  - 84
   - 67
 
 
 - action: JumpUp
   loc:
-  - 24
+  - 26
   - 66
 - action: JumpUp
   loc:
@@ -108,7 +108,7 @@
   - 49
 - action: JumpDown
   loc:
-  - 46
+  - 50
   - 67
 - action: JumpDown
   loc:
