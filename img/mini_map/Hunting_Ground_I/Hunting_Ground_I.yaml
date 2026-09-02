@@ -1,56 +1,32 @@
 - action: walk
   loc:
-  - 8
-  - 90
+  - 114
+  - 92
 - action: walk
   loc:
-  - 139
-  - 90
+  - 17
+  - 92
 - action: rope
   loc:
   - 74
-  - 90
+  - 92
 - action: rope
   loc:
   - 74
-  - 71
+  - 73
 - action: walk
   loc:
-  - 112
-  - 71
+  - 28
+  - 73
 - action: walk
   loc:
-  - 29
-  - 71
-- action: rope
+  - 115
+  - 73
+- action: JumpDown
   loc:
-  - 53
-  - 71
-- action: rope
+  - 60
+  - 73
+- action: JumpRight
   loc:
-  - 53
-  - 56
-- action: walk
-  loc:
-  - 33
-  - 56
-- action: walk
-  loc:
-  - 108
-  - 56
-- action: rope
-  loc:
-  - 76
-  - 56
-- action: rope
-  loc:
-  - 76
-  - 41
-- action: walk
-  loc:
-  - 102
-  - 41
-- action: walk
-  loc:
-  - 38
-  - 41
+  - 72
+  - 92

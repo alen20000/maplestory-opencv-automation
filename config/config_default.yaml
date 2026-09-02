@@ -32,14 +32,14 @@ player_setting:
     is_Night_Lord: False
 
     #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500 
-    attack_range: 130
+    attack_range: 100
 
 
 image_processing:
-#圖像匹配度設置，抓不到怪物或角色，在這邊調整過濾程度
+#圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.9
+  mob_min_threshold : 0.85
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -61,7 +61,7 @@ auto_control_config:
   TOGGLE_COMBAT_ACTION: True
 
   #允許進行平台移動的時間閾值:單位(秒) ； 若間隔時間內沒有怪物，進入移動狀態
-  find_mob_time_threshold : 12
+  find_mob_time_threshold : 8
 
   #人物卡住檢查間隔時間:單位(秒); 巡邏狀態中，超過這個時間，觸發防卡頓動作
   stuck_check_time_threshold : 3
