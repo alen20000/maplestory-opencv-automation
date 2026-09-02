@@ -579,32 +579,37 @@ class AutoControl:
         plat_index = self.current_platform
         current_plat = self.platforms[plat_index]
         
-        left_bound = current_plat["t_l"][0] + self.buffer  # 平台的左極限 X
-        right_bound = current_plat["b_r"][0] - self.buffer  # 平台的右極限 X
+        left_bound = current_plat["t_l"][0] 
+        right_bound = current_plat["b_r"][0]
 
         #=====
         #   平台內人物的四種情況
+        # 1.最左邊與最左邊+緩衝值之間 2.最右邊與最右邊-緩衝值之間 1.最左邊+緩衝值 2.最右邊-緩衝值  
         #=====
-        if px <= left_bound + self.buffer:
-            self.search_direction = "RIGHT"   # 走到底右轉
-
-            return self._pack_action("MOVE", direction="RIGHT")
-
-        elif px >= right_bound - self.buffer:
-            self.search_direction = "LEFT"    # 走到底左轉
-
-            return self._pack_action("MOVE", direction="LEFT")
-        #這句不能改，否則人物會罰站
-        elif left_bound <= px <=  left_bound + self.buffer:  
+        if left_bound <= px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
+            print(f"人物位置:{px} 左側極值:{left_bound }")
             return self._pack_action("MOVE", direction="RIGHT")
+
 
         elif right_bound - self.buffer <= px <= right_bound:  
-
             self.search_direction = "LEFT"    # 走到底左轉
+            print(f"人物位置:{px} 右邊側極值:{right_bound}")
             return self._pack_action("MOVE", direction="LEFT")
+
+
+        elif px < left_bound:
+            self.search_direction = "RIGHT"  
+            return self._pack_action("MOVE", direction="RIGHT")
+
+
+        elif px > right_bound:
+            self.search_direction = "LEFT"    
+            return self._pack_action("MOVE", direction="LEFT")
+
+        # 其他中間情況
         else:
-            return self._pack_action("MOVE", direction=self.search_direction )
+            return self._pack_action("MOVE", direction=self.search_direction)
         
     def _fk_that_mob(self,state):
         '''
