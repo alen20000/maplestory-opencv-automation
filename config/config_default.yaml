@@ -39,7 +39,7 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.85
+  mob_min_threshold : 0.92
   #人物匹配最小值
   role_min_threshold : 0.6
 
