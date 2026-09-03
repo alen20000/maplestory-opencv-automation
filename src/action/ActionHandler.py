@@ -121,6 +121,7 @@ class ActionHandler:
                 self.keyboard.stop_move()
             if command == "RELEASE_ALL":
                 # 釋放所有熟鍵
+                self.keyboard.stop_move()
                 self.keyboard.release_all()
 
         # 判定"治癒"狀態

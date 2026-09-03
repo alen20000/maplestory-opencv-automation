@@ -588,13 +588,13 @@ class AutoControl:
         #=====
         if left_bound <= px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
-            print(f"人物位置:{px} 左側極值:{left_bound }")
+            # print(f"人物位置:{px} 左側極值:{left_bound }")
             return self._pack_action("MOVE", direction="RIGHT")
 
 
         elif right_bound - self.buffer <= px <= right_bound:  
             self.search_direction = "LEFT"    # 走到底左轉
-            print(f"人物位置:{px} 右邊側極值:{right_bound}")
+            # print(f"人物位置:{px} 右邊側極值:{right_bound}")
             return self._pack_action("MOVE", direction="LEFT")
 
 
@@ -644,11 +644,24 @@ class AutoControl:
         if best_target and best_target['distance'] <= self.player_attack_range:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
-        print("沒有目標在攻擊範圍內")
+        # print("沒有目標在攻擊範圍內")
 
-        if self.current_platform is None: # <- 人物不在平台範圍，就終止移動
-            return self._pack_action("IDLE",command="STOP_MOVE")
+        # if self.current_platform is None: # <- 人物不在平台範圍，就終止移動
+        #     return self._pack_action("IDLE",command="STOP_MOVE")
+        
+        left_bound,right_bound = self.platforms[self.current_platform]["t_l"][0],self.platforms[self.current_platform]["b_r"][0]
+        # print(f"人物位置:{px} 左側極值:{left_bound } 右邊側極值:{right_bound}")
+        if left_bound <= px <= left_bound + self.buffer:  
+            self.search_direction = "RIGHT"
+            # print(f"人物位置:{px} 左側極值:{left_bound }")
+            return self._pack_action("MOVE", direction="RIGHT")
 
+
+        elif right_bound - self.buffer <= px <= right_bound:  
+            self.search_direction = "LEFT"    # 走到底左轉
+            # print(f"人物位置:{px} 右邊側極值:{right_bound}")
+            return self._pack_action("MOVE", direction="LEFT")
+        
         # -- 移動到最近的怪物
         return self._pack_action("MOVE", direction=best_target['direction']) 
 
