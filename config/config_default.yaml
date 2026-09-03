@@ -39,7 +39,7 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.92
+  mob_min_threshold : 0.90
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -47,8 +47,8 @@ game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
   #參考: 近戰 100-200 遠程 300-500  
-  roi_x_offset_l_width: 200
-  roi_x_offset_r_width: 200
+  roi_x_offset_l_width: 180
+  roi_x_offset_r_width: 180
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 40
 
@@ -67,12 +67,12 @@ auto_control_config:
   stuck_check_time_threshold : 3
 
   #邊界距離緩衝:單位:像素;人物若進入緩衝區會往反方向移動，避免離開打怪區間
-  buffer: 10
+  buffer: 2
 
   # 跳躍距離閾值，太遠容易抓到很遠的跳躍點(有可能頻繁卡住)，太近又容易偵測不到
   JUMP_DISTANCE_THRESHOLD: 15 
   # 跳躍點範圍;大小會影響偵測跳躍點時的判定。
-  ACTION_POINT_RANGE : 2
+  ACTION_POINT_RANGE : 4
 
 health_detector:
 
