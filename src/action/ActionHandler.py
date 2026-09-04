@@ -112,6 +112,12 @@ class ActionHandler:
                 self.keyboard.jump_down()
             elif direction == "UP":
                 self.keyboard.jump_up_grab()
+            elif direction == "M_LEFT":
+                self.keyboard.stop_move()
+                self.keyboard.move_left_to_jump()
+            elif direction == "M_RIGHT":
+                self.keyboard.stop_move()
+                self.keyboard.move_right_to_jump()
 
         elif self.current_state == "IDLE" and self.current_info:
             command = self.current_info.get("command")

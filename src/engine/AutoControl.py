@@ -550,7 +550,7 @@ class AutoControl:
         args:
             jump_index: 跳躍點的index
         return:
-            self._pack_action("JUMP_GRAB", direction="RIGHT" or "LEFT")
+            self._pack_action("JUMP_GRAB", direction="RIGHT" |"LEFT"|"DOWN"|"UP"|M_RIGHT|M_LEFT)
         '''
         direction = self.jump_points[jump_index]["direction"]
         print(f"到達{jump_index}號跳躍點，執行 {direction} 方向跳躍")

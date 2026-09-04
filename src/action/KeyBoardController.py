@@ -381,6 +381,17 @@ class KeyBoard:
             self._status_jump_up_grab = True
         threading.Thread(target=self._jump_up_grab_command, args=(duration, delay), daemon=True).start()
 
+    def move_left_to_jump(self,delay=0.4):
+        '''給跳躍狀態做的小位移(左邊)'''
+        self._key_down(self.left_key)
+        time.sleep(delay)
+        self._key_up(self.left_key)
+
+    def move_right_to_jump(self,delay=0.4):
+        '''給跳躍狀態做的小位移(右邊)'''
+        self._key_down(self.right_key)
+        time.sleep(delay)
+        self._key_up(self.right_key)
     #======
     # 單點跳
     #=====
