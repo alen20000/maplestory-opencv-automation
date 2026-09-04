@@ -651,13 +651,13 @@ class AutoControl:
         
         left_bound,right_bound = self.platforms[self.current_platform]["t_l"][0],self.platforms[self.current_platform]["b_r"][0]
         # print(f"人物位置:{px} 左側極值:{left_bound } 右邊側極值:{right_bound}")
-        if left_bound <= px <= left_bound + self.buffer:  
+        if  px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
             # print(f"人物位置:{px} 左側極值:{left_bound }")
             return self._pack_action("MOVE", direction="RIGHT")
 
 
-        elif right_bound - self.buffer <= px <= right_bound:  
+        elif right_bound - self.buffer <= px :  
             self.search_direction = "LEFT"    # 走到底左轉
             # print(f"人物位置:{px} 右邊側極值:{right_bound}")
             return self._pack_action("MOVE", direction="LEFT")
