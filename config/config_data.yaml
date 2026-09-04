@@ -1,5 +1,5 @@
 # 選擇地圖
-quickly_choice_map: The_Land_of_Wild_Boar
+quickly_choice_map: East_Rocky_Mountain_V
 
 # 設定的地圖路徑
 map:
@@ -12,6 +12,7 @@ map:
   The_Land_of_Wild_Boar : img/map/The_Land_of_Wild_Boar
   The_Land_of_Wild_Boar_II : img/map/The_Land_of_Wild_Boar_II
   East_Rocky_Mountain_IV : img/map/East_Rocky_Mountain_IV
+  East_Rocky_Mountain_V : img/map/East_Rocky_Mountain_V
 
 mini_map:
   Mushroom_Garden : img/mini_map/Mushroom_Garden/Mushroom_Garden_1.png
@@ -19,3 +20,4 @@ mini_map:
   The_Land_of_Wild_Boar : img/mini_map/The_Land_of_Wild_Boar/The_Land_of_Wild_Boar.png
   The_Land_of_Wild_Boar_II : img/mini_map/The_Land_of_Wild_Boar_II/The_Land_of_Wild_Boar_II.png
   East_Rocky_Mountain_IV : img/mini_map/East_Rocky_Mountain_IV/East_Rocky_Mountain_IV.png
+  East_Rocky_Mountain_V : img/mini_map/East_Rocky_Mountain_V/East_Rocky_Mountain_V.png
