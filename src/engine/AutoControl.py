@@ -573,9 +573,14 @@ class AutoControl:
             - self.current_platform : 當前平台index
         '''
         # 依賴檢查：無平台資訊就拋棄此幀
-        if self.current_platform is None :
-            return None,None
+        # 若有平台，則更新最新平台(盡量別用快取)
+        current_plat_index = self._check_current_platform()
 
+        if self.current_platform is None : # 過濾人物沒有在平台
+            self.current_platform =  None 
+            return None,None
+        
+        self.current_platform = current_plat_index 
         px, _ = self.mini_player_loc
 
         plat_index = self.current_platform
