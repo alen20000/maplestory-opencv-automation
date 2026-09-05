@@ -576,7 +576,7 @@ class AutoControl:
         # 若有平台，則更新最新平台(盡量別用快取)
         current_plat_index = self._check_current_platform()
 
-        if self.current_platform is None : # 過濾人物沒有在平台
+        if current_plat_index is None : # 過濾人物沒有在平台
             self.current_platform =  None 
             return None,None
         
@@ -707,13 +707,14 @@ class AutoControl:
             # 下面兩個if，目的為判斷有沒有成功到頂(底)部
             if self._is_loc_y_change(): # <= - 有變動則重置
                 self._verti_movement_timer = current_time
-            if  current_time - self._verti_movement_timer > VERTI_MOVE_STAY_TIMEOUT:
+            if  current_time - self._verti_movement_timer > 11:
                 '''
-                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                給偵測餘裕
+                超過1秒，判斷人物是否Y軸移動，沒移動代表在底部
                 '''
                 #到達底部，重置狀態
                 if not self._is_loc_y_change(): #< - 偵測是否移動
-                    self.current_verti_target = None # < - 離開要重置
+                    self.current_verti_target = None 
                     self._verti_movement_timer = None
                     self.last_player_loc = None
                     print("到達底部")
@@ -734,10 +735,12 @@ class AutoControl:
         
         # -- 往下
         if self.current_verti_target == "DOWN":
-            if  current_time - self._verti_movement_timer > VERTI_MOVE_STAY_TIMEOUT:
+            if  current_time - self._verti_movement_timer > 1:
                 '''
-                條件A:超過2秒，判斷人物是否Y軸移動，沒移動代表在頂部
-                    '''
+                條件A:
+                給偵測餘裕
+                超過1秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                '''
                 # 下面兩個if，目的為判斷有沒有成功到頂(底)部
                 if self._is_loc_y_change(): # <= - 有變動則重置
                     self._verti_movement_timer = current_time
