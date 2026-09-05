@@ -43,7 +43,7 @@ class ActionHandler:
         # "爬繩"狀態命令
         # ====
         elif self.current_state == "ROPE" and self.current_info:
-            self.keyboard.stop_move()
+
             direction = self.current_info.get("direction")
 
             if direction == "LEFT_UP":
@@ -104,19 +104,20 @@ class ActionHandler:
 
         elif self.current_state == "JUMP_GRAB":
             direction = self.current_info.get("direction")
+            self.keyboard.stop_move()
             if direction == "LEFT":
+
                 self.keyboard.jump_left_grab()
             elif direction == "RIGHT":
+
                 self.keyboard.jump_right_grab()
             elif direction == "DOWN":
                 self.keyboard.jump_down()
             elif direction == "UP":
                 self.keyboard.jump_up_grab()
             elif direction == "M_LEFT":
-                self.keyboard.stop_move()
                 self.keyboard.move_left_to_jump()
             elif direction == "M_RIGHT":
-                self.keyboard.stop_move()
                 self.keyboard.move_right_to_jump()
 
         elif self.current_state == "IDLE" and self.current_info:

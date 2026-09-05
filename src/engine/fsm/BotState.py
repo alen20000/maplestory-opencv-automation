@@ -175,7 +175,6 @@ class JumpState(State):
         if current_jump_index == self.jump_index:
             print(f"到達 {self.jump_index} 號點，執行跳躍！")
             action, params = context._do_jump(self.jump_index)
-            
             self.has_jumped = True
             self.jump_start_time = now   # 記錄起跳時間
             self.next_start_jump_tim = now # 這是給繼續跳的逾時保護基點

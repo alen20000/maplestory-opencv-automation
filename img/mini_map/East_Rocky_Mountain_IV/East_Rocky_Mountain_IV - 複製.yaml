@@ -1,0 +1,146 @@
+- action: walk
+  loc:
+  - 126
+  - 107
+- action: walk
+  loc:
+  - 7
+  - 95
+- action: rope
+  loc:
+  - 28
+  - 103
+- action: rope
+  loc:
+  - 28
+  - 81
+- action: JumpRight
+  loc:
+  - 28
+  - 83
+
+- action: rope
+  loc:
+  - 32
+  - 66
+- action: rope
+  loc:
+  - 32
+  - 81
+
+
+- action: rope
+  loc:
+  - 73
+  - 105
+- action: rope
+  loc:
+  - 73
+  - 84
+- action: JumpRight
+  loc:
+  - 73
+  - 84
+- action: JumpUp
+  loc:
+  - 76
+  - 68
+
+- action: JumpUp
+  loc:
+  - 78
+  - 68
+
+- action: walk
+  loc:
+  - 81
+  - 65
+- action: walk
+  loc:
+  - 14
+  - 67
+  
+- action: M_LEFT
+  loc:
+  - 32
+  - 66
+
+- action: JumpUp
+  loc:
+  - 28
+  - 66
+
+- action: JumpLeft
+  loc:
+  - 28
+  - 61
+
+- action: JumpLeft
+  loc:
+  - 24
+  - 59
+
+- action: JumpRight
+  loc:
+  - 20
+  - 53
+
+- action: JumpRight
+  loc:
+  - 24
+  - 49
+
+
+- action: walk
+  loc:
+  - 23
+  - 46
+- action: walk
+  loc:
+  - 45
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 28
+- action: walk
+  loc:
+  - 41
+  - 28
+- action: walk
+  loc:
+  - 54
+  - 29
+- action: JumpLeft
+  loc:
+  - 52
+  - 29
+
+- action: rope
+  loc:
+  - 43
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 28
+
+
+- action: walk
+  loc:
+  - 58
+  - 25
+- action: walk
+  loc:
+  - 71
+  - 24
+
+
+- action: JumpLeft
+  loc:
+  - 38
+  - 47
