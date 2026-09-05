@@ -67,12 +67,12 @@ auto_control_config:
   stuck_check_time_threshold : 3
 
   #邊界距離緩衝:單位:像素;人物若進入緩衝區會往反方向移動，避免離開打怪區間
-  buffer: 5
+  buffer: 8
 
   # 跳躍距離閾值，太遠容易抓到很遠的跳躍點(有可能頻繁卡住)，太近又容易偵測不到
   JUMP_DISTANCE_THRESHOLD: 15 
   # 跳躍點範圍;大小會影響偵測跳躍點時的判定。
-  ACTION_POINT_RANGE : 4
+  ACTION_POINT_RANGE : 2
 
 health_detector:
 

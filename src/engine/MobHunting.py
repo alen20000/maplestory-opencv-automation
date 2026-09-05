@@ -16,12 +16,24 @@ class MobDetector:
     def __init__(self):
         #Config
         Map_Name = config.get("quickly_choice_map")
-        self.min_threshold = config.get("image_processing.mob_min_threshold")
+        self.min_threshold = config.get("image_processing.mob_min_threshold", "pixel_distance_filter")
         self.mobs_in_map =  config.get(f"map.{Map_Name}")
-        self.nms_threshold = 0.7 # <- NMS 阈值
+
+        #filter config
+        self.filter_method = config.get("mob_filter_method.method")
+
+        #防呆檢查
+        valid_methods = ["nms", "pixel_distance_filter"]
+        if self.filter_method not in valid_methods:
+            logging.warning(f"不支援的過濾方法 '{self.filter_method}'，將自動使用預設的 'pixel_distance_filter'")
+            self.filter_method = "pixel_distance_filter"
+
+        self.nms_threshold = config.get("nms_threshold") # <- NMS 用閥值
+        self.pix_filter_threshold = config.get("pix_filter_threshold", 25) # <- 中心距離用閥值
         #放匹配模板字典 key: mob名稱 ; value: (灰階圖, mask或None)
         self.mobs_templates: dict[str, tuple[np.ndarray, np.ndarray | None]] = {}
         self._load_mob_templates()
+
 
         cv2.setNumThreads(1)
 
@@ -118,7 +130,11 @@ class MobDetector:
             for res in results:
                 all_detected_boxes.extend(res)
 
-        result = self._nms_filter(all_detected_boxes)
+        if self.filter_method == "nms":
+            result = self._nms_filter(all_detected_boxes)
+        elif self.filter_method == "pixel_distance_filter":
+            result = self._pix_filter_method(all_detected_boxes)
+        
         return result
 
     def _pix_filter_method(self,all_detected_boxes:list):
@@ -143,7 +159,7 @@ class MobDetector:
             for existing in final_mobs_dict[mob_name]:
                 ex_cx, ex_cy = existing["center"]
                 # 如果中心點距離小於 25 像素，視為同一隻怪物的重複殘影，直接過濾掉
-                if abs(cx - ex_cx) < 25 and abs(cy - ex_cy) < 25:
+                if abs(cx - ex_cx) < self.pix_filter_threshold and abs(cy - ex_cy) < self.pix_filter_threshold:
                     is_dup = True
                     break
 

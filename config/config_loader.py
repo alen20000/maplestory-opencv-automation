@@ -16,7 +16,7 @@ class ConfigLoader():
     def _load_yaml_config(self):
         root_dir = Path(__file__).resolve().parent
         '''設定檔清單'''
-        config_files = ["config_default.yaml", "config_data.yaml", "config_log.yaml"]
+        config_files = ["config_default.yaml", "config_data.yaml", "config_log.yaml","config_method.yaml"]
 
         for file_name in config_files:
             config_path = root_dir / file_name
