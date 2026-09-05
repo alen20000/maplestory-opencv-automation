@@ -119,6 +119,17 @@
   loc:
   - 52
   - 29
+
+- action: rope
+  loc:
+  - 43
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 28
+
+
 - action: walk
   loc:
   - 58
@@ -127,3 +138,9 @@
   loc:
   - 71
   - 24
+
+
+- action: JumpLeft
+  loc:
+  - 38
+  - 47
