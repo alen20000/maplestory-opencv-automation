@@ -19,76 +19,6 @@
   - 28
   - 83
 
-- action: walk
-  loc:
-  - 14
-  - 69
-- action: walk
-  loc:
-  - 84
-  - 67
-
-
-- action: JumpUp
-  loc:
-  - 26
-  - 66
-- action: JumpUp
-  loc:
-  - 24
-  - 61
-- action: JumpLeft
-  loc:
-  - 24
-  - 57
-- action: JumpUp
-  loc:
-  - 21
-  - 53
-- action: JumpRight
-  loc:
-  - 21
-  - 49
-- action: walk
-  loc:
-  - 23
-  - 46
-- action: walk
-  loc:
-  - 45
-  - 47
-- action: rope
-  loc:
-  - 38
-  - 47
-- action: JumpRight
-  loc:
-  - 38
-  - 47
-- action: JumpRight
-  loc:
-  - 40
-  - 47
-- action: walk
-  loc:
-  - 41
-  - 28
-- action: walk
-  loc:
-  - 57
-  - 29
-- action: JumpRight
-  loc:
-  - 53
-  - 29
-- action: walk
-  loc:
-  - 58
-  - 25
-- action: walk
-  loc:
-  - 70
-  - 24
 - action: rope
   loc:
   - 32
@@ -98,22 +28,7 @@
   - 32
   - 81
 
-- action: walk
-  loc:
-  - 24
-  - 48
-- action: walk
-  loc:
-  - 44
-  - 49
-- action: JumpDown
-  loc:
-  - 50
-  - 67
-- action: JumpDown
-  loc:
-  - 34
-  - 49
+
 - action: rope
   loc:
   - 73
@@ -135,3 +50,80 @@
   loc:
   - 78
   - 68
+
+- action: walk
+  loc:
+  - 81
+  - 65
+- action: walk
+  loc:
+  - 14
+  - 67
+  
+- action: M_LEFT
+  loc:
+  - 32
+  - 66
+
+- action: JumpUp
+  loc:
+  - 28
+  - 66
+
+- action: JumpLeft
+  loc:
+  - 28
+  - 61
+
+- action: JumpLeft
+  loc:
+  - 24
+  - 59
+
+- action: JumpRight
+  loc:
+  - 20
+  - 53
+
+- action: JumpRight
+  loc:
+  - 24
+  - 49
+
+
+- action: walk
+  loc:
+  - 23
+  - 46
+- action: walk
+  loc:
+  - 45
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 47
+- action: rope
+  loc:
+  - 43
+  - 28
+- action: walk
+  loc:
+  - 41
+  - 28
+- action: walk
+  loc:
+  - 54
+  - 29
+- action: JumpLeft
+  loc:
+  - 52
+  - 29
+- action: walk
+  loc:
+  - 58
+  - 25
+- action: walk
+  loc:
+  - 71
+  - 24

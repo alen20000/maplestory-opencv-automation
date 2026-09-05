@@ -19,7 +19,7 @@ from enum import Enum, auto
 狀態種類(互斥責為狀態): COMBAT、
 '''
 #===全域常數===
-VERTI_MOVE_STAY_TIMEOUT = 0.6 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
+VERTI_MOVE_STAY_TIMEOUT = 0.4 # < -  管理"向上攀爬"出去後，停留多久退出攀爬動作的時間記數
 
 #======
 class AutoControl:
@@ -155,7 +155,9 @@ class AutoControl:
             "JumpLeft": "LEFT",
             "JumpRight": "RIGHT",
             "JumpDown":"DOWN",
-            "JumpUp":"UP"
+            "JumpUp":"UP",
+            "M_LEFT": "M_LEFT",
+            "M_RIGHT": "M_RIGHT"
         }
 
         jump_points = []
@@ -586,28 +588,28 @@ class AutoControl:
         #   平台內人物的四種情況
         # 1.最左邊與最左邊+緩衝值之間 2.最右邊與最右邊-緩衝值之間 1.最左邊+緩衝值 2.最右邊-緩衝值  
         #=====
-        if left_bound <= px <= left_bound + self.buffer:  
+        if px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
-            # print(f"人物位置:{px} 左側極值:{left_bound }")
+
             return self._pack_action("MOVE", direction="RIGHT")
 
 
-        elif right_bound - self.buffer <= px <= right_bound:  
-            self.search_direction = "LEFT"    # 走到底左轉
-            # print(f"人物位置:{px} 右邊側極值:{right_bound}")
+        elif right_bound - self.buffer <= px:  
+            self.search_direction = "LEFT" 
+
             return self._pack_action("MOVE", direction="LEFT")
 
-
-        elif px < left_bound:
+        # 下面兩個判斷拿掉也無影響，但保險起見還是放著
+        elif px < left_bound + self.buffer :
             self.search_direction = "RIGHT"  
             return self._pack_action("MOVE", direction="RIGHT")
 
 
-        elif px > right_bound:
+        elif px > right_bound - self.buffer:
             self.search_direction = "LEFT"    
             return self._pack_action("MOVE", direction="LEFT")
 
-        # 其他中間情況
+        # 其他情況
         else:
             return self._pack_action("MOVE", direction=self.search_direction)
         
@@ -644,25 +646,25 @@ class AutoControl:
         if best_target and best_target['distance'] <= self.player_attack_range:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
-        # print("沒有目標在攻擊範圍內")
 
-        # if self.current_platform is None: # <- 人物不在平台範圍，就終止移動
-        #     return self._pack_action("IDLE",command="STOP_MOVE")
+
+        if self.current_platform is None: # 不在攻擊平台內，停止移動，防止一系列檢測失敗的錯誤回傳
+            return self._pack_action("IDLE",command="STOP_MOVE")
         
         left_bound,right_bound = self.platforms[self.current_platform]["t_l"][0],self.platforms[self.current_platform]["b_r"][0]
-        # print(f"人物位置:{px} 左側極值:{left_bound } 右邊側極值:{right_bound}")
+
         if  px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
-            # print(f"人物位置:{px} 左側極值:{left_bound }")
+
             return self._pack_action("MOVE", direction="RIGHT")
 
 
         elif right_bound - self.buffer <= px :  
-            self.search_direction = "LEFT"    # 走到底左轉
-            # print(f"人物位置:{px} 右邊側極值:{right_bound}")
+            self.search_direction = "LEFT"   
+
             return self._pack_action("MOVE", direction="LEFT")
         
-        # -- 移動到最近的怪物
+        # -- 接近無法打到的目標怪物
         return self._pack_action("MOVE", direction=best_target['direction']) 
 
     def _verti_movement(self,index):
@@ -727,16 +729,16 @@ class AutoControl:
         
         # -- 往下
         if self.current_verti_target == "DOWN":
-            if  current_time - self._verti_movement_timer > 2:
+            if  current_time - self._verti_movement_timer > VERTI_MOVE_STAY_TIMEOUT:
                 '''
-                條件A:超過X秒，判斷人物是否Y軸移動，沒移動代表在頂部
+                條件A:超過2秒，判斷人物是否Y軸移動，沒移動代表在頂部
                     '''
                 # 下面兩個if，目的為判斷有沒有成功到頂(底)部
                 if self._is_loc_y_change(): # <= - 有變動則重置
                     self._verti_movement_timer = current_time
 
                 #到達底部，重置狀態
-                if  current_time - self._verti_movement_timer > 2:
+                if  current_time - self._verti_movement_timer > VERTI_MOVE_STAY_TIMEOUT:
                     self.current_verti_target = None # < - 離開要重置
                     self._verti_movement_timer = None
                     self.last_player_loc = None

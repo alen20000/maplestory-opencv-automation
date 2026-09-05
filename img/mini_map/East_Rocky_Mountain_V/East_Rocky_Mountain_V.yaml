@@ -16,15 +16,12 @@
   - 58
 - action: JumpLeft
   loc:
-  - 34
+  - 30
   - 58
+
 - action: JumpLeft
   loc:
-  - 31
-  - 58
-- action: JumpLeft
-  loc:
-  - 24
+  - 22
   - 62
 - action: walk
   loc:
