@@ -95,40 +95,30 @@
   loc:
   - 23
   - 46
+
 - action: walk
   loc:
   - 45
   - 47
-- action: rope
+
+- action: JumpRight
   loc:
-  - 43
+  - 40
   - 47
-- action: rope
-  loc:
-  - 43
-  - 28
+
 - action: walk
   loc:
   - 41
   - 28
 - action: walk
   loc:
-  - 54
-  - 29
-- action: JumpLeft
-  loc:
-  - 52
+  - 58
   - 29
 
-- action: rope
+- action: JumpRight
   loc:
-  - 43
-  - 47
-- action: rope
-  loc:
-  - 43
-  - 28
-
+  - 55
+  - 29
 
 - action: walk
   loc:
@@ -139,8 +129,7 @@
   - 71
   - 24
 
-
-- action: JumpLeft
+- action: M_RIGHT
   loc:
-  - 38
-  - 47
+  - 70
+  - 24
