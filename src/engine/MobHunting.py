@@ -94,6 +94,8 @@ class MobDetector:
             # [原圖樣版比對]
             if mask is not None:
                 matches_normal = cv2.matchTemplate(crop_frame_gray, img, method, mask=mask)
+                # 有個坑，mask 比對的結果可能會抓到異常值 像是 無限大；這是因為數學公式問題，所以異常值要做處理
+                matches_normal[matches_normal > 1] = 0 # 處理"無限值"
             else:
                 matches_normal = cv2.matchTemplate(crop_frame_gray, img, method)
             loc_n = np.where(matches_normal >= self.min_threshold)
@@ -110,6 +112,7 @@ class MobDetector:
             # [翻轉比對] 放兩種，一種要模板，一種不用
             if flipped_mask is not None:
                 matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, method, mask=flipped_mask)
+                matches_flipped[matches_flipped > 1] = 0  # 處理"無限值"
             else:
                 matches_flipped = cv2.matchTemplate(crop_frame_gray, flipped_img, method)
             loc_f = np.where(matches_flipped >= self.min_threshold)
