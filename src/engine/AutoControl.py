@@ -657,16 +657,21 @@ class AutoControl:
             return self._pack_action("IDLE",command="STOP_MOVE")
         
         left_bound,right_bound = self.platforms[self.current_platform]["t_l"][0],self.platforms[self.current_platform]["b_r"][0]
-
-        if  px <= left_bound + self.buffer:  
+        mini_px = state.mini_player_loc[0]
+        if  mini_px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
-
+            print('右側行走')
+            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return self._pack_action("MOVE", direction="RIGHT")
 
 
-        elif right_bound - self.buffer <= px :  
-            self.search_direction = "LEFT"   
-
+        elif right_bound - self.buffer <= mini_px :  
+            self.search_direction = "LEFT" 
+            print("人物座標",mini_px)  
+            print("右側返回邊界",right_bound - self.buffer)
+            print("左側行走")
+            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            
             return self._pack_action("MOVE", direction="LEFT")
         
         # -- 接近無法打到的目標怪物
@@ -707,7 +712,7 @@ class AutoControl:
             # 下面兩個if，目的為判斷有沒有成功到頂(底)部
             if self._is_loc_y_change(): # <= - 有變動則重置
                 self._verti_movement_timer = current_time
-            if  current_time - self._verti_movement_timer > 11:
+            if  current_time - self._verti_movement_timer > 1:
                 '''
                 給偵測餘裕
                 超過1秒，判斷人物是否Y軸移動，沒移動代表在底部
