@@ -1,6 +1,6 @@
 - action: walk
   loc:
-  - 27
+  - 35
   - 71
 - action: walk
   loc:
@@ -40,11 +40,11 @@
   - 39
 - action: walk
   loc:
-  - 115
+  - 119
   - 39
 - action: walk
   loc:
-  - 65
+  - 64
   - 39
 
 - action: JumpDown

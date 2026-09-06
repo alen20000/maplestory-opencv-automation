@@ -29,17 +29,17 @@ player_setting:
   #戰鬥設置
   auto_control_config:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
-    is_Night_Lord: False
+    is_Night_Lord: True
 
     #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500 
-    attack_range: 100
+    attack_range: 500
 
 
 image_processing:
 #圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.90
+  mob_min_threshold : 0.95
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -47,10 +47,10 @@ game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
   #參考: 近戰 100-200 遠程 300-500  
-  roi_x_offset_l_width: 180
-  roi_x_offset_r_width: 180
+  roi_x_offset_l_width: 350
+  roi_x_offset_r_width: 350
   roi_y_offset_t_high: 110
-  roi_y_offset_b_high: 40
+  roi_y_offset_b_high: 100
 
 auto_control_config:
 
@@ -61,13 +61,13 @@ auto_control_config:
   TOGGLE_COMBAT_ACTION: True
 
   #允許進行平台移動的時間閾值:單位(秒) ； 若間隔時間內沒有怪物，進入移動狀態
-  find_mob_time_threshold : 8
+  find_mob_time_threshold : 6
 
   #人物卡住檢查間隔時間:單位(秒); 巡邏狀態中，超過這個時間，觸發防卡頓動作
   stuck_check_time_threshold : 3
 
   #邊界距離緩衝:單位:像素;人物若進入緩衝區會往反方向移動，避免離開打怪區間
-  buffer: 8
+  buffer: 3
 
   # 跳躍距離閾值，太遠容易抓到很遠的跳躍點(有可能頻繁卡住)，太近又容易偵測不到
   JUMP_DISTANCE_THRESHOLD: 15 

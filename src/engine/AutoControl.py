@@ -652,7 +652,6 @@ class AutoControl:
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
 
-
         if self.current_platform is None: # 不在攻擊平台內，停止移動，防止一系列檢測失敗的錯誤回傳
             return self._pack_action("IDLE",command="STOP_MOVE")
         
@@ -660,18 +659,9 @@ class AutoControl:
         mini_px = state.mini_player_loc[0]
         if  mini_px <= left_bound + self.buffer:  
             self.search_direction = "RIGHT"
-            print('右側行走')
-            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return self._pack_action("MOVE", direction="RIGHT")
-
-
         elif right_bound - self.buffer <= mini_px :  
             self.search_direction = "LEFT" 
-            print("人物座標",mini_px)  
-            print("右側返回邊界",right_bound - self.buffer)
-            print("左側行走")
-            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
-            
             return self._pack_action("MOVE", direction="LEFT")
         
         # -- 接近無法打到的目標怪物
