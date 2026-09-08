@@ -17,8 +17,7 @@ import logging
 
 '''
 
-LOWER_GREEN = np.array([35, 100, 100], dtype=np.uint8)
-UPPER_GREEN = np.array([85, 255, 255], dtype=np.uint8)
+
 
 class GetRoleImg():
     def __init__(self):
@@ -60,6 +59,10 @@ class GetRoleImg():
 
     def preload_img(self):
         """預先載入圖片"""  
+
+        LOWER_GREEN = np.array([35, 100, 100], dtype=np.uint8)
+        UPPER_GREEN = np.array([85, 255, 255], dtype=np.uint8)
+
         # 讀取模板
         self.role_template_bgr = cv2.imread(self.template_nametag_path)
 
@@ -139,13 +142,14 @@ class GetRoleImg():
     def _get_role_NameTag(self,frame_bgr):
         '''判斷人物角色位置'''
         crop_frame = cv2.cvtColor(frame_bgr,cv2.COLOR_BGR2GRAY)
-        method = cv2.TM_CCORR_NORMED
+        method = cv2.TM_CCOEFF_NORMED
         result = cv2.matchTemplate(crop_frame, self.role_template, method, mask=self.mask)
 
-        # 用numpy的布林引索，處理異常值"無限""
+        # 異常值處理: 用numpy的布林引索，處理異常值"無限""
         result[result > 1] = 0
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
+        # 位置座標處理
         self.role_top_left = max_loc
         h, w = self.role_template.shape[:2]
         self.role_bottom_right = (self.role_top_left[0] + w, self.role_top_left[1] + h)
@@ -153,10 +157,10 @@ class GetRoleImg():
         # 畫框
         cv2.rectangle(frame_bgr, (self.role_top_left[0]-1, self.role_top_left[1]-1),
                     (self.role_bottom_right[0]+1, self.role_bottom_right[1]+1), (100, 0, 255), 2)
-        cv2.putText(frame_bgr,f"匹配值:{max_val}",(self.role_top_left[0]-10, self.role_top_left[1]-10),
+        cv2.putText(frame_bgr,f"匹配值:{max_val:.2f}",(self.role_top_left[0]-10, self.role_top_left[1]-10),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 225), thickness=1)
-
-
+        # cv2.imshow("Mask (White = Keep, Black = Ignore)", self.mask)
+        # cv2.imshow("roler)", self.role_template)
     def get_new_char_img(self):
         '''顯示畫面、手動抓圖'''
         while True:
