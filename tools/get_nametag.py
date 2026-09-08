@@ -101,18 +101,18 @@ class GetRoleImg():
         # 尺寸與原圖相同
         processed_img = np.full(img.shape, (0, 255, 0), dtype=np.uint8)
 
-        # 2. 設定你要保留的固定區塊座標範圍 (y1:y2, x1:x2)
-        # 【注意】這裡的數值需要依據你實際抓圖的大小來微調
-        # 假設圖片高度為 H、寬度為 W，你只想保留中間包含稱號、名字、勳章的某個固定矩形範圍：
         h, w, _ = img.shape
         
-        # 範例：保留從垂直 10% 到 90%、水平 15% 到 85% 的區域（請依你的實際畫面調整）
-        y1, y2 = int(h * 0.05), int(h * 0.95)
-        x1, x2 = int(w * 0.10), int(w * 0.90)
+
+        # 2. 將原圖的指定區塊覆蓋到綠色畫布上
+        y_name_start, y_name_end = int(h * 0.1), int(h * 0.45) # 人物名稱 y 軸的起始和結束位置
+        x_name_start, x_name_end = int(w * 0.2), int(w * 0.8) # 人物名稱 X 軸的起始和結束位置
+        x_badge_start, x_badge_end = int(w * 0.05), int(w * 0.95)  # 勳章 X 軸的起始和結束位置
+        y_badge_start, y_badge_end = int(h * 0.55), int(h * 0.88)    # 勳章 y 軸的起始和結束位置
 
         # 3. 將原圖的指定區塊覆蓋到綠色畫布上，其餘部分維持綠色背景
-        processed_img[y1:y2, x1:x2] = img[y1:y2, x1:x2]
-
+        processed_img[y_name_start:y_name_end, x_name_start:x_name_end] = img[y_name_start:y_name_end, x_name_start:x_name_end]
+        processed_img[y_badge_start:y_badge_end, x_badge_start:x_badge_end] = img[y_badge_start:y_badge_end, x_badge_start:x_badge_end]
         # 儲存或回傳處理後的圖片
         cv2.imwrite(self.MyRole_img_path, processed_img)
         print(f"\n角色標籤已儲存至:{self.MyRole_img_path}")
