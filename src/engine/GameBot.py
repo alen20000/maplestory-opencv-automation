@@ -28,6 +28,10 @@ F9:暫停/繼續
 F12:退出離開
 '''
 
+'''遮罩用數值'''
+LOWER_GREEN = np.array([35, 100, 100], dtype=np.uint8)
+UPPER_GREEN = np.array([85, 255, 255], dtype=np.uint8)
+
 class GameBot:
     
     def __init__(self):
@@ -51,7 +55,7 @@ class GameBot:
         self.my_character_template = None
         self.my_character_template_size = None
         self.my_character_template_gray = None
-        self.my_character_template_binary = None
+        self.mask = None
 
         #---畫面資料
         self.frame_bgr = None
@@ -110,9 +114,11 @@ class GameBot:
         self.my_character_template = cv2.imread(self.my_character_template_path)
         self.my_character_template_size =  convert_img2xy(self.my_character_template)
         self.my_character_template_gray =cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2GRAY)
-        self.my_character_template_binary = BGR2Binary(self.my_character_template)
 
-
+        # 製作遮罩
+        my_character_template_hsv = cv2.cvtColor(self.my_character_template, cv2.COLOR_BGR2HSV)
+        role_green_mask = cv2.inRange(my_character_template_hsv, LOWER_GREEN, UPPER_GREEN)
+        self.mask = cv2.bitwise_not(role_green_mask)
 
         #模組實例化
         self.mob_detector = MobDetector()
@@ -227,6 +233,7 @@ class GameBot:
             # 人物判定的中心點
             cv2.circle(self.frame_bgr, self.player_center_loc, 5, [42,42,165], 3)
         cv2.imshow("Game Debug View", self.frame_bgr)
+
         cv2.waitKey(1)
 
 
@@ -374,8 +381,8 @@ class GameBot:
     #=================
     def player_tracking_logic(self):
         '''
-        角色位置提取:全局掃描/ROI掃描
-        人物BBOX繪製
+        功能:
+            控制ROI與全圖掃描邏輯
         '''
         try:
             if self.player_center_loc is None:
@@ -407,11 +414,13 @@ class GameBot:
 
     def _locate_player_globally(self):
         '''
-        全局掃描人物
+        功能:
+            全圖掃描
         '''
         try:
             current_frame = cv2.cvtColor(self.frame_bgr, cv2.COLOR_BGR2GRAY)
-            result = cv2.matchTemplate(current_frame,self.my_character_template_gray,self.method)
+            result = cv2.matchTemplate(current_frame,self.my_character_template_gray,self.method,
+                                       mask=self.mask)
             
             #找到角色
             _, max_val, _, max_loc = cv2.minMaxLoc(result)
@@ -428,10 +437,10 @@ class GameBot:
 
     def _locate_player_locally(self):
         '''
-        局部掃描:
+        功能:
+            ROI局部掃描
         '''
         try:
-
 
             # Type is tuple(x,y)
             top = max(0, self.player_center_loc[1] - self.roi_top_offset)
@@ -445,7 +454,8 @@ class GameBot:
             #[!]OpenCV 陣列切片強制要求 [y軸範圍, x軸範圍]，小心切錯
             roi_crop_frame = self.frame_bgr[top:bottom, left:right]
             self.roi_crop_frame_gray  =  cv2.cvtColor(roi_crop_frame, cv2.COLOR_BGR2GRAY)
-            matches = cv2.matchTemplate(self.roi_crop_frame_gray ,self.my_character_template_gray,self.method)
+            matches = cv2.matchTemplate(self.roi_crop_frame_gray ,self.my_character_template_gray,
+                                        self.method,mask=self.mask)
             _, max_val, _, max_loc = cv2.minMaxLoc(matches)
 
             if max_val > self.min_threshold:
@@ -456,15 +466,10 @@ class GameBot:
                 self.player_center_loc = cent_coord(player_loc_globally , self.my_character_template_size)
                 self.role_BBOX = get_bbox_from_center(self.player_center_loc , self.my_character_template_size)
 
-                # # 繪製偵查範圍
-                # draw_dectection_box(self.frame_bgr, self.roi_BBOX.top_left, self.roi_BBOX.bottom_right, label="偵測範圍",
-                # top_padding=0, bottom_padding=0, left_padding=0, right_padding=0)
-
                 return  True
             
             else:
                 logging.info('ROI掃描，未找到角色')
-                # 沒匹配reset
 
                 return False    
 
