@@ -386,15 +386,19 @@ class KeyBoard:
         threading.Thread(target=self.jump_right_grab_command, args=(duration, delay), daemon=True).start()
 
     def _jump_up_grab_command(self, duration, delay):
-        '''向上跳（複合動作：先按住上 -> 微間隔 -> 按下跳躍）'''
+        '''向上跳（複合動作：按一次上 -> 按住上 -> 微間隔 -> 按下跳躍）'''
         try:
+            #按一次上，用來過傳點
+            self._key_down(self.up_key)
+            self._key_up(self.up_key)
+
             self._key_down(self.up_key)
             time.sleep(delay)          # 微小間隔，讓上鍵先生效，才能觸發向上跳躍的判定
             self._key_down(self.jump_key)
             time.sleep(duration)
         except Exception as e:
             logging.error(f"向上跳動作發生錯誤:{e}")
-        finally:
+        finally:           # 等待跳躍動作結束
             self._key_up(self.jump_key)
 
 
