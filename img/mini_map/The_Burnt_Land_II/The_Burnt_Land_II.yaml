@@ -1,0 +1,25 @@
+- action: walk
+  loc:
+  - 160
+  - 79
+- action: walk
+  loc:
+  - 82
+  - 79
+- action: walk
+  loc:
+  - 74
+  - 86
+- action: walk
+  loc:
+  - 3
+  - 86
+- action: JumpRight
+  loc:
+  - 72
+  - 86
+- action: JumpRight
+  loc:
+  - 76
+  - 83
+
