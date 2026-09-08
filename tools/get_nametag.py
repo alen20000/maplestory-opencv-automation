@@ -23,10 +23,10 @@ UPPER_GREEN = np.array([85, 255, 255], dtype=np.uint8)
 class GetRoleImg():
     def __init__(self):
         #config
-        self.game_title = config.get("game.title")
-        self.template_nametag_path = config.get("folder_path.template_nametag_path")
+        self.game_title = config.get("game.title")  # 遊戲視窗標題
+        self.template_nametag_path = config.get("folder_path.template_nametag_path") #名牌模板
         self.hwnd,self.client_rect =None, None
-        self.MyRole_img_path = config.get("folder_path.my_character_template_path")
+        self.MyRole_img_path = config.get("folder_path.my_character_template_path") #儲存路徑
         
         #img
         self.role_template = None
@@ -60,18 +60,20 @@ class GetRoleImg():
 
     def preload_img(self):
         """預先載入圖片"""  
+        # 讀取模板
+        self.role_template_bgr = cv2.imread(self.template_nametag_path)
 
-        #讀取模板轉hsv
-        self.role_template = cv2.imread(self.MyRole_img_path)
-        self.role_template_hsv = cv2.cvtColor(self.role_template, cv2.COLOR_BGR2HSV)
-        #bgr是三通到、mask是單通道，沒辦法使用，轉灰階變單通道
-        self.role_template = cv2.imread(self.MyRole_img_path, cv2.IMREAD_GRAYSCALE)
-        #遮罩模板與反轉
+        #轉HSV製作遮罩
+        self.role_template_hsv = cv2.cvtColor(self.role_template_bgr, cv2.COLOR_BGR2HSV)
         role_green_mask = cv2.inRange(self.role_template_hsv, LOWER_GREEN, UPPER_GREEN)
         self.mask = cv2.bitwise_not(role_green_mask)
 
+        #bgr是三通到、mask是單通道，沒辦法使用，轉灰階變單通道
+        self.role_template = cv2.cvtColor(self.role_template_bgr, cv2.COLOR_BGR2GRAY)
+
+
     def _save_role_NameTag(self,frame_bgr):
-        '''儲存人物名白 '''
+        '''捕捉人物名牌 '''
 
         x1,y1 = self.role_top_left
         x2,y2 = self.role_bottom_right
@@ -82,6 +84,36 @@ class GetRoleImg():
             print(f"\n角色標籤已儲存至:{self.MyRole_img_path}")
         else:
             print("角色標籤儲存失敗")
+
+
+
+    def _process_nametag(self):
+        '''後製圖片'''
+        img = cv2.imread(self.MyRole_img_path)
+        if img is None:
+            print("無法讀取圖片")
+            return
+
+        # 1. 建立一個全綠色的畫布 (BGR格式，純綠色為 0, 255, 0)
+        # 尺寸與原圖相同
+        processed_img = np.full(img.shape, (0, 255, 0), dtype=np.uint8)
+
+        # 2. 設定你要保留的固定區塊座標範圍 (y1:y2, x1:x2)
+        # 【注意】這裡的數值需要依據你實際抓圖的大小來微調
+        # 假設圖片高度為 H、寬度為 W，你只想保留中間包含稱號、名字、勳章的某個固定矩形範圍：
+        h, w, _ = img.shape
+        
+        # 範例：保留從垂直 10% 到 90%、水平 15% 到 85% 的區域（請依你的實際畫面調整）
+        y1, y2 = int(h * 0.05), int(h * 0.95)
+        x1, x2 = int(w * 0.10), int(w * 0.90)
+
+        # 3. 將原圖的指定區塊覆蓋到綠色畫布上，其餘部分維持綠色背景
+        processed_img[y1:y2, x1:x2] = img[y1:y2, x1:x2]
+
+        # 儲存或回傳處理後的圖片
+        cv2.imwrite(self.MyRole_img_path, processed_img)
+        print(f"\n角色標籤已儲存至:{self.MyRole_img_path}")
+
 
     def _capture_screen(self) -> cv2.Mat:
         '''單純負責：抓取遊戲相機視窗、縮放、轉換色彩格式，並回傳處理好的影像'''
@@ -131,6 +163,7 @@ class GetRoleImg():
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('z'):
                     self._save_role_NameTag(crop_frame )
+                    self._process_nametag()
                     break
 
                 # 離開鍵 "Q"
