@@ -43,9 +43,22 @@ pip install -r requirements.txt
 #### II. 製作角色名片: 
 * 進入遊戲，開啟`GetNameTag.py`，找個視野乾淨的場景，按`Z`快照自己的角色名片，用作樣本匹配。
 
-<p align="center">
-  <img src="./assets/NameTag_demo.png" width="200">
+* 人物名牌快照儲存於`img\nametag`資料夾內
 </p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="./assets/NameTag_demo.png" width="200"><br>
+      <em>紅色框框聚焦成功後，按下"Z"鍵拍照</em>
+    </td>
+    <td align="center">
+      <img src="./assets/NameTag_demo_2.png"
+      width="200">
+      <br>
+      <em>成功後得到人物去背後的名牌</em>
+    </td>
+  </tr>
+</table>
 
 #### III. 錄製移動路徑:
 * 先到路徑`./config/config_data`
