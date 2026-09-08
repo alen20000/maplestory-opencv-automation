@@ -29,17 +29,17 @@ player_setting:
   #戰鬥設置
   auto_control_config:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
-    is_Night_Lord: True
+    is_Night_Lord: False
 
     #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500 
-    attack_range: 500
+    attack_range: 110
 
 
 image_processing:
 #圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.95
+  mob_min_threshold : 0.97
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -47,8 +47,8 @@ game_bot:
   
   #roi範圍的位移量 ，要在減少運算/加大偵測怪物範圍間取捨
   #參考: 近戰 100-200 遠程 300-500  
-  roi_x_offset_l_width: 350
-  roi_x_offset_r_width: 350
+  roi_x_offset_l_width: 200
+  roi_x_offset_r_width: 200
   roi_y_offset_t_high: 110
   roi_y_offset_b_high: 100
 
@@ -99,5 +99,5 @@ keyboard:
 
 
 folder_path:
-  template_nametag_path: img/nametag/example.png
-  my_character_template_path: img/nametag/MyRoleNameTag.png
+  template_nametag_path: img/nametag/example.png # 預設捕獲角色模板
+  my_character_template_path: img/nametag/MyRoleNameTag.png  # 使用中的人物角色模板
