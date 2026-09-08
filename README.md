@@ -173,8 +173,8 @@ pip install -r requirements.txt
   * 結合 `ImageGrab` (mss/Pillow) 進行高效能的視窗截圖，並轉為 OpenCV 的 BGR 陣列格式。
 * **樣板匹配 (Template Matching)**：
   * **灰階與二值化預處理**：將畫面與模板轉為灰階，利用 `cv2.threshold` (OTSU 演算法) 消除雜訊、突顯輪廓。
-  * `TM_CCORR_NORMED`:支援使用遮罩（Mask）過濾背景干擾。
-  * `TM_CCOEFF_NORMED` :基礎匹配方法。
+  * `TM_CCORR_NORMED`: (歸一化互相關)支援使用遮罩（Mask）過濾背景干擾，對亮度非常敏感，容易給高亮匹配區更大權重分數。
+  * `TM_CCOEFF_NORMED`: (歸一化相關係數) 會先減去平均值，再除以標準差，所以會減少亮度影響，以及對比度、波動幅度的影響，更容易比對特徵。
   * **NMS（Non-Maximum Suppression**
     * 利用NMS清除重複匹配，減輕`draw_dectection_box`繪圖運算量，打怪功能前的重要步驟
 
