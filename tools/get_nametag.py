@@ -142,13 +142,20 @@ class GetRoleImg():
         method = cv2.TM_CCORR_NORMED
         result = cv2.matchTemplate(crop_frame, self.role_template, method, mask=self.mask)
 
+        # 用numpy的布林引索，處理異常值"無限""
+        result[result > 1] = 0
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
         self.role_top_left = max_loc
         h, w = self.role_template.shape[:2]
         self.role_bottom_right = (self.role_top_left[0] + w, self.role_top_left[1] + h)
 
-        cv2.rectangle(frame_bgr, self.role_top_left, self.role_bottom_right, (100, 0, 255), 2)
+        # 畫框
+        cv2.rectangle(frame_bgr, (self.role_top_left[0]-1, self.role_top_left[1]-1),
+                    (self.role_bottom_right[0]+1, self.role_bottom_right[1]+1), (100, 0, 255), 2)
+        cv2.putText(frame_bgr,f"匹配值:{max_val}",(self.role_top_left[0]-10, self.role_top_left[1]-10),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 0, 225), thickness=1)
+
 
     def get_new_char_img(self):
         '''顯示畫面、手動抓圖'''
