@@ -1,5 +1,5 @@
 # 選擇地圖
-quickly_choice_map: The_Burnt_Land_II
+quickly_choice_map: The_Land_of_Wild_Boar
 
 # 設定的地圖路徑
 map:
@@ -15,7 +15,8 @@ map:
   East_Rocky_Mountain_V : img/map/East_Rocky_Mountain_V
   Downstairs_at_the_Forest : img/map/Downstairs_at_the_Forest
   The_Burnt_Land_II : img/map/The_Burnt_Land_II
-
+  Dangerous_Croko_II : img/map/Dangerous_Croko_II
+  
 mini_map:
   Mushroom_Garden : img/mini_map/Mushroom_Garden/Mushroom_Garden_1.png
   Hunting_Ground_I : img/mini_map/Hunting_Ground_I/Hunting_Ground_1.png
@@ -25,3 +26,4 @@ mini_map:
   East_Rocky_Mountain_V : img/mini_map/East_Rocky_Mountain_V/East_Rocky_Mountain_V.png
   Downstairs_at_the_Forest : img/mini_map/Downstairs_at_the_Forest/Downstairs_at_the_Forest.png
   The_Burnt_Land_II : img/mini_map/The_Burnt_Land_II/The_Burnt_Land_II.png
+  Dangerous_Croko_II : img/mini_map/Dangerous_Croko_II/Dangerous_Croko_II.png

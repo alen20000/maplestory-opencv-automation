@@ -2,7 +2,7 @@
 
 # ===extension===
 *.log
-
+*.mp4
 # ===Folder=== 
 **/logs/
 **/_*
@@ -11,3 +11,5 @@
 
 #===img===
 MyRoleNameTag.png
+
+

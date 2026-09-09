@@ -1,0 +1,8 @@
+- action: walk
+  loc:
+  - 37
+  - 83
+- action: walk
+  loc:
+  - 189
+  - 84
