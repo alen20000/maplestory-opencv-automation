@@ -55,7 +55,7 @@ class CombatState(State):
 
         if not state_data.mobs:
             context.reset_state()
-            return context._reset_state()
+            return None, None
 
         # 檢查角色是否卡頓
         if time.time() - self.stuck_check_timer >= self.STUCK_CHECK_INTERVAL: 
