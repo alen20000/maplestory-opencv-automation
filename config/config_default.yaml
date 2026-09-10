@@ -39,7 +39,7 @@ image_processing:
 #圖像匹配度設置，抓不到怪物或角色，或者抓太多目標，可在這邊調適
   
   #怪物匹配最小值
-  mob_min_threshold : 0.90
+  mob_min_threshold : 0.97
   #人物匹配最小值
   role_min_threshold : 0.6
 
@@ -77,13 +77,13 @@ auto_control_config:
 health_detector:
 
   #健康條的座標；解析度、DPI設定都會影響判定範圍，若發現判定不準，需自行測量範圍
-  hp_bar_loc : [503, 751, 608, 754]
-  mp_bar_loc : [611, 751, 716, 754]
+  hp_bar_loc : [475, 750, 631, 760]
+  mp_bar_loc : [643, 750, 799, 760]
   #血條顏色範圍
   lower_hp_color: [0, 200, 200]
   upper_hp_color: [5, 255, 255]
   #藍條顏色範圍
-  lower_mp_color: [100, 132, 238]
+  lower_mp_color: [100, 132, 90]
   upper_mp_color: [107, 255, 255]
 
 keyboard:
