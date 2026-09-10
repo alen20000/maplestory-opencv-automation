@@ -134,6 +134,7 @@ class HealthManager:
 
 
     def run(self,current_player_hp,current_player_mp, current_time):
+        
         level , heal_key = self._health_status_check(current_player_hp,current_time)
         if level is not None:
             return f"HEAL_{level.upper()}", {"key": heal_key}

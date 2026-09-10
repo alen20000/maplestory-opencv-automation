@@ -29,6 +29,7 @@ class HealthDetector():
     def run(self, frame: np.ndarray):
         hp_status = self.hp_detect(frame)
         mp_status = self.mp_detect(frame)
+        
         return hp_status, mp_status
 
     def hp_detect(self, frame: np.ndarray):
@@ -39,7 +40,7 @@ class HealthDetector():
         crop_frame = frame[y1:y2, x1:x2]
         hsv_frame = cv2.cvtColor(crop_frame, cv2.COLOR_BGR2HSV)
         max_hp = crop_frame.shape[1]
-
+        
         #雖然楓之谷大概沒有光汙問題，但還是做一下，
         lower_bound = np.array(self.lower_hp_color, dtype=np.uint8)
         upper_bound = np.array(self.upper_hp_color, dtype=np.uint8)
@@ -60,13 +61,14 @@ class HealthDetector():
         crop_frame = frame[y1:y2, x1:x2]
         hsv_frame = cv2.cvtColor(crop_frame, cv2.COLOR_BGR2HSV)
         max_mp = crop_frame.shape[1]
-
+        
         lower_bound = np.array(self.lower_mp_color, dtype=np.uint8)
         upper_bound = np.array(self.upper_mp_color, dtype=np.uint8)
         mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
 
         mp_remain = np.any(mask > 0, axis=0)
         mp_remain = np.count_nonzero(mp_remain)
+
 
         return round(mp_remain / max_mp * 100, 1)
 
