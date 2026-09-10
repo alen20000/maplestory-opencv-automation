@@ -3,7 +3,7 @@ import interception
 import logging
 from config.config_loader import config
 import threading
-
+import random
 class KeyBoard:
     def __init__(self):
         #捕捉與綁定滑鼠
@@ -522,7 +522,14 @@ class KeyBoard:
         self._key_down(self.up_key)
 
     def climb_down(self):
-        self.enable_down(duration=1)
+        '''動作: 從繩子往下跳'''
+        direction_key = random.choice([self.right_key, self.left_key])  # 每次都隨機跳，看起來比較真
+        self._key_down(direction_key)
+        time.sleep(0.03)
+        self._key_down(self.jump_key)
+        self._key_up(direction_key)
+        self._key_up(self.jump_key)
+
 
     ''' 停止釋放'''
 

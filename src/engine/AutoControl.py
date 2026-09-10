@@ -717,7 +717,7 @@ class AutoControl:
             
             #條件 : 人物處於下層區與 且 y軸沒變動
             if  bottom - BOTTOM_TOLERANCE <= py <= bottom and not self._is_loc_y_change():
-
+                '''功能: 找繩子爬繩'''
                 if px <= central_axis :
                     print(f'方向:{self.current_verti_target}，找繩子')
                     return self._pack_action("ROPE", direction="RIGHT_UP")
