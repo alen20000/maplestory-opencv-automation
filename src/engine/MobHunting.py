@@ -140,35 +140,43 @@ class MobDetector:
         
         return result
 
-    def _pix_filter_method(self,all_detected_boxes:list):
-
+    def _pix_filter_method(self, all_detected_boxes: list):
         '''
-        過濾方法:中心距離閾值過濾法
+        過濾方法:中心距離閾值過濾法（跨模板全域過濾，但維持舊結構輸出）
         '''
-    #封包用
-        all_mobs_locs =[]
-    #比對用
-        final_mobs_dict = {}
+        # 封包用 
+        all_mobs_locs = []
+        
+        # 裝所有過濾後的框
+        accepted_boxes = []
     
         for box in all_detected_boxes:
-            mob_name = box["mob_name"]
             cx, cy = box["center"]
             
-            if mob_name not in final_mobs_dict:
-                final_mobs_dict[mob_name] = []
 
-            # 檢查是否跟已經被收錄的同種類怪物距離太近
             is_dup = False
-            for existing in final_mobs_dict[mob_name]:
+
+            # 跟已收錄的比對，過濾重疊BOX
+            for existing in accepted_boxes:
                 ex_cx, ex_cy = existing["center"]
-                # 如果中心點距離小於 25 像素，視為同一隻怪物的重複殘影，直接過濾掉
+                
+                # 如果中心點距離小於閾值，視為同一隻怪物的重複殘影，直接過濾掉
                 if abs(cx - ex_cx) < self.pix_filter_threshold and abs(cy - ex_cy) < self.pix_filter_threshold:
                     is_dup = True
                     break
 
             if not is_dup:
+                accepted_boxes.append(box)
 
-                final_mobs_dict[mob_name].append(box)
+        # 以 mob_name　重新分類拚回
+        final_mobs_dict = {}
+        for box in accepted_boxes:
+            mob_name = box["mob_name"]
+            if mob_name not in final_mobs_dict:
+                final_mobs_dict[mob_name] = []
+            final_mobs_dict[mob_name].append(box)
+
+        # 封裝
         all_mobs_locs = [(mob_name, boxes) for mob_name, boxes in final_mobs_dict.items() if boxes]
         return all_mobs_locs
 
