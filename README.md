@@ -102,6 +102,7 @@ pip install -r requirements.txt
 <p align="center">
   <img src="./assets/setting-combat-2.png" width="300">
 </p>
+
 * 地圖設定
   * 路徑`./config/config_data`
   * 設定`quickly_choice_map`的值，為角色運行的地圖
