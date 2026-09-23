@@ -80,17 +80,35 @@ pip install -r requirements.txt
 
 * 藥水設定
   * 路徑`./config/config_default`
+  * `Value`為百分比 0 -100 
+  * 預設三個階段，但這邊是動態載入，可擴增設定更多水線設定
 <p align="center">
   <img src="./assets/setting-1.png" width="300">
 </p>
 
-* 地圖設定
-  * 路徑`./config/config_data`
-  * `quickly_choice_map`的值，設下列`map`的`value`
-  * `map`下方的鍵值可以製作對應地圖的怪物配對模板
+* 戰鬥設定
+  * `is_Night_Lord`: 給鏢賊跳射或某些時候需要跳打所用，用到機會很少
+  * `enable_AOE` :　開啟範圍攻擊判斷的開關
+  * `AOE_threshold` : 判斷使用，怪物滿足該設定值，才會觸發AOE攻擊狀態的按鍵
+  * `attack_range` : 人物的攻擊範圍，目標在這範圍內，人物才會攻擊
+  * `mob_min_threshold` : 怪物匹配的過濾值，這裡需要根據情況調整，太高容易抓不到怪物，太低容易抓到鬼影造成人物空揮
+  * `role_min_threshold` : 人物判斷不到時能調整這參數，正常設定好人物NameTag的話，並不需要動這個參數
+  * `roi_offset` : 可調整ROI偵測框大小，ROI偵測框內才會做怪物偵測的判斷，過大容易吃效能，建議按照實際情況調整
+
 
 <p align="center">
-  <img src="./assets/setting-2.png" width="300">
+  <img src="./assets/setting-combat-1.png" width="300">
+</p>
+<p align="center">
+  <img src="./assets/setting-combat-2.png" width="300">
+</p>
+* 地圖設定
+  * 路徑`./config/config_data`
+  * 設定`quickly_choice_map`的值，為角色運行的地圖
+  * 利用`map`下方的鍵值擴增對應地圖的怪物配對模板
+
+<p align="center">
+  <img src="./assets/setting-map-1.png" width="300">
 </p>
 
 * Minimap 移動點設定
