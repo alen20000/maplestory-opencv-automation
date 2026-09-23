@@ -10,8 +10,6 @@ class HealthDetector():
     量測記錄：
         螢幕解析度:2560 x 1600；DPI倍率:125% 之下之座標
 
-        HP bar: (503, 751, 608, 754)
-        MP bar: (611, 751, 716, 754)
     """
 
     def __init__(self):

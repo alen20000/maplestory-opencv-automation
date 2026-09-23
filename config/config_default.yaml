@@ -72,12 +72,6 @@ auto_control_config:
 
   #邊界距離緩衝:單位:像素;人物若進入緩衝區會往反方向移動，避免離開打怪區間
   buffer: 3
-  # =============== 跳躍點參數封存 ===============
-  # # 跳躍距離閾值，太遠容易抓到很遠的跳躍點(有可能頻繁卡住)，太近又容易偵測不到
-  # JUMP_DISTANCE_THRESHOLD: 15 
-  # # 跳躍點範圍;大小會影響偵測跳躍點時的判定。
-  # ACTION_POINT_RANGE : 2
-  # =============================================
 health_detector:
 
   #健康條的座標；解析度、DPI設定都會影響判定範圍，若發現判定不準，需自行測量範圍
@@ -106,3 +100,10 @@ keyboard:
 folder_path:
   template_nametag_path: img/nametag/example.png # 預設捕獲角色模板
   my_character_template_path: img/nametag/MyRoleNameTag.png  # 使用中的人物角色模板
+
+  # =============== 跳躍點參數封存 ===============
+  # # 跳躍距離閾值，太遠容易抓到很遠的跳躍點(有可能頻繁卡住)，太近又容易偵測不到
+  # JUMP_DISTANCE_THRESHOLD: 15 
+  # # 跳躍點範圍;大小會影響偵測跳躍點時的判定。
+  # ACTION_POINT_RANGE : 2
+  # =============================================

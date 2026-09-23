@@ -205,13 +205,13 @@ class AutoControl:
         #===========
         # 管理模組: 健康模組
         #===========
-        # 喝水不再狀態機處理，另外處理
+        # 健康資料給 HealthManager 去做判斷
         health_action = self.health_manager.run(state.player_hp,state.player_mp,current_time)
 
         if health_action is not None:
             return health_action
 
-        # state 資料給狀態機，回傳值在拆解為 action ,params ，並回傳給Gamebot模組
+        # 從狀態機中取出目前的狀態與參數，回傳給 GameBot模組
         action, params = self.bot_state.handle(state)   
 
         return action, params 
