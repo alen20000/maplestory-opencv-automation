@@ -39,7 +39,7 @@ class GameBot:
 
         #--視窗設定
         self.game_title = config.get("game.title")
-        self.hwnd = None
+        self.hwnd = None # <- 遊戲窗柄容器
         self.client_window_tl = None # <- 客戶端左上原點，也是偏移量
         #-- ROI參數
 
@@ -88,7 +88,7 @@ class GameBot:
         self.minimap_detector = None
 
         #---視窗狀態
-        self.bot_enabled = True
+        self.bot_enabled = True # <- bot狀態 True 正常運行; False 迴圈暫停
         self.is_game_window_foreground_last_frame = True  # <- 記錄「上一輪迴圈」遊戲視窗是否為前景視窗
 
         #---熟鍵設定
@@ -304,9 +304,9 @@ class GameBot:
                     time.sleep(1)
                     continue
 
-                # 前景視窗判斷
-                is_game_window_foreground = self._is_game_window_foreground() # 判斷本輪遊戲視窗是否在前景
-                if not is_game_window_foreground and self.is_game_window_foreground_last_frame: 
+                # 判斷: 遊戲視窗是否為前景
+                is_game_window_foreground = self._is_game_window_foreground() 
+                if not is_game_window_foreground and self.is_game_window_foreground_last_frame:  # <- 用切出的一瞬間，去做觸發
                     self.keyboard.release_all()
                     self.keyboard.stop_move()
                 self.is_game_window_foreground_last_frame = is_game_window_foreground  # 更新前景狀態
@@ -320,10 +320,14 @@ class GameBot:
                 '''
                 # 監測熟鍵
                 self.hotkey_manager.poll() 
-                if not self.bot_enabled: 
-                    # 暫停狀態
-                    if cv2.waitKey(1) == ord('q'):
-                        break
+
+                #=============
+                # @biref   暫停狀態
+                # @detail  迴圈暫停有三種情況 1. 視窗縮小 2. 前景不再遊戲，像是可能再點網站 3. 自主控制的暫停迴圈
+                # @note 要放在  self.hotkey_manager.poll()  之後， 因為這行要偵測熟鍵觸發
+                #=============
+                if not self.bot_enabled or not is_game_window_foreground:  # 暫停狀態待命
+                    time.sleep(0.05)  # 避免空轉吃滿CPU
                     continue  
 
 
@@ -337,7 +341,9 @@ class GameBot:
 
 
                 # print(f"圖匹配畫圖耗時: {time.time() - start:.3f}")
-                # 數據封包
+
+
+                # 數據封裝
                 current_game_state =  GameState(
                     player_center_loc = self.player_center_loc,
                     player_hp = self.player_hp,
@@ -346,6 +352,7 @@ class GameBot:
                     mobs = self.current_mobs_result,
                     mini_player_loc = mini_player_loc,
                 )
+
                 
                 '''
                 decide_operation ,execute_behavior  -> (str, dict{})
