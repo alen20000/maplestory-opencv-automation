@@ -97,6 +97,8 @@ class PathfindState(State):
         pass
     def handle(self, context, state_data):
 
+        
+        # TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
         # 條件A:偵測到鄰近的跳躍點 (關閉跳躍狀態判斷)
         # nearest_jump_index = context._find_nearest_jump_point()
         # if nearest_jump_index is not None:
