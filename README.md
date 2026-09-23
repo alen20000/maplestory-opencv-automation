@@ -103,6 +103,15 @@ pip install -r requirements.txt
   <img src="./assets/setting-combat-2.png" width="300">
 </p>
 
+* 輸入控制設定
+
+  * 輸入模塊是用第三方庫`interception`， `interception`的鍵碼很直觀
+  * 若想更確定對應的值，可以簡單用`./tools`內的`keyboard_check.py`測試按鍵輸出的值
+
+<p align="center">
+  <img src="./assets/setting-horkey-1.png" width="300">
+</p>
+
 * 地圖設定
   * 路徑`./config/config_data`
   * 設定`quickly_choice_map`的值，為角色運行的地圖
