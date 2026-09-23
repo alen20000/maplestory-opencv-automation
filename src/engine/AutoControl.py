@@ -33,8 +33,12 @@ class AutoControl:
         #---[外部參數&設定]
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
-        self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10)
-        self.ACTION_POINT_RANGE = config.get("auto_control_config.ACTION_POINT_RANGE", 1)
+        self.AOE_THRESHOLD = config.get("auto_control_config.AOE_threshold")
+
+        # TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
+        # self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10) 
+        # self.ACTION_POINT_RANGE = config.get("auto_control_config.ACTION_POINT_RANGE", 1) 
+
         #---[內部參數&設定]
         self.search_direction = random.choice(["LEFT", "RIGHT"]) #<-- 巡邏方向;第一次初始化隨機方向
         self.player_attack_range = config.get("player_setting.auto_control_config.attack_range") # <-- 玩家攻擊範圍
@@ -467,8 +471,9 @@ class AutoControl:
         else:
             print(f"玩家座標:{px}；走至座標:{self.vertical_passage[verti_passage_index]['t_l'][0]}")
             return self._pack_action("MOVE", direction="LEFT")
+        
+    # TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
     # #=================
-    # # 這塊打算廢棄
     # # 邏輯塊: 單點跳躍相關(JumpLeft/JumpRight)
     # #=================
 
@@ -671,12 +676,13 @@ class AutoControl:
 
         '''測試群體攻擊'''
 
-        total_mobs = sum(len(mob_detail) for _, mob_detail in state.mobs or [])
+        total_mobs = sum(len(mob_detail) for _, mob_detail in state.mobs or []) # 計算ROI範圍內的怪物數量
         print("ROI範圍內怪物數量",total_mobs)
         enable_aoe = False
-        aoe_threshold = 3
+        print("外部設置",self.AOE_THRESHOLD)
         if enable_aoe:
-            if len(state.mobs) > aoe_threshold:
+            if len(state.mobs) > self.AOE_THRESHOLD:
+                print("測試數量",total_mobs)
                 pass
         '''========================='''
 

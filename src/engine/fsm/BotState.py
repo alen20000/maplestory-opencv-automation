@@ -114,6 +114,7 @@ class PathfindState(State):
         context.reset_state()
         return None, None
 
+# TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
 
 # class JumpState(State):
 #     '''
