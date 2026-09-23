@@ -32,11 +32,19 @@ class ActionHandler:
 
         # 判定"攻擊"狀態
         if self.current_state == "ATTACK":
+            '''
+            Note: 判斷順序 -> 是否 AOE -> 跳打|普通攻擊 
+            '''
             # 停止移動
             direction = self.current_info.get("direction")
             self.keyboard.stop_move()
+
+            if direction == "AOE_ATTACK":
+                print("AOE攻擊哦!")
+
             if self.is_Night_Lord:
                 self.keyboard.enable_night_lord_attack(direction)
+
             else:
                 self.keyboard.enable_attack(direction)
 

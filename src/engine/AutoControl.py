@@ -216,14 +216,11 @@ class AutoControl:
 
         return action, params 
 
-
-    
-
-
-
     #=================
     # 邏輯塊: 脫困功能
     #=================
+
+    #TODO:暫時堪用，但不夠好，至少做到在繩子中的情況下能百分百脫困，以及後半平台返回的邏輯好像吃不到
 
     def _unstuck_player(self):
             '''
@@ -677,13 +674,18 @@ class AutoControl:
         '''測試群體攻擊'''
 
         total_mobs = sum(len(mob_detail) for _, mob_detail in state.mobs or []) # 計算ROI範圍內的怪物數量
-        print("ROI範圍內怪物數量",total_mobs)
-        enable_aoe = False
-        print("外部設置",self.AOE_THRESHOLD)
+
+        enable_aoe = True
+
         if enable_aoe:
-            if len(state.mobs) > self.AOE_THRESHOLD:
+            if len(state.mobs) >= self.AOE_THRESHOLD:
                 print("測試數量",total_mobs)
-                pass
+                aoe_command = {
+                    "name": None, 
+                    "distance": None,
+                    "direction": "AOE_ATTACK"
+                }
+                return "ATTACK" , aoe_command
         '''========================='''
 
         for mob , mob_detail in state.mobs or []:
