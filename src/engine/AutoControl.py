@@ -33,7 +33,7 @@ class AutoControl:
         #---[外部參數&設定]
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
-        self.AOE_THRESHOLD = config.get("auto_control_config.AOE_threshold")
+        self.AOE_THRESHOLD = config.get("player_setting.auto_control_config.AOE_threshold")
 
         # TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
         # self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10) 

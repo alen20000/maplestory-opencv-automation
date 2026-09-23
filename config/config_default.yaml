@@ -33,7 +33,7 @@ player_setting:
 
     #功能: 範圍技能 True:打開 False:關閉
     enable_AOE: True
-    AOE_threshold: 3  # 設定判斷ROI範圍內"大於等於"此數值，使用AOE技能
+    AOE_threshold: 2  # 設定判斷ROI範圍內"大於等於"此數值，使用AOE技能
 
     #人物的攻擊範圍(像素) 參考: 近戰:100-150 遠程:200-500 
     attack_range: 110
