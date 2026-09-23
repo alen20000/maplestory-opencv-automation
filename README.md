@@ -180,6 +180,7 @@ pip install -r requirements.txt
 | `CaptureScreen.py` | 顯示座標與截圖 |  計算螢幕座標與視窗內座標  |
 |`OperationLogger.py`|錄製小地圖的行動點|沒有錄製行動點的話，程序沒辦法動，至少錄製一個打怪平台，才可以計算左右範圍，儲存路徑為 `mini_map\[對應地圖]`的目錄下，錄製前要在`config_data.yaml`設定`quickly_choice_map`|
 | `CocoBeater.py` | 蒐集可可果實腳本 |  一個簡單掛機賺錢的小腳本，換頻道功能沒寫完，換到第60頻道後沒有返回功能，所以最多換60頻道  |
+| `keyboard_check.py` | 查詢按鍵設定的鍵位 | 顯示 keyborad套件中，鍵位的對應名稱，用於設定config的鍵盤命令 |
 
 ---
 ## Tech Stack
