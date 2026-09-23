@@ -31,7 +31,7 @@ player_setting:
     #功能:鏢賊跳射(跳躍攻擊) True:打開 False:關閉
     is_Night_Lord: False
 
-    #功能: 範圍技能 True:打開 False:關閉
+    #功能: 使用範圍攻擊技能 True:打開 False:關閉
     enable_AOE: True
     AOE_threshold: 2  # 設定判斷ROI範圍內"大於等於"此數值，使用AOE技能
 
@@ -91,12 +91,13 @@ health_detector:
   upper_mp_color: [107, 255, 255]
 
 keyboard:
-  #鍵盤按鍵設定
+  #鍵盤按鍵設定 (不知道設定甚麼，使用tools/keyboard_check.py 測試按鍵)
   left: left
   right: right
   up: up
   down: down
   attack: shift
+  aoe_attack: ctrl
   pick_up: z
   jump: alt
 

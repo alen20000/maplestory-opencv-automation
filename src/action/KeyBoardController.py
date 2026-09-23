@@ -56,6 +56,7 @@ class KeyBoard:
 
         #key value
         self.attack_key = config.get("keyboard.attack")
+        self.aoe_attack_key = config.get("keyboard.aoe_attack")
         self.up_key = config.get("keyboard.up")
         self.down_key = config.get("keyboard.down")
         self.left_key = config.get("keyboard.left")
@@ -98,12 +99,35 @@ class KeyBoard:
 
 
     def enable_attack(self,direction):
+        '''普通攻擊'''
         with self._attack_lock:
             if self._status_attack:
                 #攻擊還在發生，不再傳輸攻擊指令
                 return
             self._status_attack = True
             threading.Thread(target=self._attack_command,args=(direction,),daemon=True).start() 
+
+    def _aoe_attack_command(self):
+        try: 
+            self._key_down(self.aoe_attack_key)
+            time.sleep(0.3)
+        except Exception as e:
+            logging.error(f"攻擊行為發生錯誤:{e}")
+            
+        finally:
+            self._key_up(self.aoe_attack_key)
+            with self._attack_lock:
+                self._status_attack = False
+
+    def enable_aoe_attack(self):
+        '''範圍攻擊'''
+        with self._attack_lock:
+            if self._status_attack:
+                #攻擊還在發生，不再傳輸攻擊指令
+                return
+            self._status_attack = True
+            threading.Thread(target=self._aoe_attack_command,daemon=True).start() 
+
 
     def _night_lord_att_command(self, direction):
         try: 
@@ -127,6 +151,9 @@ class KeyBoard:
                 self._status_night_lord_attack = False
 
     def enable_night_lord_attack(self,direction):
+        '''
+        鏢賊/跳打攻擊
+        '''
         with self._night_lord_attack_lock:
             if self._status_night_lord_attack:
                 #攻擊還在發生，不再傳輸攻擊指令

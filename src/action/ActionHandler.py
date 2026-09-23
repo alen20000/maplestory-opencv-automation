@@ -41,10 +41,10 @@ class ActionHandler:
 
             if direction == "AOE_ATTACK":
                 print("AOE攻擊哦!")
+                self.keyboard.enable_aoe_attack()
 
             if self.is_Night_Lord:
                 self.keyboard.enable_night_lord_attack(direction)
-
             else:
                 self.keyboard.enable_attack(direction)
 
