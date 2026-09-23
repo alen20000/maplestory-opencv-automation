@@ -33,8 +33,8 @@ class AutoControl:
         #---[外部參數&設定]
         self.buffer = config.get("auto_control_config.buffer", 0) # <-- 邊界距離緩衝(平台的邊界距離+緩衝距離)
         self.verti_move_threshold = config.get("auto_control_config.verti_move_threshold",10)
+        self.ENABLE_AOE_ATTACK = config.get("player_setting.auto_control_config.enable_AOE")
         self.AOE_THRESHOLD = config.get("player_setting.auto_control_config.AOE_threshold")
-
         # TODO: 封存,待跳抓狀態機取消測試完畢後確認是否刪除或恢復
         # self.JUMP_DISTANCE_THRESHOLD = config.get("auto_control_config.JUMP_DISTANCE_THRESHOLD", 10) 
         # self.ACTION_POINT_RANGE = config.get("auto_control_config.ACTION_POINT_RANGE", 1) 
@@ -668,29 +668,17 @@ class AutoControl:
 
         # -- 計算最近的怪物
         best_target = None
-
+        total_mobs = 0 # 紀錄怪物數量
         min_distance = float('inf') #從無限遠開始判斷
 
-        '''測試群體攻擊'''
-
-        total_mobs = sum(len(mob_detail) for _, mob_detail in state.mobs or []) # 計算ROI範圍內的怪物數量
-
-        enable_aoe = True
-
-        if enable_aoe:
-            if len(state.mobs) >= self.AOE_THRESHOLD:
-                print("測試數量",total_mobs)
-                aoe_command = {
-                    "name": None, 
-                    "distance": None,
-                    "direction": "AOE_ATTACK"
-                }
-                return "ATTACK" , aoe_command
         '''========================='''
 
         for mob , mob_detail in state.mobs or []:
             for detailed in mob_detail:
-                #計算怪物的絕對座標，
+                # 計算 ROI內多少怪物目標
+                total_mobs += 1
+
+                #計算怪物水平的絕對座標，
                 mx = detailed["top_left"][0] + state.roi_BBOX.x1
 
                 #絕對值求與玩家間的距離
@@ -700,8 +688,20 @@ class AutoControl:
                     #左右判斷
                     direction = "RIGHT" if px < mx else "LEFT"
                     best_target = {"name": mob, "distance": distance, "direction": direction}
-        #攻擊距離判斷在這行
+
+        #判斷:怪物是否在攻擊距離之內
         if best_target and best_target['distance'] <= self.player_attack_range:
+            # 判斷:範圍攻擊
+            if self.ENABLE_AOE_ATTACK:
+                if total_mobs >= self.AOE_THRESHOLD:
+                    print("使用AOE技能")
+                    aoe_command = {
+                        "name": None, 
+                        "distance": None,
+                        "direction": "AOE_ATTACK"
+                    }
+                    return "ATTACK" , aoe_command
+            # 判斷:普通攻擊
             print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
             return "ATTACK" , best_target
 
