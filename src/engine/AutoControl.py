@@ -666,9 +666,20 @@ class AutoControl:
 
         # -- 計算最近的怪物
         best_target = None
-        min_distance = float('inf')
 
-        #從無限遠開始判斷
+        min_distance = float('inf') #從無限遠開始判斷
+
+        '''測試群體攻擊'''
+
+        total_mobs = sum(len(mob_detail) for _, mob_detail in state.mobs or [])
+        print("ROI範圍內怪物數量",total_mobs)
+        enable_aoe = False
+        aoe_threshold = 3
+        if enable_aoe:
+            if len(state.mobs) > aoe_threshold:
+                pass
+        '''========================='''
+
         for mob , mob_detail in state.mobs or []:
             for detailed in mob_detail:
                 #計算怪物的絕對座標，
