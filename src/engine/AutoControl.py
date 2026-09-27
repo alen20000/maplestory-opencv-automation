@@ -10,7 +10,9 @@ import random
 from pathlib import Path
 import yaml
 import time
-from enum import Enum, auto
+# from enum import Enum, auto
+
+import re
 '''
 改為，接收封包(GameState)，以封包數據進行邏輯運算與決策，
 輸出對應行為指令與目標資訊給控制模組
@@ -694,7 +696,7 @@ class AutoControl:
             # 判斷:範圍攻擊
             if self.ENABLE_AOE_ATTACK:
                 if total_mobs >= self.AOE_THRESHOLD:
-                    print("使用AOE技能")
+
                     aoe_command = {
                         "name": None, 
                         "distance": None,
@@ -702,7 +704,12 @@ class AutoControl:
                     }
                     return "ATTACK" , aoe_command
             # 判斷:普通攻擊
-            print(f"目標 [{best_target['name']}] 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            match = re.match(r'^[a-zA-Z\s]+',best_target["name"])
+            if match :
+                mob_name = match.group(0).strip()
+                print(f"目標 {mob_name} 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")
+            else:
+                    print(f"目標 {best_target["name"]} 在攻擊範圍內 距離: {best_target['distance']} 方向: {best_target['direction']}")   
             return "ATTACK" , best_target
 
         if self.current_platform is None: # 不在攻擊平台內，停止移動，防止一系列檢測失敗的錯誤回傳
